@@ -550,13 +550,9 @@ export function DailyTrivia() {
     if (phase !== 'playing' || locked) return;
 
     timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          lockAnswer(null);
-          return 0;
-        }
-        return prev - 1;
-      });
+      // Pure updater only — StrictMode double-invokes setState updaters in
+      // dev, so side effects (like locking the answer) must not live here.
+      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
 
     return () => {
@@ -565,7 +561,13 @@ export function DailyTrivia() {
         timerRef.current = null;
       }
     };
-  }, [phase, locked, currentQ, lockAnswer]);
+  }, [phase, locked, currentQ]);
+
+  // Auto-lock as a timeout once the clock actually hits zero
+  useEffect(() => {
+    if (phase !== 'playing' || locked || timeLeft > 0) return;
+    lockAnswer(null);
+  }, [phase, locked, timeLeft, lockAnswer]);
 
   // ── Start trivia ────────────────────────────────────────────────────────────
   const startTrivia = () => {
