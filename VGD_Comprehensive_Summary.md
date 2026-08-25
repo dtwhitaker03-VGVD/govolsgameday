@@ -8,7 +8,7 @@
 GoVolsGameDay (formerly branded "VolGameday") is a fan companion web app for University of Tennessee athletics — built around live gameday predictions, a running leaderboard, badges, trivia, polls, discussion boards/forums, and news/video aggregation. It is not an official UT product; it's an independent fan platform.
 
 - **Current name:** GoVolsGameDay (renamed from VolGameday)
-- **Domain:** govolsgameday.com — **not yet purchased** (open item, see §7)
+- **Domain:** govolsgameday.com — **purchased** (Namecheap, 2026-08-25)
 - **Platform:** Bolt.new-built, deployed to Netlify
 - **Status:** Pre-launch, spec-complete. `claude.md` in the project is marked "FINAL" and is the authoritative build spec.
 - **Authoritative spec:** `claude.md` (project doc) / `CLAUDE.md` (this session's Claude Code edition, corrected — see §8)
@@ -113,7 +113,7 @@ This is now reflected in `CLAUDE.md` (the corrected edition delivered alongside 
 
 ## 7. Open Items
 
-- **Domain `govolsgameday.com` has not been purchased yet.**
+- Domain `govolsgameday.com` is now purchased — remaining setup: point DNS at the hosting provider (Netlify) and configure the `VITE_SITE_URL` environment variable to `https://govolsgameday.com` wherever the app is built/deployed.
 - **Banner asset** `GoVolsGameDayBanner2100x1000.png` — existence/location not yet confirmed against the current asset library; verify before it's referenced in a build.
 - Trivia database QA gate is now closed (see §5) — no longer blocking Phase 2 build-order item 18.
 
@@ -135,7 +135,7 @@ This is now reflected in `CLAUDE.md` (the corrected edition delivered alongside 
 Two project docs — `VGD_Session_Summary.md` and `VGD_Project_Summary.docx` (both dated 2026-07-06) — predate `claude.md` (dated 2026-08-25) and are **explicitly superseded** by it per its own preamble. They're kept for historical reference only. Do not build from them. Deltas between them and the current spec:
 
 - Brand renamed: VolGameday → **GoVolsGameDay**.
-- Domain changed: `vol-gameday.com` → **govolsgameday.com** (not yet purchased).
+- Domain changed: `vol-gameday.com` → **govolsgameday.com** (purchased 2026-08-25).
 - Automation platform: Make.com → **Supabase Edge Functions + pg_cron**.
 - Video grid: 3×10 → **3×8 (24 cards)**.
 - **Touchdown Video System fully dropped** (was active/planned in the old docs).

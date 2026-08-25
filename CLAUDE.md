@@ -36,7 +36,7 @@
 | Live sports data | CollegeFootballData (CFBD) API |
 | Forum infrastructure | **Native Supabase tables** (forum_threads, forum_posts, forum_reactions) — NOT XenForo |
 | Hosting | Bolt.new / Netlify |
-| Domain | `govolsgameday.com` — not yet purchased (pending). Brand/name displayed throughout the site is **"GoVolsGameDay"** (logo mark: **"GVGD"**), matching the domain and the current banner artwork — this replaces an earlier decision to keep the display brand as "VolGameday"/"VGD" independent of the domain name; that's been reversed. |
+| Domain | `govolsgameday.com` — **purchased** (Namecheap, 2026-08-25). Brand/name displayed throughout the site is **"GoVolsGameDay"** (logo mark: **"GVGD"**), matching the domain and the current banner artwork — this replaces an earlier decision to keep the display brand as "VolGameday"/"VGD" independent of the domain name; that's been reversed. |
 
 ### Environment Variables (never hard-code)
 ```
