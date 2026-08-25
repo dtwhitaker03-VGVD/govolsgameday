@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useRef } from 'react';
 import { Header } from './Header';
 import { GameDayBanner } from './GameDayBanner';
 import { Footer } from './Footer';
+import { PasswordGate } from './PasswordGate';
 import { AuthModal } from '../auth/AuthModal';
 import { UsernameModal } from '../auth/UsernameModal';
 
@@ -36,17 +37,19 @@ export function RootLayout() {
   }, [pathname]);
 
   return (
-    <div className="min-h-screen bg-vgd-bg flex flex-col">
-      {/* Site-wide banner + game row sits above the sticky header/nav */}
-      <GameDayBanner />
-      <Header />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      <Footer />
-      <AuthModal />
-      {/* Shown immediately after Google OAuth when the user still has a default username */}
-      <UsernameModal />
-    </div>
+    <PasswordGate>
+      <div className="min-h-screen bg-vgd-bg flex flex-col">
+        {/* Site-wide banner + game row sits above the sticky header/nav */}
+        <GameDayBanner />
+        <Header />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <Footer />
+        <AuthModal />
+        {/* Shown immediately after Google OAuth when the user still has a default username */}
+        <UsernameModal />
+      </div>
+    </PasswordGate>
   );
 }
