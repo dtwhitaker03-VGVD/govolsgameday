@@ -1,6 +1,6 @@
-# VOLGAMEDAY — MASTER BOLT.NEW SPECIFICATION (FINAL)
-> Load this file at the start of every Bolt.new session. It is the single source of truth for every architectural, logic, and UI decision.
-> This document supersedes and replaces both the original `claude.md` and `VGD_Session_Summary.md` — all conflicts between those two documents have been resolved here in favor of the Session Summary (the later, more detailed decision set). Do not consult the older files during the build.
+# GOVOLSGAMEDAY — MASTER SPECIFICATION (CLAUDE CODE EDITION)
+> Load this file at the start of every Claude Code session working on this repo. It is the single source of truth for every architectural, logic, and UI decision — treat it as CLAUDE.md / project instructions, read it before writing any code, and follow it over any conflicting assumption.
+> This document supersedes and replaces the original `claude.md`, `VGD_Session_Summary.md`, and `VGD_Project_Summary.docx` — all conflicts between those documents have been resolved here in favor of the most recent, most detailed decision set. Do not consult the older files during the build; they are kept only as historical record. This edition also folds in the trivia-database rewrite documented in `VGD_Trivia_Questions_FULLY_REVISED.md` (see §32 and §44).
 
 ---
 
@@ -15,7 +15,7 @@
 7. **Supabase Realtime subscriptions, not polling,** for chat and profile hot-streak status.
 8. **Forums are native Supabase — never XenForo.** XenForo was an earlier idea and has been fully dropped. Do not create any XenForo integration, API keys, or references.
 9. **The prediction engine (pre-game + live drive) and the live gameday leaderboard live on the Main page ONLY.** They are never duplicated on the Football page or any other sport page.
-10. **Article clicks always open in a new tab** — never navigate away from VolGameday.
+10. **Article clicks always open in a new tab** — never navigate away from GoVolsGameDay.
 11. **Affiliate URL parameters must never be stripped or modified.**
 12. **Admin route `/admin` immediately redirects non-admin users** — it never reveals that it exists.
 13. **Profile rows are created only by the `handle_new_user` database trigger** — never client-side.
@@ -36,7 +36,7 @@
 | Live sports data | CollegeFootballData (CFBD) API |
 | Forum infrastructure | **Native Supabase tables** (forum_threads, forum_posts, forum_reactions) — NOT XenForo |
 | Hosting | Bolt.new / Netlify |
-| Domain | `govolsgameday.com` (purchased via Namecheap) — brand/name displayed throughout the site remains "VolGameday"/"VGD"; this domain is purely the URL, chosen to avoid a hyphen while keeping the brand identity unchanged |
+| Domain | `govolsgameday.com` — not yet purchased (pending). Brand/name displayed throughout the site is **"GoVolsGameDay"** (logo mark: **"GVGD"**), matching the domain and the current banner artwork — this replaces an earlier decision to keep the display brand as "VolGameday"/"VGD" independent of the domain name; that's been reversed. |
 
 ### Environment Variables (never hard-code)
 ```
@@ -114,8 +114,8 @@ This card system is the connective visual tissue across the whole site — Bolt 
 **For now, the Upcoming Game Card always shows Tennessee Football's upcoming/live game, on every page site-wide** — Basketball page, Baseball page, Forums, Recruiting, Profile, Admin, About, Contact, all of it. This is a deliberate interim simplification: only football has a live CFBD data pipeline built today. Revisit once Basketball/Baseball have their own live-data integrations (see §6.6 Post-Launch) — at that point each sport page could show its own sport's upcoming game instead.
 
 **Banner sizing — unchanged from the existing locked-in approach, just narrower:** still `object-fit: contain` with the same fixed max-height (`max-h-[220px]` mobile, `max-h-[320px]` desktop) that was already locked in to prevent the cropping problems an earlier `vh`-based approach caused. Only the container width changes — capped to the left half of the row instead of full page width. Page background (`#0F172A`) fills any empty space around the image, same as before.
-- File: `VGDBannerAthletes3Final_1600x1200.png` (1448×1086, clean 4:3 ratio — recomposed specifically for this half-width slot so all four athletes are fully visible with no cropping, logo/tagline safely centered)
-- The image is the finished graphic as-is — logo, "VOLGAMEDAY.COM," and tagline are baked into the artwork. No separate HTML text overlay.
+- File: `GoVolsGameDayBanner2100x1000.png` (1817×866, ~2.1:1 ratio). This replaces an earlier `VGDBannerAthletes3Final_1600x1200.png` (4:3) — that ratio was an initial estimate made before the row's real container math was known. Once the actual live container dimensions were confirmed (`max-w-[1400px]` row, 24px padding each side, 12px gap between columns → ~670px per column at typical desktop widths), the precise ratio needed to fill that column with zero gap at the fixed 320px height came out to ~2.09:1 (670÷320), not 4:3 — this asset was recomposed specifically to hit that target, and does so almost exactly (measured 2.098:1). All four athletes remain fully visible with no cropping, logo/tagline safely centered.
+- The image is the finished graphic as-is — logo, "GOVOLSGAMEDAY.COM," and tagline are baked into the artwork. No separate HTML text overlay.
 
 **Upcoming Game Card sizing:** height matches the banner's rendered height exactly (220px mobile / 320px desktop) — the banner drives the row height, the card fills it. Final compact design, validated to fit comfortably at true size on both breakpoints:
 1. Team matchup, centered, no header label: `[Tennessee-orange badge] Tennessee vs Georgia [opponent-color badge]` — badges are real team logo images from CFBD in production (not the colored placeholder circles used during mockup review)
@@ -154,6 +154,8 @@ This is the only place Live Game Stats appears — it is not duplicated further 
 - Full-width, translucent blur, sticky, depth layer 50 — sits directly below the Hero Banner (§3) in normal document flow, then pins to the top of the viewport once the user scrolls past the banner
 - Mobile: standard height, hamburger → right-to-left slide drawer with same link order
 
+**Logo mark (left side of header):** small square icon box, background Tennessee Orange, containing **"GVGD"** in white — followed by the wordmark **"GoVolsGameDay"**, styled with "GO" and "VOLS" in white and "GAMEDAY" in Tennessee Orange (matching the banner artwork's V/GD orange-white split treatment). This replaces an earlier "VGD" icon + "VOLGAMEDAY" wordmark that predates the GoVolsGameDay rebrand — if the header still shows the old mark, that's stale and needs updating to match.
+
 **Navigation order (desktop):**
 `Home | Football ▼ | Basketball | Baseball | Lady Vols ▼ | Recruiting ▼ | Forums | Other | 🛍 Fan Shop | About`
 
@@ -167,7 +169,7 @@ This is the only place Live Game Stats appears — it is not duplicated further 
 
 **Fan Shop link:**
 - Small shopping bag icon + text, links to Amazon affiliate URL for Tennessee fan merchandise
-- Opens in new tab — never navigates away from VolGameday
+- Opens in new tab — never navigates away from GoVolsGameDay
 - Full affiliate URL with tracking parameters preserved exactly — never stripped or modified
 - Amazon Associates account/tracking tag set up by owner before launch
 
@@ -187,7 +189,7 @@ This is the only place Live Game Stats appears — it is not duplicated further 
 
 ## 5. AUTH MODAL
 
-- Title: **"Join Vol Game Day"** — bold, high-contrast, centered modal, full dark backdrop blur
+- Title: **"Join GVGD"** — bold, high-contrast, centered modal, full dark backdrop blur (replaces an earlier "Join Vol Game Day" title that predates the GoVolsGameDay rebrand)
 - `Continue with Google` button (Google logo icon) → Supabase OAuth
 - Divider: `or use credentials`
 - Fields: Email (required), Username (required, alphanumeric only, max 50 chars, frontend regex enforced), Password (required, min 8 chars)
@@ -207,7 +209,7 @@ This is the only place Live Game Stats appears — it is not duplicated further 
 
 Anchored to the absolute bottom of every page inside the root layout. Cannot be removed by any route. Exact text:
 
-> *"VolGameday is an independent, fan-driven digital community and is not endorsed by, sponsored by, directly managed by, or affiliated with the University of Tennessee or UT Athletics. All trademarks and logos displayed within the automated video and news grids belong to their respective intellectual property owners."*
+> *"GoVolsGameDay is an independent, fan-driven digital community and is not endorsed by, sponsored by, directly managed by, or affiliated with the University of Tennessee or UT Athletics. All trademarks and logos displayed within the automated video and news grids belong to their respective intellectual property owners."*
 
 Low-contrast micro-copy, Smokey Gray. Links to Code of Conduct page. Never remove.
 
@@ -521,7 +523,7 @@ Not being implemented. On a Tennessee score, the Live Game Stats Panel (§3) sim
 - Cards: larger thumbnail than the previous version (fixed 16:9, increased size to suit the reduced column count), duration pill overlay, title (2-line max, ellipsis), **creator/channel name displayed below the title** (e.g. "A to Z Sports," "Matt Mitchell," "Bluechip Breakdown") — smaller text, Smokey Gray, single line with ellipsis if needed. Shorts and long-form both displayed at uniform 16:9.
 - **Ingestion requirement to support the creator-name display**: every video row, regardless of ingestion path (Part A keyword search, Part B/C channel-priority fetch), must capture and store the uploading channel's name in `channel_name` — YouTube's API already returns this (`snippet.channelTitle`) on every search/playlist response at no extra quota cost, so this applies universally, not just to Tier 1/2 priority-channel videos.
 - Mobile: dual-column swipeable horizontal carousel
-- **Click: opens an embedded modal player** — dark overlay, centered card, YouTube's iframe embed player loads and autoplays the video inline, close button (X) returns to the grid. The viewer never leaves VolGameday. (Earlier versions of this spec had videos opening in a new YouTube tab — that behavior is replaced by this embedded approach.)
+- **Click: opens an embedded modal player** — dark overlay, centered card, YouTube's iframe embed player loads and autoplays the video inline, close button (X) returns to the grid. The viewer never leaves GoVolsGameDay. (Earlier versions of this spec had videos opening in a new YouTube tab — that behavior is replaced by this embedded approach.)
 - **Modal sizing: large, theater-style** — width roughly 85vw up to a max-width around 1400px (noticeably larger than a small popup), height locked to a true 16:9 ratio for the video area itself, centered both axes. This is distinct from the smaller news article modal in §18 — video is the primary content being consumed here, so it should feel like a proper viewing experience, not a small preview window.
 
 **Sport pages (Football, Basketball, Baseball, LV Basketball, LV Softball, Other, both Recruiting pages):** grid filters strictly to that page's own `sport_category`, ranked by the Latest/Popular toggle as above. No cross-category mixing — straightforward as originally spec'd.
@@ -547,7 +549,7 @@ Not being implemented. On a Tennessee score, the Live Game Stats Panel (§3) sim
 
 **Article modal**: click opens an embedded modal, **larger than the previous version** (roughly matching a substantial reading-width card — noticeably bigger than before, though not full theater-size like the video modal in §17, since this is text-based) — thumbnail, full title, and an **improved AI-generated summary** (upgraded from a terse 2-sentence blurb to a more substantive 3-5 sentence summary that actually conveys the article's key points, not just a teaser), plus a "Click to Read More" button that opens the real source article (the individual article URL captured during ingestion, not a homepage) in a new tab.
 
-**Never** navigate away from VolGameday on article click.
+**Never** navigate away from GoVolsGameDay on article click.
 
 ---
 
@@ -665,11 +667,11 @@ Layout: hero banner, centered minimal content, no widgets or chat.
 
 **Approved mission statement:**
 
-> Watching a Vols game with other fans used to mean refreshing a forum thread, typing out what just happened, and hoping someone replies before the next play snaps. VolGameday was built to fix that.
+> Watching a Vols game with other fans used to mean refreshing a forum thread, typing out what just happened, and hoping someone replies before the next play snaps. GoVolsGameDay was built to fix that.
 >
-> Turn on the game, pull up VolGameday, and experience it together in real time — live chat that moves as fast as the action, automatic scores and stats that update themselves, and a drive-by-drive prediction game that turns every single play into something worth paying attention to. No more typing play-by-play updates by hand. No more scattered conversations across five different threads. Just you, the game, and thousands of other Vol fans experiencing it together exactly as it happens.
+> Turn on the game, pull up GoVolsGameDay, and experience it together in real time — live chat that moves as fast as the action, automatic scores and stats that update themselves, and a drive-by-drive prediction game that turns every single play into something worth paying attention to. No more typing play-by-play updates by hand. No more scattered conversations across five different threads. Just you, the game, and thousands of other Vol fans experiencing it together exactly as it happens.
 >
-> VolGameday is also your one-stop shop for everything Tennessee Volunteers. Video highlights, breaking news, recruiting updates, and community discussion across every Vol sport — football, basketball, baseball, and Lady Vols — all gathered in one place so you never have to go hunting across a dozen different sites again.
+> GoVolsGameDay is also your one-stop shop for everything Tennessee Volunteers. Video highlights, breaking news, recruiting updates, and community discussion across every Vol sport — football, basketball, baseball, and Lady Vols — all gathered in one place so you never have to go hunting across a dozen different sites again.
 >
 > We're an independent, fan-built community — not affiliated with the University of Tennessee or UT Athletics. Just a better way to follow Tennessee athletics, built by fans who wanted exactly that.
 >
@@ -712,11 +714,15 @@ Linked from About page and site footer. Sections: 1) Our Commitment · 2) Expect
 
 **Scraped Content Review:** since automated relevance filters (§38) can't be perfect, this section lets an admin quickly hide or delete individual rows from `scraped_videos` and `scraped_articles` that slipped through irrelevant or off-topic — e.g. a video that matched a search query by a person's name but isn't actually Tennessee-related content. Simple list view (most recent first) with a hide/delete action per row; hidden items stop appearing in the Video Grid/News Wire immediately without needing to wait for or adjust the ingestion filter logic itself.
 
+**Delete is permanent — it must survive re-scraping, not just remove the row.** An earlier version of this only removed the row from `scraped_videos`/`scraped_articles`, which meant the next ingestion run (Job 1/Job 2, §38) — having no record that this specific video/article was ever rejected — would simply re-discover and re-insert the exact same content on its next pass, since upserts match on the content's own ID/URL and a deleted row leaves no conflict to match against. **Delete must also write to a permanent blocklist that ingestion checks before inserting anything new** — see `content_blocklist` in the schema (§40) for the table definition.
+
+When an admin clicks **Delete** (not Hide — Hide stays exactly as it is today, a reversible `is_hidden = TRUE` toggle with no blocklist entry): (1) insert a row into `content_blocklist` with the video's ID or the article's normalized URL, (2) then delete the row from `scraped_videos`/`scraped_articles` as before. **Both Job 1 (YouTube ingestion) and Job 2 (news ingestion) must check `content_blocklist` before every upsert** — if the candidate video's ID or the candidate article's normalized URL matches an existing blocklist row, skip it entirely, don't insert or upsert it. This makes delete genuinely permanent: the content can never reappear through automated ingestion again, regardless of how many future scrape runs search for it. (The "Add Video"/"Add Article" tools below are a manual admin action, not automated ingestion, so they intentionally bypass the blocklist check — if an admin manually pastes a URL that happens to match a blocklisted item, that's a deliberate override, not a bug.)
+
 **Pinning a video:** every row in the Scraped Content Review list — whether it arrived via automated ingestion or was manually added — has a **Pin/Unpin toggle** alongside the existing hide/delete actions. A pinned video is guaranteed to display on its assigned page's Video Grid, bypassing the normal 24-card selection/ranking/channel-priority/diversity-cap logic entirely (§17) — it doesn't count against the per-channel diversity cap either, since an admin explicitly chose it. **Pinning does not grant indefinite life** — a pinned video still expires on the normal 14-day Latest-view cutoff like any other video, unless the admin unpins it (returning it to normal ranking rules) or deletes it outright before then. So pinning guarantees placement for the remainder of that video's natural 14-day window, not forever.
 
 **Manually adding a video:** the same panel includes an "Add Video" tool — paste a YouTube URL, the system extracts the video ID and calls the YouTube Data API's single-video lookup endpoint (cheap, not a search call) to fetch its real metadata (title, thumbnail, duration, channel name, publish date), then the admin selects which page's `sport_category` it should appear under and submits. The video is inserted into `scraped_videos` with `is_pinned = TRUE` by default (same expiry rules as above apply — 14 days unless unpinned/deleted first).
 
-**Pinning and manually adding an article** works the same way, applied to `scraped_articles`: a **Pin/Unpin toggle** on every article row (automated or manually added), plus an "Add Article" tool — paste an article URL, Firecrawl scrapes it for title/thumbnail/source, an LLM generates the same 2-sentence summary used by normal ingestion (§38 Job 2), the admin selects the target page's `sport_category`, and it's inserted with `is_pinned = TRUE`. **Unlike videos, pinned articles have no 14-day expiry to fall back to** — since News Grids don't have a time-based cutoff to begin with (they just sort by ingestion date descending), a pinned article stays pinned **indefinitely** until the admin manually unpins or deletes it. Pinned articles are guaranteed placement in their page's News Grid regardless of normal ingestion-date sorting.
+**Pinning and manually adding an article** works the same way, applied to `scraped_articles`: a **Pin/Unpin toggle** on every article row (automated or manually added), plus an "Add Article" tool — paste an article URL, Firecrawl scrapes it for title/thumbnail/source, an LLM generates the same 2-sentence summary used by normal ingestion (§38 Job 2), the admin selects the target page's `sport_category`, and it's inserted with `is_pinned = TRUE`. **Pinned articles now expire after 14 days, matching videos — or until the admin deletes/unpins them early, whichever comes first.** (An earlier version of this spec had pinned articles stay pinned indefinitely with no expiry at all, reasoning that News Grids have no time-based cutoff the way video's "Latest" view does. That's been changed to match videos' behavior for consistency. Since articles genuinely have no existing 14-day window to fall back into the way videos do, this requires a small dedicated mechanism rather than just removing an exception: `scraped_articles` needs a `pin_expires_at` column, set to `NOW() + INTERVAL '14 days'` whenever an article is pinned — either via "Add Article" or the manual Pin toggle on an existing row. The News Grid query's guaranteed-placement logic for pinned articles must check `is_pinned = TRUE AND pin_expires_at > NOW()`; once `pin_expires_at` passes, the article automatically falls back to normal ingestion-date sorting like any other article — the row and its content aren't deleted, it just loses guaranteed placement, exactly like an expired pinned video.) Pinned, non-expired articles are guaranteed placement in their page's News Grid regardless of normal ingestion-date sorting.
 
 Admin notification: red badge on header avatar showing open-report count. Mobile-friendly for on-the-go moderation.
 
@@ -798,15 +804,28 @@ Public — viewable by clicking any username anywhere on the site.
 
 **Categories:** Vol Football History, Vol Basketball History, Vol Baseball History, Lady Vols History, General Vol Athletics, SEC Knowledge.
 
-**Content-quality status (updated):** the original 997-question `VGD_Trivia_Questions.md` database had a ~46% quality-flag rate (vague/hedge answers, giveaway-length distractors — full detail in project history). Rather than a full rewrite, the database was filtered down to the 539 audit-clean questions and loaded into production, cycling as 365 days × 5 questions/day (Easy → Easy/Medium → Medium → Medium/Hard → Hard per day), shuffled so categories don't cluster. The flagged 458 questions were excluded entirely, not loaded. Improving/expanding the flagged batch remains an open item for later in the season, not a launch blocker.
+**Content-quality status (current — production-ready, replaces an earlier filtered-subset approach):** the trivia database has been through a complete rewrite and fact-check pass, documented in full in `VGD_Trivia_Questions_FULLY_REVISED.md`. Every one of the 1,000 questions was reviewed individually: hedge/non-answers marked "correct" (e.g. "specifics vary by year") were replaced with single defensible facts; meta-commentary and visible first-draft reasoning bleeding into question text was removed; self-eliminating or self-referential distractors were rewritten; and load-bearing claims (dates, scores, draft positions, award years, coaching tenures) were fact-checked against university athletics sites, Wikipedia, and contemporary press coverage. This pass also corrected a number of outright errors carried over from the original draft — among them: A.J. Burnett was never a Tennessee baseball player (he was drafted by the Mets out of high school and never played college ball); the checkerboard end zones trace to Doug Dickey in 1964, not Johnny Majors or Bowden Wyatt; the QB who won the 2022 Orange Bowl was Joe Milton III, not the already-injured Hendon Hooker; John Henderson won the Outland Trophy in 2000, not 2001; and "Rocky Top" is Tennessee's beloved unofficial anthem, not its official fight song ("Down the Field" holds that title). **As of this revision, 0 questions remain flagged across all 1,000 questions** (300 Football / 200 Basketball / 150 Baseball / 150 Lady Vols / 100 General Vol Athletics / 100 SEC Knowledge, each split Easy/Medium/Hard). Load all 1,000 into `trivia_questions` with sequential `scheduled_date` assignments — 5 questions/day = **~200 days of rotation**, shuffled so categories don't cluster. This database is production-ready; there is no longer an open item gating the Daily Trivia build.
 
-**Fully automated** once the database is clean and pre-loaded (done — see above). Resets at midnight. **Query pattern**: `SELECT * FROM trivia_questions WHERE scheduled_date = TODAY() ORDER BY slot ASC` returns that day's 5 questions in the correct Easy→Hard order via the `slot` column (1-5).
+**Fully automated** once the database is loaded (it is — see above). Resets at midnight. **Query pattern**: `SELECT * FROM trivia_questions WHERE scheduled_date = TODAY() ORDER BY slot ASC` returns that day's 5 questions in the correct Easy→Hard order via the `slot` column (1-5).
 
 ---
 
 ## 33. DAILY EVERGREEN POLL
 
-One poll per day, pre-loaded database rotates automatically at midnight, prominently displayed on Main page. Question + 4 options, one vote per user per day (locked after voting), live vote percentages update in real time, previous day's result shown ("Yesterday: 67% said Peyton Manning"). "See More Polls" button opens Fan Polls list. Database: `VGD_Daily_Polls.md` — 200 pre-loaded questions (80 Football, 50 Basketball, 40 Baseball, 30 Lady Vols).
+**Placement:** Layer 4 (§9) — paired side by side with Daily Vol Trivia in their own row below the Discussion Board/Predictor row (Layer 3), not stacked with anything else. Both cards match each other's height so the row reads as one balanced pair, matching Trivia's existing compact treatment rather than expanding to fill extra space.
+
+One poll per day, pre-loaded database rotates automatically via `active_date` (no cron job needed — every row has a unique pre-assigned date; `WHERE active_date = CURRENT_DATE` handles rotation on its own). Question + 4 options, one vote per user per day (locked after voting). Database: `VGD_Daily_Polls.md` — 200 pre-loaded, fact-checked questions (80 Football, 50 Basketball, 40 Baseball, 30 Lady Vols).
+
+**Visual design — validated via mockup, build to this exactly:**
+- Card header, matching the site's standard card-header pattern used elsewhere (Discussion Board, Trivia, etc.): small orange dot + "DAILY POLL" label, uppercase, letter-spaced, muted color.
+- Question text directly below the header — one line, medium weight, ~14px.
+- **Not-yet-voted state:** the 4 options render as plain bordered rows — 1px border (muted/neutral, not orange), ~8px corner radius, comfortable padding, plain text, no percentages shown yet. Each row is clickable.
+- **Already-voted state (today):** the same 4 rows now show live results as horizontal fill bars:
+  - Every row keeps its bordered-rectangle shape, but now has a background fill whose width equals that option's vote percentage (an absolutely-positioned fill layer behind the text, not a separate progress-bar element).
+  - All 4 rows use identical styling — same muted border, same dark fill color, same text color for the percentage. **No option is specially highlighted** — not the leading option, not the option the user personally picked. No orange border, no checkmark, no bolding to distinguish any single row from the others. The percentage numbers alone convey the result; the visual treatment stays uniform across all four.
+  - Once voted, all 4 rows are no longer clickable — voting is locked for that poll.
+- **Below the 4 rows, small and muted:** "Yesterday: X% said [winning option's text]" — computed from yesterday's poll_id's vote distribution. If there's no poll from yesterday (e.g. the very first day live), omit this line entirely rather than showing an error or empty space.
+- **"See More Polls" button:** per §34, opens the Fan Polls list. Fan Polls isn't built yet (separate future feature) — for now, render this button disabled or omit it entirely rather than linking to a page that doesn't exist yet.
 
 ---
 
@@ -826,7 +845,7 @@ Google Analytics (GA4) is installed site-wide from launch — free, standard, an
 
 **Track at minimum:**
 - Page views per route (which pages/sports draw the most traffic)
-- Video modal opens (§17) — a custom event, since embedding a video doesn't generate revenue for VolGameday directly (any ads inside YouTube's embedded player pay the video's creator/YouTube, not VolGameday), so this is purely an engagement signal, not a revenue source. Track it anyway — it's a strong proxy for which content and which priority channels actually drive interest, useful for deciding what to keep prioritizing in §17's channel list.
+- Video modal opens (§17) — a custom event, since embedding a video doesn't generate revenue for GoVolsGameDay directly (any ads inside YouTube's embedded player pay the video's creator/YouTube, not GoVolsGameDay), so this is purely an engagement signal, not a revenue source. Track it anyway — it's a strong proxy for which content and which priority channels actually drive interest, useful for deciding what to keep prioritizing in §17's channel list.
 - News article modal opens (§18)
 - Outbound Fan Shop affiliate link clicks (§4) — this is the one category of click that directly ties to revenue, so it deserves accurate tracking above all else
 - Sign-up conversions (auth modal completions)
@@ -1174,7 +1193,8 @@ CREATE TABLE public.scraped_articles (
   thumbnail_url   TEXT,
   sport_category  VARCHAR(50) NOT NULL,
   is_hidden       BOOLEAN DEFAULT FALSE, -- admin-set via Scraped Content Review (§29); public queries must filter WHERE is_hidden = false
-  is_pinned       BOOLEAN DEFAULT FALSE, -- admin toggle via Scraped Content Review (§29), on any article; guarantees News Grid placement, no auto-expiry — persists until manually unpinned/deleted
+  is_pinned       BOOLEAN DEFAULT FALSE, -- admin toggle via Scraped Content Review (§29), on any article; guarantees News Grid placement while pin_expires_at is in the future
+  pin_expires_at  TIMESTAMP WITH TIME ZONE, -- set to NOW() + 14 days whenever is_pinned is set TRUE (via Add Article or the manual Pin toggle); NULL when not pinned. Guaranteed-placement queries must check is_pinned = TRUE AND pin_expires_at > NOW() — once expired, falls back to normal published_at sorting like any other article.
   published_at    TIMESTAMP WITH TIME ZONE, -- the article's REAL publish date/timestamp from its source page — REQUIRED for all sorting. Never sort by ingested_at (scrape time); same class of bug already caught and fixed for scraped_videos.
   ingested_at     TIMESTAMP WITH TIME ZONE DEFAULT NOW() -- internal bookkeeping only (when the scrape happened) — do not use for site-facing recency sorting
 );
@@ -1471,15 +1491,18 @@ CREATE TABLE public.user_follows (
 
 
 -- =============================================
--- 20. TOUCHDOWN VIDEOS
+-- 20. CONTENT BLOCKLIST (permanent delete for scraped content)
 -- =============================================
-CREATE TABLE public.touchdown_videos (
-  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  storage_path     TEXT NOT NULL,
-  style_tag        VARCHAR(50), -- 'retro'|'anime'|'simpsons'|'madden'|'comic'|'claymation'|'80s_action'|'looney_tunes'
-  opponent_tag     VARCHAR(100), -- NULL = general pool
-  uploaded_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+CREATE TABLE public.content_blocklist (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  content_type  TEXT NOT NULL CHECK (content_type IN ('video','article')),
+  external_id   TEXT NOT NULL, -- YouTube video ID for videos; normalized article URL (query params stripped) for articles
+  blocked_at    TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  blocked_by    UUID REFERENCES public.profiles(id),
+  UNIQUE(content_type, external_id)
 );
+
+CREATE INDEX idx_blocklist_lookup ON public.content_blocklist(content_type, external_id);
 
 
 -- =============================================
@@ -1519,6 +1542,7 @@ CREATE TABLE public.system_health (
 - `reports`: authenticated insert; read/update restricted to `is_admin = TRUE`.
 - `system_health`: read restricted to `is_admin = TRUE`; writes via server/Edge Functions only (service role).
 - `bad_words_filter`: `SELECT` restricted to `is_admin = TRUE` only. Never expose the blocked-word list to non-admin users — doing so would let people craft messages that evade the tier-1 mask. Writes (add/remove words) also admin-only, via the Admin Dashboard (§29).
+- `content_blocklist`: no public read at all — this is an internal ingestion-check table, not user-facing data. `SELECT` restricted to `is_admin = TRUE` (so the Admin Dashboard can display it if needed) plus the service role (so Job 1/Job 2 Edge Functions can check it during ingestion). Writes admin-only, via the Scraped Content Review delete action (§29).
 - `user_trivia_responses`: `SELECT` restricted to the owner's own rows only. The "Better than X% of fans today" stat on the trivia results screen (§32) requires an aggregate calculation across all users' same-day scores — this must be computed by a dedicated server-side RPC (`SECURITY DEFINER`, follows the zero-client-side-math rule in §0/§41) that returns only the calling user's percentile, not raw access to other users' rows.
 
 ---
@@ -1564,7 +1588,7 @@ CREATE TABLE public.system_health (
 15. Football Recruiting page — full consolidated layout
 16. Other Sports Recruiting page (tiered)
 17. Forums page — 11 categories, 8 reactions, thread creation
-18. Daily Trivia system — widget, countdown, results screen, share buttons (**gate on trivia content QA — see §32 open item**)
+18. Daily Trivia system — widget, countdown, results screen, share buttons (content database is production-ready — see §32 — no longer a QA gate)
 19. Daily Evergreen Poll widget
 20. Fan Polls system
 21. Automation setup — all 9 Edge Functions + `pg_cron`/webhook triggers (§38)
@@ -1618,8 +1642,8 @@ Note: these figures are reduced from earlier estimates (~$54 / ~$173) by droppin
 | Prediction engine location | Main page ONLY — never on Football or sport pages |
 | Forums infrastructure | Native Supabase — never XenForo |
 | Legal footer | On every single page — non-negotiable |
-| Trivia database | NOT production-ready — see §32 open item before loading |
+| Trivia database | **Production-ready** — 1,000 questions, 0 flags, see `VGD_Trivia_Questions_FULLY_REVISED.md` and §32 |
 
 ---
 
-*End of VolGameday Master Specification (Final). Load this file at the start of every Bolt.new session.*
+*End of GoVolsGameDay Master Specification (Claude Code Edition). Load this file at the start of every Claude Code session on this repo, and re-read it before any architectural, schema, or scoring-logic change.*
