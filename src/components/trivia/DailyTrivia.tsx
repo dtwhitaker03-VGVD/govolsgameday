@@ -603,9 +603,9 @@ export function DailyTrivia() {
 
   // ── Share handlers ──────────────────────────────────────────────────────────
   const shareText = result
-    ? `I scored ${result.score}/100 on today's VolGameday Trivia! Can you beat me?`
+    ? `I scored ${result.score}/100 on today's GoVolsGameDay Trivia! Can you beat me?`
     : '';
-  const shareUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const shareUrl = import.meta.env.VITE_SITE_URL ?? 'https://govolsgameday.com';
 
   const shareToDiscussion = async () => {
     if (!session) return;
