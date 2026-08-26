@@ -164,10 +164,13 @@ async function syncFromCfbd(supabase: Client, apiKey: string) {
 // long a captured line is considered fresh before re-checking. This piggy-
 // backs on the hourly cron that's already running (see Deno.serve below) —
 // it's a targeted, single-game call, not a new polling frequency, and is a
-// zero-CFBD-call no-op every hour that isn't within a few hours of a TN
-// kickoff.
-const LINE_REFRESH_WINDOW_MS = 3 * 60 * 60 * 1000; // look ahead 3h to kickoff
-const LINE_REFRESH_STALE_MS = 60 * 60 * 1000; // don't re-check within 1h of last capture
+// zero-CFBD-call no-op every hour that isn't within the window of a TN
+// kickoff. The window is a full week so the pregame predictor's Spread/
+// Total fields have a line (and aren't hidden) for the whole time picks are
+// open, not just the last few hours before lock; the 4h staleness keeps
+// per-game CFBD calls to ~6/day instead of hourly for that whole week.
+const LINE_REFRESH_WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // look ahead 7d to kickoff
+const LINE_REFRESH_STALE_MS = 4 * 60 * 60 * 1000; // don't re-check within 4h of last capture
 const PREFERRED_LINE_PROVIDERS = ["DraftKings", "consensus"];
 
 function pickLine(lines: CfbdLineEntry[]): CfbdLineEntry | null {
