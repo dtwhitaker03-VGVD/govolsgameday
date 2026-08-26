@@ -76,6 +76,12 @@ function timeAgo(iso: string | null): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
+// 0 means "not yet synced from this source" (e.g. On3 hasn't been scraped
+// successfully), not a real rank of zero — show as unavailable rather than "#0".
+function rankLabel(rank: number): string {
+  return rank > 0 ? `#${rank}` : '—';
+}
+
 function avgStars(recruits: Recruit[], source: '247' | 'on3'): string {
   const key = source === '247' ? 'stars_247' : 'stars_on3';
   const valid = recruits.filter((r) => r[key] !== null);
@@ -249,12 +255,12 @@ function ClassRankingsBanner({ rankings }: { rankings: ClassRanking | null }) {
             <div className="flex items-center justify-center gap-3">
               <div>
                 <div className="text-[9px] text-vgd-muted uppercase">National</div>
-                <div className="text-2xl font-black text-white">#{rankings.rank_247}</div>
+                <div className="text-2xl font-black text-white">{rankLabel(rankings.rank_247)}</div>
               </div>
               <div className="w-px h-8 bg-white/[0.07]" />
               <div>
                 <div className="text-[9px] text-vgd-muted uppercase">SEC</div>
-                <div className="text-2xl font-black text-white">#{Math.min(rankings.rank_247, 16)}</div>
+                <div className="text-2xl font-black text-white">{rankings.rank_247 > 0 ? rankLabel(Math.min(rankings.rank_247, 16)) : '—'}</div>
               </div>
             </div>
           </div>
@@ -264,12 +270,12 @@ function ClassRankingsBanner({ rankings }: { rankings: ClassRanking | null }) {
             <div className="flex items-center justify-center gap-3">
               <div>
                 <div className="text-[9px] text-vgd-muted uppercase">National</div>
-                <div className="text-2xl font-black text-white">#{rankings.rank_on3}</div>
+                <div className="text-2xl font-black text-white">{rankLabel(rankings.rank_on3)}</div>
               </div>
               <div className="w-px h-8 bg-white/[0.07]" />
               <div>
                 <div className="text-[9px] text-vgd-muted uppercase">SEC</div>
-                <div className="text-2xl font-black text-white">#{Math.min(rankings.rank_on3, 16)}</div>
+                <div className="text-2xl font-black text-white">{rankings.rank_on3 > 0 ? rankLabel(Math.min(rankings.rank_on3, 16)) : '—'}</div>
               </div>
             </div>
           </div>
@@ -499,10 +505,10 @@ function TeamRankingsComparison({ rankings }: { rankings: ClassRanking | null })
       {rankings ? (
         <div className="divide-y divide-white/[0.05]">
           <div className="flex items-center gap-2.5 px-3 py-2.5 bg-vgd-orange/[0.06]">
-            <span className="w-6 text-xs font-black text-vgd-orange text-right">#{rankings.rank_247}</span>
+            <span className="w-6 text-xs font-black text-vgd-orange text-right">{rankLabel(rankings.rank_247)}</span>
             <div className="flex-1">
               <p className="text-xs font-bold text-vgd-orange">Tennessee</p>
-              <p className="text-[10px] text-vgd-muted">247: #{rankings.rank_247} · On3: #{rankings.rank_on3}</p>
+              <p className="text-[10px] text-vgd-muted">247: {rankLabel(rankings.rank_247)} · On3: {rankLabel(rankings.rank_on3)}</p>
             </div>
             <Trophy className="w-3.5 h-3.5 text-vgd-orange" />
           </div>

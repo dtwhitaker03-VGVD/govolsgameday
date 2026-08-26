@@ -76,6 +76,12 @@ function timeAgo(iso: string | null): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
+// 0 means "not yet synced from this source" (e.g. On3 hasn't been scraped
+// successfully), not a real rank of zero — show as unavailable rather than "#0".
+function rankLabel(rank: number): string {
+  return rank > 0 ? `#${rank}` : '—';
+}
+
 // ─── Empty State ─────────────────────────────────────────────────────────────────
 
 function EmptyState({ icon: Icon, title, subtitle }: { icon: React.ElementType; title: string; subtitle: string }) {
@@ -146,12 +152,12 @@ function ClassRankingsBanner({ rankings, label }: { rankings: ClassRanking | nul
         <div className="grid grid-cols-2 gap-0 divide-x divide-white/[0.07]">
           <div className="px-4 py-3.5 text-center">
             <div className="text-[10px] font-bold text-vgd-orange uppercase tracking-wider mb-2">247Sports</div>
-            <div className="text-2xl font-black text-white">#{rankings.rank_247}</div>
+            <div className="text-2xl font-black text-white">{rankLabel(rankings.rank_247)}</div>
             <div className="text-[9px] text-vgd-muted uppercase mt-0.5">National</div>
           </div>
           <div className="px-4 py-3.5 text-center">
             <div className="text-[10px] font-bold text-vgd-orange uppercase tracking-wider mb-2">On3</div>
-            <div className="text-2xl font-black text-white">#{rankings.rank_on3}</div>
+            <div className="text-2xl font-black text-white">{rankLabel(rankings.rank_on3)}</div>
             <div className="text-[9px] text-vgd-muted uppercase mt-0.5">National</div>
           </div>
         </div>
@@ -347,10 +353,10 @@ function TeamRankingsComparison({ rankings }: { rankings: ClassRanking | null })
       {rankings ? (
         <div className="divide-y divide-white/[0.05]">
           <div className="flex items-center gap-2.5 px-3 py-2.5 bg-vgd-orange/[0.06]">
-            <span className="w-6 text-xs font-black text-vgd-orange text-right">#{rankings.rank_247}</span>
+            <span className="w-6 text-xs font-black text-vgd-orange text-right">{rankLabel(rankings.rank_247)}</span>
             <div className="flex-1">
               <p className="text-xs font-bold text-vgd-orange">Tennessee</p>
-              <p className="text-[10px] text-vgd-muted">247: #{rankings.rank_247} · On3: #{rankings.rank_on3}</p>
+              <p className="text-[10px] text-vgd-muted">247: {rankLabel(rankings.rank_247)} · On3: {rankLabel(rankings.rank_on3)}</p>
             </div>
             <Trophy className="w-3.5 h-3.5 text-vgd-orange" />
           </div>
@@ -374,7 +380,10 @@ function TeamRankingsComparison({ rankings }: { rankings: ClassRanking | null })
 // ─── Main Page Component ──────────────────────────────────────────────────────────
 
 export default function Recruiting() {
-  const [classYear, setClassYear] = useState(CURRENT_YEAR + 1);
+  // 247Sports basketball classes are labeled by the current calendar year
+  // (e.g. "2026-basketball"), unlike football's next-year convention — so
+  // this page defaults one year earlier than FootballRecruiting's default.
+  const [classYear, setClassYear] = useState(CURRENT_YEAR);
 
   const [recruits, setRecruits] = useState<Recruit[]>([]);
   const [rankings, setRankings] = useState<ClassRanking | null>(null);
