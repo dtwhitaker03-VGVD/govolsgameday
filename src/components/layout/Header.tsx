@@ -182,7 +182,7 @@ const ladyVolsDropdown: DropdownItem[] = [
 
 const recruitingDropdown: DropdownItem[] = [
   { label: 'Football Recruiting', to: '/football-recruiting' },
-  { label: 'Other Sports Recruiting', to: '/recruiting' },
+  { label: 'Basketball Recruiting', to: '/recruiting' },
 ];
 
 function VgdLogo() {
@@ -306,7 +306,7 @@ export function Header() {
                 { label: 'Baseball', to: '/baseball' },
                 { label: 'LV Basketball', to: '/lv-basketball' },
                 { label: 'LV Softball', to: '/lv-softball' },
-                { label: 'Recruiting', to: '/recruiting' },
+                { label: 'Basketball Recruiting', to: '/recruiting' },
                 { label: 'Forums', to: '/forums' },
                 { label: 'About', to: '/about' },
               ].map((item) => (

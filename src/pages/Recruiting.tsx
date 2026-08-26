@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Trophy, Star, Search, Award, Users, TrendingUp, Clock,
-  GraduationCap, ArrowRightLeft, Target, RefreshCw, MapPin,
+  GraduationCap, ArrowRightLeft, Target, RefreshCw,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { DashboardCard } from '../components/ui/DashboardCard';
@@ -62,16 +62,8 @@ const SORT_OPTIONS = [
   { key: 'position',  label: 'Position' },
 ] as const;
 
-// Tier 1: Men's Basketball — full treatment
 const TIER1_SPORT = 'basketball';
 const TIER1_LABEL = "Men's Basketball";
-
-// Tier 2: minimal treatment sports
-const TIER2_SPORTS = [
-  { key: 'lv-basketball', label: 'LV Basketball' },
-  { key: 'baseball',      label: 'Baseball' },
-  { key: 'lv-softball',   label: 'LV Softball' },
-];
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -379,83 +371,11 @@ function TeamRankingsComparison({ rankings }: { rankings: ClassRanking | null })
   );
 }
 
-// ─── Simple Prospect List (Tier 2) ──────────────────────────────────────────────
-
-function SimpleProspectList({ recruits, loading, sportLabel }: { recruits: Recruit[]; loading: boolean; sportLabel: string }) {
-  return (
-    <DashboardCard title={`${sportLabel.toUpperCase()} — PROSPECTS`} statusDotColor="#60a5fa">
-      {loading ? (
-        <div className="p-3 space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-10 bg-white/[0.03] rounded animate-pulse" />)}
-        </div>
-      ) : recruits.length === 0 ? (
-        <EmptyState icon={Users} title="No prospects yet" subtitle={`${sportLabel} recruiting data will appear here once ingestion begins.`} />
-      ) : (
-        <div className="divide-y divide-white/[0.05]">
-          {recruits.map((r) => (
-            <div key={r.id} className="flex items-center gap-2.5 px-3 py-2 hover:bg-white/[0.02] transition-colors">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white/85 truncate">{r.full_name}</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-[10px] text-vgd-orange/70 font-medium">{r.position || '—'}</span>
-                  {r.hometown && (
-                    <span className="text-[10px] text-vgd-muted flex items-center gap-0.5 truncate">
-                      <MapPin className="w-2.5 h-2.5" />{r.hometown}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <StarBadge stars={r.stars_247} label="247" />
-              <StarBadge stars={r.stars_on3} label="On3" />
-              <StatusPill status={r.status} />
-            </div>
-          ))}
-        </div>
-      )}
-    </DashboardCard>
-  );
-}
-
-// ─── Tier 2 Section (minimal: rankings + prospect list + class year tabs) ────────
-
-function Tier2Section({ sportKey, sportLabel, classYear, onClassYearChange }: {
-  sportKey: string;
-  sportLabel: string;
-  classYear: number;
-  onClassYearChange: (y: number) => void;
-}) {
-  const [recruits, setRecruits] = useState<Recruit[]>([]);
-  const [rankings, setRankings] = useState<ClassRanking | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    Promise.all([
-      supabase.from('recruits').select('*').eq('sport_category', sportKey).eq('scouting_year', classYear),
-      supabase.from('recruiting_class_rankings').select('*').eq('sport_category', sportKey).eq('scouting_year', classYear).maybeSingle(),
-    ]).then(([rRes, rkRes]) => {
-      setRecruits((rRes.data as Recruit[]) ?? []);
-      setRankings((rkRes.data as ClassRanking) ?? null);
-      setLoading(false);
-    });
-  }, [sportKey, classYear]);
-
-  return (
-    <div className="space-y-4">
-      <ClassYearTabs year={classYear} onChange={onClassYearChange} />
-      <ClassRankingsBanner rankings={rankings} label={sportLabel} />
-      <SimpleProspectList recruits={recruits} loading={loading} sportLabel={sportLabel} />
-    </div>
-  );
-}
-
 // ─── Main Page Component ──────────────────────────────────────────────────────────
 
 export default function Recruiting() {
   const [classYear, setClassYear] = useState(CURRENT_YEAR + 1);
-  const [tier2Year, setTier2Year] = useState(CURRENT_YEAR + 1);
 
-  // Tier 1: Men's Basketball data
   const [recruits, setRecruits] = useState<Recruit[]>([]);
   const [rankings, setRankings] = useState<ClassRanking | null>(null);
   const [loading, setLoading] = useState(true);
@@ -477,7 +397,7 @@ export default function Recruiting() {
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-6 space-y-6">
-      {/* ── Men's Basketball (full treatment) ───────────────────────────────────── */}
+      {/* ── Men's Basketball ─────────────────────────────────────────────────── */}
       <div className="flex items-center gap-2">
         <div className="w-1 h-6 rounded-full bg-vgd-orange" />
         <h2 className="text-sm font-bold text-white/90 uppercase tracking-wider">{TIER1_LABEL} Recruiting</h2>
@@ -497,24 +417,6 @@ export default function Recruiting() {
         <PlayerRankings recruits={recruits} loading={loading} />
       </div>
 
-      {/* ── LV Basketball, Baseball, LV Softball (minimal) ────────────────────── */}
-      <div className="flex items-center gap-2 pt-2">
-        <div className="w-1 h-6 rounded-full bg-vgd-muted" />
-        <h2 className="text-sm font-bold text-white/90 uppercase tracking-wider">Other Sports Recruiting</h2>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {TIER2_SPORTS.map((sport) => (
-          <Tier2Section
-            key={sport.key}
-            sportKey={sport.key}
-            sportLabel={sport.label}
-            classYear={tier2Year}
-            onClassYearChange={setTier2Year}
-          />
-        ))}
-      </div>
-
       {/* ── SHARED FOOTER ─────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-2 pt-2">
         <div className="w-1 h-6 rounded-full bg-vgd-orange" />
@@ -523,20 +425,20 @@ export default function Recruiting() {
 
       {/* Recruiting Discussion Board */}
       <DiscussionBoard
-        roomCategory="recruiting"
-        title="RECRUITING DISCUSSION BOARD"
-        qotdSportCategories={['basketball', 'baseball']}
+        roomCategory="basketball-recruiting"
+        title="BASKETBALL RECRUITING DISCUSSION BOARD"
+        qotdSportCategories={['basketball']}
         className="h-[700px]"
       />
 
       {/* 3×10 Recruiting News Grid */}
-      <VolNewsWire sportCategory="other-recruiting" />
+      <VolNewsWire sportCategory="basketball-recruiting" />
 
       {/* Three-Window Forum Tray */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-        <ForumThreadsPanel mode="new" category="other_recruiting" />
-        <ForumThreadsPanel mode="popular" category="other_recruiting" />
-        <ForumThreadsPanel mode="recruiting" recruitingCategory="other_recruiting" />
+        <ForumThreadsPanel mode="new" category="basketball_recruiting" />
+        <ForumThreadsPanel mode="popular" category="basketball_recruiting" />
+        <ForumThreadsPanel mode="recruiting" recruitingCategory="basketball_recruiting" />
       </div>
     </div>
   );
