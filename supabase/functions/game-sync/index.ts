@@ -3,17 +3,10 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const CFBD_BASE = "https://api.collegefootballdata.com";
 
-// How far ahead of kickoff a game gets a live_games row so predictions can
-// open early. Games further out than this are ignored — no need to hold a
-// row (and re-fetch it every run) for a game months away.
+// How far ahead of kickoff a game gets a live_games row — generous margin
+// around the weekly sync windows below, not a tuning knob for call cost
+// (this job only ever calls CFBD twice a week regardless).
 const SYNC_WINDOW_MS = 21 * 24 * 60 * 60 * 1000;
-
-// cfbd-proxy already fetches + caches the upcoming game for the homepage
-// banner (cfbd_cache, key "upcoming_game"). Reusing that cache — instead of
-// making our own CFBD call every run — means this job costs zero extra API
-// calls whenever any site traffic has kept that cache warm. Matches
-// cfbd-proxy's own TTL so we never read something it would itself refetch.
-const SHARED_CACHE_TTL_SECONDS = 6 * 60 * 60;
 
 interface CfbdGame {
   id: number;
@@ -23,12 +16,6 @@ interface CfbdGame {
   awayTeam: string;
   homePoints: number | null;
   awayPoints: number | null;
-}
-
-interface CachedUpcomingPayload {
-  upcoming: {
-    game: { id: number; date: string; homeTeam: string; awayTeam: string };
-  } | null;
 }
 
 type Client = ReturnType<typeof createClient>;
@@ -52,6 +39,36 @@ async function reportHealth(supabase: Client, status: "healthy" | "stalled") {
     { source_name: "game_sync", last_successful_run: new Date().toISOString(), status },
     { onConflict: "source_name" }
   );
+}
+
+type SyncWindow = "weekly-upcoming" | "post-game-final" | null;
+
+/**
+ * Real CFBD calls only happen twice a week, gated on the current time in
+ * America/New_York (so this stays correct across the DST change that
+ * lands mid-season, unlike a fixed UTC cron time would):
+ *  - Monday 12:00 AM ET ("weekly-upcoming"): pulls in the upcoming week's
+ *    game (pregame row) and refreshes the homepage banner's cache.
+ *  - Saturday 11:00 PM ET ("post-game-final"): by then essentially every
+ *    game has ended, so this locks in the real final score in live_games
+ *    for display through Sunday. It doesn't touch the banner cache — the
+ *    final-score display reads live_games directly, not that cache, so
+ *    refreshing it here would just prematurely show next week's game.
+ * The cron that invokes this function still fires hourly, but every tick
+ * outside those two windows is a no-op — no CFBD call, no writes.
+ */
+function getSyncWindow(): SyncWindow {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    weekday: "short",
+    hour: "numeric",
+    hour12: false,
+  }).formatToParts(new Date());
+  const weekday = parts.find((p) => p.type === "weekday")?.value;
+  const hour = Number(parts.find((p) => p.type === "hour")?.value);
+  if (weekday === "Mon" && hour === 0) return "weekly-upcoming";
+  if (weekday === "Sat" && hour === 23) return "post-game-final";
+  return null;
 }
 
 /** Upserts one game, skipping it entirely once it's already 'calculated'. */
@@ -96,41 +113,7 @@ async function existingStatusFor(supabase: Client, gameIds: number[]): Promise<M
   return new Map(((data as { cfbd_game_id: number; status: string }[]) ?? []).map((r) => [r.cfbd_game_id, r.status]));
 }
 
-/** Path 1: piggyback on cfbd-proxy's existing cache — zero CFBD calls. */
-async function tryFromSharedCache(supabase: Client) {
-  const { data } = await supabase
-    .from("cfbd_cache")
-    .select("payload, fetched_at")
-    .eq("cache_key", "upcoming_game")
-    .maybeSingle();
-
-  if (!data) return null;
-  const ageSeconds = (Date.now() - new Date(data.fetched_at as string).getTime()) / 1000;
-  if (ageSeconds >= SHARED_CACHE_TTL_SECONDS) return null;
-
-  const game = (data.payload as CachedUpcomingPayload)?.upcoming?.game;
-  if (!game) return null;
-
-  const existing = await existingStatusFor(supabase, [game.id]);
-  const outcome = await upsertGame(
-    supabase,
-    {
-      id: game.id,
-      startDate: game.date,
-      completed: false, // "upcoming" cache only ever holds a not-yet-played game
-      homeTeam: game.homeTeam,
-      awayTeam: game.awayTeam,
-      homePoints: null,
-      awayPoints: null,
-    },
-    existing.get(game.id)
-  );
-
-  return { source: "cache" as const, created: outcome === "created" ? 1 : 0, updated: outcome === "updated" ? 1 : 0, skipped: outcome === "skipped" ? 1 : 0 };
-}
-
-/** Path 2: fallback when the shared cache is stale/missing — one direct CFBD call. */
-async function syncFromCfbdDirect(supabase: Client, apiKey: string) {
+async function syncFromCfbd(supabase: Client, apiKey: string) {
   const year = new Date().getFullYear();
   const res = await fetch(
     `${CFBD_BASE}/games?year=${year}&team=Tennessee&seasonType=regular&division=fbs`,
@@ -149,7 +132,7 @@ async function syncFromCfbdDirect(supabase: Client, apiKey: string) {
   });
 
   if (relevant.length === 0) {
-    return { ok: true as const, source: "cfbd" as const, created: 0, updated: 0, skipped: 0 };
+    return { ok: true as const, created: 0, updated: 0, skipped: 0 };
   }
 
   const existing = await existingStatusFor(supabase, relevant.map((g) => g.id));
@@ -162,7 +145,26 @@ async function syncFromCfbdDirect(supabase: Client, apiKey: string) {
     else if (outcome === "skipped") skipped++;
   }
 
-  return { ok: true as const, source: "cfbd" as const, created, updated, skipped };
+  return { ok: true as const, created, updated, skipped };
+}
+
+/**
+ * Keeps cfbd-proxy's cache (and therefore the homepage's Upcoming Game
+ * banner) refreshed on this same twice-weekly schedule, instead of it
+ * making its own separate CFBD calls whenever site traffic finds its
+ * cache stale. cfbd-proxy only honors "force" for this service-role
+ * -authenticated call — a public caller can't trigger a real API call.
+ */
+async function refreshUpcomingCache(serviceKey: string) {
+  try {
+    await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/cfbd-proxy`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceKey}` },
+      body: JSON.stringify({ type: "upcoming", force: true }),
+    });
+  } catch (err) {
+    console.error(`game-sync: cfbd-proxy refresh failed: ${err}`);
+  }
 }
 
 /**
@@ -180,31 +182,31 @@ async function syncFromCfbdDirect(supabase: Client, apiKey: string) {
  * possession) — CFBD's schedule endpoint doesn't carry that; the Admin
  * Dashboard's existing "Update Game Status" / drive-window tools remain
  * how that gets entered during a live game.
- *
- * API usage: tries the cache cfbd-proxy already maintains first (free);
- * only makes its own CFBD call as a fallback when that cache is stale,
- * which only happens if no one has visited the site in the last several
- * hours.
  */
 Deno.serve(async (_req: Request) => {
+  const window = getSyncWindow();
+  if (!window) {
+    return json({ ok: true, skipped: "not a sync window" });
+  }
+
   const supabase = getSupabaseClient();
 
   try {
-    const cached = await tryFromSharedCache(supabase);
-    if (cached) {
-      await reportHealth(supabase, "healthy");
-      return json({ ok: true, ...cached });
-    }
-
     const apiKey = Deno.env.get("CFBC_API_KEY");
     if (!apiKey) {
       await reportHealth(supabase, "stalled");
       return json({ error: "CFBD API key not configured" }, 500);
     }
 
-    const result = await syncFromCfbdDirect(supabase, apiKey);
+    const result = await syncFromCfbd(supabase, apiKey);
+
+    if (window === "weekly-upcoming") {
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (serviceKey) await refreshUpcomingCache(serviceKey);
+    }
+
     await reportHealth(supabase, result.ok ? "healthy" : "stalled");
-    return json(result, result.ok ? 200 : 502);
+    return json({ ...result, window }, result.ok ? 200 : 502);
   } catch (err) {
     await reportHealth(supabase, "stalled");
     return json({ error: String(err) }, 500);

@@ -12,22 +12,24 @@ import { DailyPoll } from '../components/polls/DailyPoll';
 import { LastGameLeaders, SeasonLeadersFootball, AllSportLeaders } from '../components/leaderboard/SeasonLeaderboards';
 import type { LiveGame } from '../components/game/LiveGameStatsPanel';
 
-function isTodayInET(dateStr: string): boolean {
-  const kickoffDate = new Date(dateStr).toLocaleDateString('en-US', {
-    timeZone: 'America/New_York',
-  });
-  const today = new Date().toLocaleDateString('en-US', {
-    timeZone: 'America/New_York',
-  });
-  return kickoffDate === today;
+// Calendar-day difference in America/New_York, not raw elapsed hours — a
+// Saturday night game should still count as "recent" through all of the
+// following Sunday regardless of what time it kicked off.
+function daysAgoInET(dateStr: string): number {
+  const dateOnly = (d: Date) =>
+    new Date(
+      `${new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(d)}T00:00:00Z`
+    ).getTime();
+  return Math.round((dateOnly(new Date()) - dateOnly(new Date(dateStr))) / 86400000);
 }
 
 /**
  * Picks the single Tennessee game the predictor column should track — the
  * same "upcoming game" concept the GameDayBanner/UpcomingGameCard uses,
  * not just whatever happens to kick off today. Priority: a game in
- * progress, else the soonest not-yet-started game, else today's just-
- * finished game (so the pregame summary still shows right after kickoff).
+ * progress, else the soonest not-yet-started game, else a game that
+ * finished today or yesterday (ET), so a Saturday final score — and its
+ * pregame-prediction summary — keeps showing through all of Sunday.
  */
 function pickActiveGame(games: LiveGame[]): LiveGame | null {
   const live = games.find((g) => g.status === 'live');
@@ -39,10 +41,10 @@ function pickActiveGame(games: LiveGame[]): LiveGame | null {
     .sort((a, b) => new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime())[0];
   if (upcoming) return upcoming;
 
-  const finishedToday = games
-    .filter((g) => ['final', 'calculated'].includes(g.status) && isTodayInET(g.kickoff_time))
+  const finishedRecently = games
+    .filter((g) => ['final', 'calculated'].includes(g.status) && daysAgoInET(g.kickoff_time) <= 1)
     .sort((a, b) => new Date(b.kickoff_time).getTime() - new Date(a.kickoff_time).getTime())[0];
-  return finishedToday ?? null;
+  return finishedRecently ?? null;
 }
 
 export default function Home() {

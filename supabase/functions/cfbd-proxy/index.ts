@@ -9,13 +9,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-// Cache for 6 hours — the upcoming game's record/rankings/stats don't
-// change meaningfully more than once a day, so there's no need to refresh
-// hourly. A full uncached fetch makes up to 6 API calls (schedule, records,
-// two teams, rankings, stats); at a 1-hour TTL that could reach ~144
-// calls/day against CFBD's limited free tier, which is what exhausted it.
-// 6 hours cuts that to ~24/day worst case.
-const CACHE_TTL_SECONDS = 6 * 60 * 60;
+// Freshness of the "upcoming game" data is guaranteed by game-sync's
+// twice-weekly schedule (Monday 12am ET and Saturday 11pm ET), which calls
+// this function with force=true to refresh the cache in lockstep. Regular
+// (non-forced) requests just serve whatever's cached, however old — no
+// separate CFBD call gets triggered by ordinary site traffic. The only
+// exception is a real fetch as a one-time bootstrap if nothing has ever
+// been cached yet.
+interface RequestBody {
+  type?: string;
+  videoId?: string;
+  url?: string;
+  sport_category?: string;
+  force?: boolean;
+}
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -34,7 +41,7 @@ Deno.serve(async (req: Request) => {
     return json({ error: "CFBD API key not configured" }, 500);
   }
 
-  let body: Record<string, string> = {};
+  let body: RequestBody = {};
   try {
     body = await req.json();
   } catch {
@@ -43,7 +50,12 @@ Deno.serve(async (req: Request) => {
   }
 
   if (body.type === "upcoming") {
-    return await getUpcomingGame(apiKey);
+    // "force" bypasses the cache to make a real CFBD call — only honored
+    // when the caller authenticates as the service role (game-sync's own
+    // scheduled calls), so a public caller can't spam real API calls.
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const isPrivileged = !!serviceKey && req.headers.get("Authorization") === `Bearer ${serviceKey}`;
+    return await getUpcomingGame(apiKey, body.force === true && isPrivileged);
   }
 
   if (body.type === "youtube_lookup") {
@@ -279,20 +291,13 @@ function getSupabaseClient() {
   );
 }
 
-async function getCached(supabase: ReturnType<typeof getSupabaseClient>, key: string) {
+async function getCachedAny(supabase: ReturnType<typeof getSupabaseClient>, key: string) {
   const { data } = await supabase
     .from("cfbd_cache")
-    .select("payload, fetched_at")
+    .select("payload")
     .eq("cache_key", key)
     .maybeSingle();
-
-  if (!data) return null;
-
-  const ageSeconds = (Date.now() - new Date(data.fetched_at).getTime()) / 1000;
-  if (ageSeconds < CACHE_TTL_SECONDS) {
-    return data.payload as Record<string, unknown>;
-  }
-  return null;
+  return (data?.payload as Record<string, unknown> | undefined) ?? null;
 }
 
 async function setCached(
@@ -347,17 +352,21 @@ async function cfbdFetchCritical(
 
 // ─── Main logic ──────────────────────────────────────────────────────────────
 
-async function getUpcomingGame(apiKey: string) {
+async function getUpcomingGame(apiKey: string, force: boolean) {
   const supabase = getSupabaseClient();
   const cacheKey = "upcoming_game";
 
-  // 1. Try cache first
-  const cached = await getCached(supabase, cacheKey);
-  if (cached) {
-    return json({ ...cached, cached: true });
+  if (!force) {
+    // Not a scheduled refresh — serve whatever's cached regardless of age.
+    // Only fall through to a real fetch if nothing has ever been cached
+    // (first-ever run, before game-sync has synced anything yet).
+    const cached = await getCachedAny(supabase, cacheKey);
+    if (cached) {
+      return json({ ...cached, cached: true });
+    }
   }
 
-  // 2. Cache miss — fetch from CFBD
+  // Real fetch — either a forced, scheduled refresh, or a one-time bootstrap.
   const year = new Date().getFullYear();
   const todayIso = new Date().toISOString();
 
