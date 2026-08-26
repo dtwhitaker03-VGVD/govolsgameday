@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { DashboardCard } from '../components/ui/DashboardCard';
 import { Avatar } from '../components/ui/Avatar';
 import { TrophyRoom } from '../components/profile/TrophyRoom';
+import { EditProfileCard } from '../components/profile/EditProfileCard';
 import { useBadgeCatalog, badgeLabel } from '../lib/badgeCatalog';
 import { getBadgeIcon } from '../lib/badgeIcons';
 import { ComingSoon } from '../components/ui/ComingSoon';
@@ -430,6 +431,9 @@ export default function UserProfile() {
           )}
         </div>
       </DashboardCard>
+
+      {/* Edit profile — own profile only */}
+      {isSelf && <EditProfileCard onSaved={load} />}
 
       {/* Privacy settings — own profile only */}
       {isSelf && (
