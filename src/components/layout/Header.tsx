@@ -167,7 +167,6 @@ const navItems = [
   { label: 'Basketball', to: '/basketball' },
   { label: 'Baseball', to: '/baseball' },
   { label: 'Forums', to: '/forums' },
-  { label: 'Other', to: '/other' },
   { label: 'About', to: '/about' },
 ];
 
@@ -321,7 +320,6 @@ export function Header() {
                 { label: 'LV Softball', to: '/lv-softball' },
                 { label: 'Recruiting', to: '/recruiting' },
                 { label: 'Forums', to: '/forums' },
-                { label: 'Other', to: '/other' },
                 { label: 'About', to: '/about' },
               ].map((item) => (
                 <NavLink

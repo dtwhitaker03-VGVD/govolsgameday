@@ -12,7 +12,6 @@ import LvSoftball from './pages/LvSoftball';
 import Recruiting from './pages/Recruiting';
 import Forums from './pages/Forums';
 import ThreadPage from './pages/ThreadPage';
-import Other from './pages/Other';
 import About from './pages/About';
 import CodeOfConduct from './pages/CodeOfConduct';
 import UserProfile from './pages/UserProfile';
@@ -34,7 +33,6 @@ export default function App() {
             <Route path="recruiting" element={<Recruiting />} />
             <Route path="forums" element={<Forums />} />
             <Route path="forums/:threadId" element={<ThreadPage />} />
-            <Route path="other" element={<Other />} />
             <Route path="about" element={<About />} />
             <Route path="code-of-conduct" element={<CodeOfConduct />} />
             <Route path="profile/:username" element={<UserProfile />} />
