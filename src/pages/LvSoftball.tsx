@@ -7,7 +7,6 @@ export default function LvSoftball() {
         roomCategory:        'lv-softball',
         boardTitle:          'LADY VOLS SOFTBALL DISCUSSION BOARD',
         sportCategory:       'lv-softball',
-        videoTitle:          'LADY VOLS SOFTBALL VIDEO HUB — YOUTUBE',
         forumCategory:       'lady_vol_softball',
         recruitingCategory:  'other_recruiting',
         qotdCategories:      ['lady-vols'],

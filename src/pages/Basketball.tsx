@@ -7,7 +7,6 @@ export default function Basketball() {
         roomCategory:        'basketball',
         boardTitle:          'BASKETBALL DISCUSSION BOARD',
         sportCategory:       'basketball',
-        videoTitle:          'BASKETBALL VIDEO HUB — YOUTUBE',
         forumCategory:       'basketball',
         recruitingCategory:  'basketball_recruiting',
         qotdCategories:      ['basketball'],

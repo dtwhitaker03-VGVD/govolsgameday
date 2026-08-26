@@ -1,5 +1,4 @@
 import { DiscussionBoard } from '../chat/DiscussionBoard';
-import { VideoGrid } from '../video/VideoGrid';
 import { VolNewsWire } from '../news/VolNewsWire';
 import { ForumThreadsPanel } from '../forums/ForumThreadsPanel';
 
@@ -8,10 +7,8 @@ interface SportPageConfig {
   roomCategory: string;
   /** Title shown in the Discussion Board header */
   boardTitle: string;
-  /** sport_category used for Video Grid and News Wire queries */
+  /** sport_category used for News Wire queries */
   sportCategory: string;
-  /** Title shown in the Video Grid card header */
-  videoTitle: string;
   /** forum_threads category for New/Popular panels (e.g. 'basketball') */
   forumCategory: string;
   /** forum_threads category for the Recruiting panel (e.g. 'basketball_recruiting') */
@@ -33,12 +30,6 @@ export function SportPage({ config }: SportPageProps) {
         title={config.boardTitle}
         qotdSportCategories={config.qotdCategories}
         className="h-[700px]"
-      />
-
-      {/* ── 3×10 Video Grid ───────────────────────────────────────────────────── */}
-      <VideoGrid
-        sportCategory={config.sportCategory}
-        title={config.videoTitle}
       />
 
       {/* ── News Wire ─────────────────────────────────────────────────────────── */}

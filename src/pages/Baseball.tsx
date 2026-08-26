@@ -7,7 +7,6 @@ export default function Baseball() {
         roomCategory:        'baseball',
         boardTitle:          'BASEBALL DISCUSSION BOARD',
         sportCategory:       'baseball',
-        videoTitle:          'BASEBALL VIDEO HUB — YOUTUBE',
         forumCategory:       'baseball',
         recruitingCategory:  'other_recruiting',
         qotdCategories:      ['baseball'],
