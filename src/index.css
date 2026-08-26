@@ -96,4 +96,19 @@
       transform: scale(1) translateY(0);
     }
   }
+
+  /* Legendary badge gold/rainbow shimmer (§31) */
+  .badge-shimmer {
+    background-size: 200% 200%;
+    animation: badge-shimmer 3s ease-in-out infinite;
+  }
+
+  @keyframes badge-shimmer {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
 }
