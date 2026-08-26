@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { ShoppingBag, ChevronDown, Menu, X, LogOut, User, Settings, Shield } from 'lucide-react';
+import { ShoppingBag, ChevronDown, Menu, X, LogOut, User, Shield } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import type { UserProfile } from '../../context/AuthContext';
 import { Avatar } from '../ui/Avatar';
@@ -134,15 +134,6 @@ function AvatarDropdown({ profile }: { profile: UserProfile }) {
             >
               <User className="w-3.5 h-3.5 flex-shrink-0" />
               My Profile
-            </Link>
-
-            <Link
-              to="/settings"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-gray-300 hover:text-white hover:bg-white/[0.05] transition-colors duration-150"
-            >
-              <Settings className="w-3.5 h-3.5 flex-shrink-0" />
-              Settings
             </Link>
 
             {profile.is_admin && (
@@ -380,13 +371,6 @@ export function Header() {
                     className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-300 hover:text-white rounded-md hover:bg-white/[0.04] transition-colors duration-150"
                   >
                     <User className="w-4 h-4" /> My Profile
-                  </Link>
-                  <Link
-                    to="/settings"
-                    onClick={() => setDrawerOpen(false)}
-                    className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-300 hover:text-white rounded-md hover:bg-white/[0.04] transition-colors duration-150"
-                  >
-                    <Settings className="w-4 h-4" /> Settings
                   </Link>
                   {profile.is_admin && (
                     <Link

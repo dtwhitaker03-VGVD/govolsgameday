@@ -31,6 +31,7 @@ interface AuthContextValue {
   closeAuthModal: () => void;
   signOut: () => Promise<void>;
   updateUsername: (newUsername: string) => Promise<{ error: string | null }>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -122,6 +123,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [session]
   );
 
+  const refreshProfile = useCallback(async () => {
+    if (!session?.user) return;
+    const p = await fetchProfile(session.user.id);
+    setProfile(p);
+  }, [session]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -134,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         closeAuthModal,
         signOut,
         updateUsername,
+        refreshProfile,
       }}
     >
       {children}
