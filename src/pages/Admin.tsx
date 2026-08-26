@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { DashboardCard } from '../components/ui/DashboardCard';
-import { CheckCircle, AlertCircle, Loader, EyeOff, Trash2, RefreshCw, Pin, Plus, X } from 'lucide-react';
+import { CheckCircle, AlertCircle, Loader, EyeOff, Trash2, RefreshCw, Pin, Plus, X, Search } from 'lucide-react';
+import { selectMainPageVideos } from '../lib/mainPageVideoSelection';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -378,10 +379,15 @@ interface ScrapedVideo {
   youtube_video_id?: string;
   sport_category: string;
   channel_name?: string | null;
+  published_at: string | null;
+  view_count: number;
   ingested_at: string;
   is_hidden: boolean;
   is_pinned: boolean;
 }
+
+const VIDEO_COLS =
+  'id, title, source_url:video_url, youtube_video_id, sport_category, channel_name, published_at, view_count, ingested_at, is_hidden, is_pinned';
 
 interface ScrapedArticle {
   id: string;
@@ -448,25 +454,87 @@ function ScrapedContentReview() {
   const [addCategory, setAddCategory] = useState('main');
   const [addStatus, setAddStatus] = useState<OpStatus>('idle');
   const [addMsg, setAddMsg] = useState('');
+  const [search, setSearch] = useState('');
+  const [mainPageIds, setMainPageIds] = useState<Set<string>>(new Set());
 
-  async function loadVideos() {
+  // Runs the exact same priority/fallback queries and selection rules as the
+  // public Main Page's "Latest" view (see selectMainPageVideos), so this
+  // always agrees with what a visitor actually sees there right now.
+  async function loadMainPageVideos(): Promise<ScrapedVideo[]> {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 14);
+    const cutoffISO = cutoff.toISOString();
+
+    const [priorityRes, fallbackRes] = await Promise.all([
+      supabase
+        .from('scraped_videos')
+        .select(VIDEO_COLS)
+        .in('channel_priority', [1, 2])
+        .eq('is_hidden', false)
+        .gte('published_at', cutoffISO)
+        .order('published_at', { ascending: false, nullsFirst: false })
+        .limit(200),
+      supabase
+        .from('scraped_videos')
+        .select(VIDEO_COLS)
+        .eq('sport_category', 'main')
+        .is('channel_priority', null)
+        .eq('is_hidden', false)
+        .gte('published_at', cutoffISO)
+        .order('published_at', { ascending: false, nullsFirst: false })
+        .limit(24),
+    ]);
+
+    const priority = (priorityRes.data ?? []) as ScrapedVideo[];
+    const fallback = (fallbackRes.data ?? []) as ScrapedVideo[];
+    return selectMainPageVideos(priority, fallback, 'latest');
+  }
+
+  // The default recent-100-by-ingested_at view only shows what's just been
+  // (re-)ingested — an older row that hasn't been touched by a recent scrape
+  // silently falls out of it even though it's still live on the public site
+  // (public queries filter by published_at, not ingested_at). Search bypasses
+  // that cap entirely so any row can still be found and moderated. Outside of
+  // search, the videos currently on the Main Page are pinned to the front of
+  // the list — regardless of ingested_at — so a broken one is always exactly
+  // as easy to find here as it is to spot on the live site.
+  async function loadVideos(term = search) {
     setLoading(true);
-    const { data } = await supabase
-      .from('scraped_videos')
-      .select('id, title, source_url:video_url, youtube_video_id, sport_category, channel_name, ingested_at, is_hidden, is_pinned')
-      .order('ingested_at', { ascending: false })
-      .limit(100);
-    setVideos((data ?? []) as ScrapedVideo[]);
+
+    if (term.trim()) {
+      const { data } = await supabase
+        .from('scraped_videos')
+        .select(VIDEO_COLS)
+        .ilike('title', `%${term.trim()}%`)
+        .order('ingested_at', { ascending: false })
+        .limit(200);
+      setVideos((data ?? []) as ScrapedVideo[]);
+      setMainPageIds(new Set());
+      setLoading(false);
+      return;
+    }
+
+    const [mainPage, recentRes] = await Promise.all([
+      loadMainPageVideos(),
+      supabase.from('scraped_videos').select(VIDEO_COLS).order('ingested_at', { ascending: false }).limit(100),
+    ]);
+    const recent = (recentRes.data ?? []) as ScrapedVideo[];
+    const mainPageIdSet = new Set(mainPage.map((v) => v.id));
+    const rest = recent.filter((v) => !mainPageIdSet.has(v.id));
+    setVideos([...mainPage, ...rest]);
+    setMainPageIds(mainPageIdSet);
     setLoading(false);
   }
 
-  async function loadArticles() {
+  async function loadArticles(term = search) {
     setLoading(true);
-    const { data } = await supabase
+    let query = supabase
       .from('scraped_articles')
-      .select('id, title, source_url, source_name, sport_category, ingested_at, is_hidden, is_pinned')
-      .order('ingested_at', { ascending: false })
-      .limit(100);
+      .select('id, title, source_url, source_name, sport_category, ingested_at, is_hidden, is_pinned');
+    query = term.trim()
+      ? query.ilike('title', `%${term.trim()}%`).order('ingested_at', { ascending: false }).limit(200)
+      : query.order('ingested_at', { ascending: false }).limit(100);
+    const { data } = await query;
     setArticles((data ?? []) as ScrapedArticle[]);
     setLoading(false);
   }
@@ -475,6 +543,17 @@ function ScrapedContentReview() {
     if (tab === 'videos') loadVideos();
     else loadArticles();
   }, [tab]);
+
+  const isFirstSearch = useRef(true);
+  useEffect(() => {
+    if (isFirstSearch.current) { isFirstSearch.current = false; return; }
+    const timer = setTimeout(() => {
+      if (tab === 'videos') loadVideos(search);
+      else loadArticles(search);
+    }, 350);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   async function hideVideo(id: string) {
     const { error } = await supabase
@@ -677,6 +756,25 @@ function ScrapedContentReview() {
         </div>
       )}
 
+      <div className="mx-4 mt-3 relative">
+        <Search className="w-3.5 h-3.5 text-white/30 absolute left-2.5 top-1/2 -translate-y-1/2" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={`Search ${tab} by title… (bypasses the recent-100 view)`}
+          className="w-full bg-vgd-bg border border-white/10 rounded px-2 py-1.5 pl-8 text-xs text-white focus:outline-none focus:border-vgd-orange/50"
+        />
+        {search && (
+          <button
+            onClick={() => setSearch('')}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+
       {showAdd && (
         <div className="mx-4 mt-3 p-3 bg-white/[0.03] border border-white/[0.08] rounded-lg space-y-2">
           <div className="flex items-center justify-between">
@@ -710,73 +808,97 @@ function ScrapedContentReview() {
           <Loader className="w-4 h-4 animate-spin" /> Loading…
         </div>
       ) : rows.length === 0 ? (
-        <p className="text-xs text-white/30 text-center py-10">No {tab} ingested yet.</p>
+        <p className="text-xs text-white/30 text-center py-10">
+          {search ? `No ${tab} match "${search}".` : `No ${tab} ingested yet.`}
+        </p>
       ) : (
         <div className="divide-y divide-white/[0.05] max-h-[500px] overflow-y-auto">
-          {rows.map((row) => (
-            <div
-              key={row.id}
-              className={`flex items-start gap-3 px-4 py-2.5 group ${row.is_hidden ? 'opacity-40' : ''}`}
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-semibold text-white/85 line-clamp-1 leading-snug">
-                  {row.title}
-                </p>
-                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  <span className="text-[10px] text-vgd-orange/70 font-medium">
-                    {tab === 'articles' ? (row as ScrapedArticle).source_name ?? row.sport_category : row.sport_category}
-                  </span>
-                  {tab === 'videos' && (row as ScrapedVideo).channel_name && (
-                    <span className="text-[10px] text-vgd-muted truncate max-w-[140px]">
-                      {(row as ScrapedVideo).channel_name}
-                    </span>
-                  )}
-                  <span className="text-[10px] text-vgd-muted">{timeAgo(row.ingested_at)}</span>
-                  {row.is_hidden && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-red-400/70 bg-red-500/10 px-1.5 py-0.5 rounded-full">
-                      Hidden
-                    </span>
-                  )}
-                  {row.is_pinned && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-vgd-orange bg-vgd-orange/10 px-1.5 py-0.5 rounded-full">
-                      Pinned
-                    </span>
-                  )}
+          {rows.map((row, i) => {
+            const isMainPage = tab === 'videos' && mainPageIds.has(row.id);
+            const prevIsMainPage = i > 0 && tab === 'videos' && mainPageIds.has(rows[i - 1].id);
+            const showMainHeader = tab === 'videos' && !search && i === 0 && mainPageIds.size > 0;
+            const showOtherHeader = tab === 'videos' && !search && i > 0 && prevIsMainPage && !isMainPage;
+            return (
+              <div key={row.id}>
+                {showMainHeader && (
+                  <div className="px-4 pt-2.5 pb-1 text-[9px] font-bold uppercase tracking-wider text-green-400/80">
+                    On Main Page Right Now ({mainPageIds.size})
+                  </div>
+                )}
+                {showOtherHeader && (
+                  <div className="px-4 pt-2.5 pb-1 text-[9px] font-bold uppercase tracking-wider text-white/30">
+                    Other Recent Videos
+                  </div>
+                )}
+                <div
+                  className={`flex items-start gap-3 px-4 py-2.5 group ${row.is_hidden ? 'opacity-40' : ''}`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-semibold text-white/85 line-clamp-1 leading-snug">
+                      {row.title}
+                    </p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="text-[10px] text-vgd-orange/70 font-medium">
+                        {tab === 'articles' ? (row as ScrapedArticle).source_name ?? row.sport_category : row.sport_category}
+                      </span>
+                      {tab === 'videos' && (row as ScrapedVideo).channel_name && (
+                        <span className="text-[10px] text-vgd-muted truncate max-w-[140px]">
+                          {(row as ScrapedVideo).channel_name}
+                        </span>
+                      )}
+                      <span className="text-[10px] text-vgd-muted">{timeAgo(row.ingested_at)}</span>
+                      {isMainPage && (
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded-full">
+                          On Main Page
+                        </span>
+                      )}
+                      {row.is_hidden && (
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-red-400/70 bg-red-500/10 px-1.5 py-0.5 rounded-full">
+                          Hidden
+                        </span>
+                      )}
+                      {row.is_pinned && (
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-vgd-orange bg-vgd-orange/10 px-1.5 py-0.5 rounded-full">
+                          Pinned
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => tab === 'videos'
+                        ? pinVideo(row.id, !row.is_pinned)
+                        : pinArticle(row.id, !row.is_pinned)}
+                      title={row.is_pinned ? 'Unpin' : 'Pin to top'}
+                      className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
+                        row.is_pinned
+                          ? 'text-vgd-orange hover:bg-vgd-orange/20'
+                          : 'text-white/30 hover:text-vgd-orange hover:bg-vgd-orange/10'
+                      }`}
+                    >
+                      <Pin className="w-3.5 h-3.5" />
+                    </button>
+                    {!row.is_hidden && (
+                      <button
+                        onClick={() => tab === 'videos' ? hideVideo(row.id) : hideArticle(row.id)}
+                        title="Hide from public"
+                        className="w-6 h-6 flex items-center justify-center rounded hover:bg-yellow-500/20 text-white/30 hover:text-yellow-400 transition-colors"
+                      >
+                        <EyeOff className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => tab === 'videos' ? deleteVideo(row.id) : deleteArticle(row.id)}
+                      title="Delete permanently"
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-red-500/20 text-white/30 hover:text-vgd-red transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => tab === 'videos'
-                    ? pinVideo(row.id, !row.is_pinned)
-                    : pinArticle(row.id, !row.is_pinned)}
-                  title={row.is_pinned ? 'Unpin' : 'Pin to top'}
-                  className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
-                    row.is_pinned
-                      ? 'text-vgd-orange hover:bg-vgd-orange/20'
-                      : 'text-white/30 hover:text-vgd-orange hover:bg-vgd-orange/10'
-                  }`}
-                >
-                  <Pin className="w-3.5 h-3.5" />
-                </button>
-                {!row.is_hidden && (
-                  <button
-                    onClick={() => tab === 'videos' ? hideVideo(row.id) : hideArticle(row.id)}
-                    title="Hide from public"
-                    className="w-6 h-6 flex items-center justify-center rounded hover:bg-yellow-500/20 text-white/30 hover:text-yellow-400 transition-colors"
-                  >
-                    <EyeOff className="w-3.5 h-3.5" />
-                  </button>
-                )}
-                <button
-                  onClick={() => tab === 'videos' ? deleteVideo(row.id) : deleteArticle(row.id)}
-                  title="Delete permanently"
-                  className="w-6 h-6 flex items-center justify-center rounded hover:bg-red-500/20 text-white/30 hover:text-vgd-red transition-colors"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </DashboardCard>
