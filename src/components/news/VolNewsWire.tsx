@@ -56,12 +56,13 @@ function ArticleModal({
         )}
         <div className="p-5">
           {article.source_name && (
-            <p className="text-[10px] font-semibold text-vgd-orange uppercase tracking-wider mb-2">
+            <span className="inline-block text-[10px] font-bold text-vgd-orange uppercase tracking-wider bg-vgd-orange/10 border border-vgd-orange/20 rounded px-2 py-1 mb-3">
               {article.source_name}
-            </p>
+            </span>
           )}
-          <h3 className="text-sm font-bold text-white leading-snug mb-3">{article.title}</h3>
-          <p className="text-xs text-white/60 leading-relaxed mb-4">{article.summary}</p>
+          <h3 className="text-base font-bold text-white leading-snug mb-3">{article.title}</h3>
+          <div className="h-px bg-white/[0.08] mb-3" />
+          <p className="text-[13px] text-white/70 leading-relaxed mb-4">{article.summary}</p>
           <a
             href={article.source_url}
             target="_blank"

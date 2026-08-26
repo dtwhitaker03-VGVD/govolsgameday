@@ -561,8 +561,8 @@ function extractPublishDate(result: FirecrawlScrapeResult, sourceUrl?: string): 
 // ─── Summary generation ───────────────────────────────────────────────────────
 
 // Generate a 3-5 sentence extractive summary from article body text.
-function generateSummary(body: string, title: string): string {
-  const clean = body
+function generateSummary(body: string, title: string, sourceName?: string): string {
+  let clean = body
     .replace(/#{1,6}\s*/g, "")
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
     .replace(/[*_`~]/g, "")
@@ -572,8 +572,22 @@ function generateSummary(body: string, title: string): string {
     // Strip "Skip to main content" and navigation text at the start
     .replace(/^Skip to main content.*?(?=\b[A-Z][a-z])/s, "")
     .replace(/^(Home|Schedule|Football|Basketball|Baseball|Lady Vols|SEC Sports|Odds|Newsletter)\s*[-–]\s*/g, "")
+    // Strip byline/date/share-widget boilerplate wherever it appears in the
+    // text — not just when it happens to form its own clean sentence.
+    // Abbreviations like "No." or "Aug." can otherwise trip up the
+    // sentence-splitter below and let fragments of this boilerplate (e.g.
+    // "Share to TwitterShare by email") leak into the final summary.
+    .replace(/\b(Dan Harralson|Tucker Harlin|Ken Lay)\b/gi, "")
+    .replace(/\bUpdated\s+[A-Za-z]+\.?\s*\d{0,2}(,?\s*\d{4})?\.?\s*(ET)?\b/gi, "")
+    .replace(/Share\s+to\s+(Twitter|Facebook|X|Reddit|LinkedIn|Pinterest|WhatsApp)/gi, "")
+    .replace(/Share\s+by\s+email/gi, "")
     .replace(/\s+/g, " ")
     .trim();
+
+  if (sourceName) {
+    const escaped = sourceName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    clean = clean.replace(new RegExp(`\\b${escaped}\\b`, "gi"), "").replace(/\s+/g, " ").trim();
+  }
 
   const sentences = clean
     .split(/(?<=[.!?])\s+/)
@@ -589,9 +603,7 @@ function generateSummary(body: string, title: string): string {
       !s.startsWith("See More") &&
       !s.startsWith("Popular Topics") &&
       !s.startsWith("50% off") &&  // skip 247Sports subscription promos
-      !s.startsWith("Stay up to date") &&  // skip generic site descriptions
-      !/^(Dan Harralson|Tucker Harlin|Ken Lay)\s/i.test(s) && // skip bylines
-      !/^Updated .+\.?\s/i.test(s) // skip "Updated July 13..." lines
+      !s.startsWith("Stay up to date") // skip generic site descriptions
     );
 
   if (sentences.length >= 5) {
@@ -671,7 +683,7 @@ async function processUrlSection(
       const thumbnail = articleResult.metadata?.ogImage ?? null;
       const publishedAt = extractPublishDate(articleResult, cand.url);
       if (isTooOld(publishedAt)) continue;
-      const summary = generateSummary(articleResult.markdown, title);
+      const summary = generateSummary(articleResult.markdown, title, source.source_name);
 
       articles.push({
         title,
@@ -718,7 +730,7 @@ async function processLabelSource(source: SourceDef): Promise<IngestedArticle[]>
       const thumbnail = articleResult.metadata?.ogImage ?? null;
       const publishedAt = extractPublishDate(articleResult, cand.url);
       if (isTooOld(publishedAt)) continue;
-      const summary = generateSummary(articleResult.markdown, title);
+      const summary = generateSummary(articleResult.markdown, title, source.source_name);
 
       articles.push({
         title,
@@ -766,7 +778,7 @@ async function processColumnSource(source: SourceDef): Promise<IngestedArticle[]
       const thumbnail = articleResult.metadata?.ogImage ?? null;
       const publishedAt = extractPublishDate(articleResult, cand.url);
       if (isTooOld(publishedAt)) continue;
-      const summary = generateSummary(articleResult.markdown, title);
+      const summary = generateSummary(articleResult.markdown, title, source.source_name);
 
       articles.push({
         title,

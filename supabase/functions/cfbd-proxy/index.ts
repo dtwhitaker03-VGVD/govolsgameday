@@ -158,6 +158,13 @@ function generateSummary(body: string, title: string): string {
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
     .replace(/[*_`~]/g, "")
     .replace(/!\[([^\]]*)\]\([^)]+\)/g, "")
+    // Strip byline/date/share-widget boilerplate wherever it appears — not
+    // just when it forms its own clean sentence, since abbreviations like
+    // "No." or "Aug." can otherwise split it mid-block and let fragments
+    // leak into the summary.
+    .replace(/\bUpdated\s+[A-Za-z]+\.?\s*\d{0,2}(,?\s*\d{4})?\.?\s*(ET)?\b/gi, "")
+    .replace(/Share\s+to\s+(Twitter|Facebook|X|Reddit|LinkedIn|Pinterest|WhatsApp)/gi, "")
+    .replace(/Share\s+by\s+email/gi, "")
     .replace(/\s+/g, " ")
     .trim();
 
