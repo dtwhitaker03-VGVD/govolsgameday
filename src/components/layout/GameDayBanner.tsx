@@ -119,7 +119,7 @@ export function GameDayBanner() {
           <div className="flex items-center justify-center min-h-0 w-full">
             <img
               src="/GoVolsGameDayBanner2100x1000.png"
-              alt="VolGameday — Tennessee Volunteers fan platform"
+              alt="GoVolsGameDay — Tennessee Volunteers fan platform"
               className="w-full max-h-[220px] lg:max-h-[320px] object-contain"
               draggable={false}
             />
