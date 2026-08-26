@@ -908,6 +908,10 @@ For both: cheaper and more reliable than content classification, since the site 
 
 **Job 3 — Recruiting Data Sync** (`pg_cron`, 1×/day, 2AM EST): 247Sports + On3 Tennessee pages via Firecrawl → commits, decommits, portal activity, star ratings, national/class rankings → UPSERT into `recruits` and `recruiting_class_rankings` (match on `full_name`+`scouting_year` / `sport_category`+`scouting_year`). Star ratings always labeled with source attribution.
 
+**Confirmed source URLs for basketball recruiting (`sport_category = 'basketball'`):**
+- 247Sports commits: `https://247sports.com/college/tennessee/season/2026-basketball/commits/`
+- On3 team page: `https://www.on3.com/college/tennessee-volunteers-24635/`
+
 **Job 4 — CFBD Live Game Feed** (`pg_cron`, every 2-3 min on game days only — schedule can be conditionally active or simply check `live_games` for any row with `status IN ('pregame','live')` and no-op otherwise): `GET /games`, `/live/plays`, `/drives`, `/games/teams`, `/scoreboard` → updates `live_games` (via the same `SECURITY DEFINER` RPC pattern used by the admin test panel, not a raw insert) → Supabase Realtime propagates the change → frontend reacts.
 
 **Job 5 — Rewards Fulfillment** (Database Webhook, not scheduled): fires on `live_games` UPDATE where `status` changes to `'calculated'` → Edge Function queries `game_leaderboard` rank 1 for that game → gets email from `profiles` → sends prize notification via an email API (e.g. Resend or Supabase's built-in email) — $50 UT Sports Store gift card per game; $200 season champion; $500 all-sport champion.
