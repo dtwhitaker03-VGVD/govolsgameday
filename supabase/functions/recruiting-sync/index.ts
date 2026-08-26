@@ -13,9 +13,24 @@ const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const SCOUTING_YEAR = 2027;
-const SPORT_CATEGORY = "football";
-const TARGET_URL = `https://247sports.com/college/tennessee/season/${SCOUTING_YEAR}-football/commits/`;
+interface SourceConfig {
+  sport_category: string;
+  scouting_year: number;
+  target_url: string;
+}
+
+const SOURCES: SourceConfig[] = [
+  {
+    sport_category: "football",
+    scouting_year: 2027,
+    target_url: "https://247sports.com/college/tennessee/season/2027-football/commits/",
+  },
+  {
+    sport_category: "basketball",
+    scouting_year: 2026,
+    target_url: "https://247sports.com/college/tennessee/season/2026-basketball/commits/",
+  },
+];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,6 +41,7 @@ interface ExtractedRecruit {
   stars_247: number;
   national_rank: number;
   commitment_date: string;
+  status: string;
 }
 
 interface ExtractedClassStats {
@@ -181,13 +197,28 @@ function extractRecruits(markdown: string): ExtractedRecruit[] {
     }
 
     // Position: appears as a standalone position abbreviation after the commit date
-    // Look in the last few lines of the context block
+    // Look in the last few lines of the context block. Includes both football
+    // and basketball position abbreviations since both sports share this parser.
     let position = "";
-    const positionRe = /^(QB|RB|WR|TE|OL|OT|OG|C|DL|DE|DT|LB|ILB|OLB|CB|S|K|P|ATH|EDGE|FB|LS|SNAP|WDE|SDE|APB)$/i;
+    const positionRe = /^(QB|RB|WR|TE|OL|OT|OG|C|DL|DE|DT|LB|ILB|OLB|CB|S|K|P|ATH|EDGE|FB|LS|SNAP|WDE|SDE|APB|PG|SG|SF|PF)$/i;
     for (const cl of contextLines) {
       const trimmed = cl.trim();
       if (positionRe.test(trimmed)) {
         position = trimmed.toUpperCase();
+        break;
+      }
+    }
+
+    // Status: 247Sports labels each recruit "Enrolled" or "Signed" (basketball's
+    // Enrollees/Signed Letter of Intent sections) rather than always showing a
+    // commit date (football's plain commits list). Fall back to "committed" —
+    // matches prior football-only behavior when neither word appears.
+    let status = "committed";
+    const statusRe = /^(Enrolled|Signed|Committed)$/i;
+    for (const cl of contextLines) {
+      const trimmed = cl.trim();
+      if (statusRe.test(trimmed)) {
+        status = trimmed.toLowerCase() === "signed" ? "signed" : "committed";
         break;
       }
     }
@@ -205,6 +236,7 @@ function extractRecruits(markdown: string): ExtractedRecruit[] {
         stars_247: stars,
         national_rank: nationalRank,
         commitment_date: commitDate,
+        status,
       });
     }
   }
@@ -259,6 +291,95 @@ function extractClassStats(markdown: string, recruitCount: number): ExtractedCla
   return null;
 }
 
+// ─── Per-source sync ────────────────────────────────────────────────────────
+
+interface SourceResult {
+  sport_category: string;
+  ok: boolean;
+  recruits_upserted: number;
+  class_stats_upserted: boolean;
+  recruits_sample: ExtractedRecruit[];
+  class_stats: ExtractedClassStats | null;
+  errors: string[];
+}
+
+async function syncSource(supabase: ReturnType<typeof createClient>, source: SourceConfig): Promise<SourceResult> {
+  const errors: string[] = [];
+
+  console.log(`Scraping ${source.target_url}...`);
+  const markdown = await scrapePage(source.target_url);
+
+  if (markdown.length < 500) {
+    throw new Error(`Scraped markdown is suspiciously short for ${source.sport_category} — page may not have loaded properly`);
+  }
+
+  console.log(`Extracting ${source.sport_category} recruit data via regex parser...`);
+  const recruits = extractRecruits(markdown);
+
+  if (recruits.length === 0) {
+    errors.push("No recruits extracted from the page");
+  }
+
+  // UPSERT recruits
+  let recruitsUpserted = 0;
+  if (recruits.length > 0) {
+    const now = new Date().toISOString();
+    const rows = recruits.map((r) => ({
+      full_name: r.full_name,
+      hometown: r.hometown || null,
+      position: r.position || null,
+      sport_category: source.sport_category,
+      scouting_year: source.scouting_year,
+      stars_247: r.stars_247 || null,
+      stars_on3: null,
+      national_rank: r.national_rank || null,
+      status: r.status,
+      updated_at: now,
+    }));
+
+    const { error } = await supabase
+      .from("recruits")
+      .upsert(rows, { onConflict: "full_name,scouting_year" });
+
+    if (error) {
+      errors.push(`Recruits upsert error: ${error.message}`);
+    } else {
+      recruitsUpserted = rows.length;
+    }
+  }
+
+  // UPSERT class rankings
+  const class_stats = extractClassStats(markdown, recruits.length);
+  let classStatsUpserted = false;
+  if (class_stats) {
+    const { error } = await supabase
+      .from("recruiting_class_rankings")
+      .upsert({
+        sport_category: source.sport_category,
+        scouting_year: source.scouting_year,
+        rank_247: class_stats.national_rank ?? 0,
+        rank_on3: 0,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "sport_category,scouting_year" });
+
+    if (error) {
+      errors.push(`Class rankings upsert error: ${error.message}`);
+    } else {
+      classStatsUpserted = true;
+    }
+  }
+
+  return {
+    sport_category: source.sport_category,
+    ok: errors.length === 0,
+    recruits_upserted: recruitsUpserted,
+    class_stats_upserted: classStatsUpserted,
+    recruits_sample: recruits.slice(0, 5),
+    class_stats,
+    errors,
+  };
+}
+
 // ─── Main handler ─────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
@@ -267,118 +388,59 @@ Deno.serve(async (req: Request) => {
   }
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-  const errors: string[] = [];
 
   const urlObj = new URL(req.url);
   const debug = urlObj.searchParams.get("debug") === "1";
+  const sportParam = urlObj.searchParams.get("sport");
 
-  try {
-    console.log(`Scraping ${TARGET_URL}...`);
-    const markdown = await scrapePage(TARGET_URL);
-
-    if (debug) {
+  // Debug mode previews raw Firecrawl markdown without touching the database
+  // — used to verify a source's real page structure before trusting a
+  // parser. `?url=` scrapes any arbitrary URL directly (for reconnaissance
+  // on new sources); otherwise picks a configured source by `?sport=`
+  // (defaults to the first configured source).
+  const urlParam = urlObj.searchParams.get("url");
+  if (debug) {
+    const targetUrl = urlParam
+      ? urlParam
+      : (sportParam ? SOURCES.find((s) => s.sport_category === sportParam)?.target_url : SOURCES[0].target_url);
+    if (!targetUrl) {
       return new Response(
-        JSON.stringify({ markdown_length: markdown.length, markdown_preview: markdown.slice(0, 8000) }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: `Unknown sport "${sportParam}". Known: ${SOURCES.map((s) => s.sport_category).join(", ")}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    if (markdown.length < 500) {
-      throw new Error("Scraped markdown is suspiciously short — page may not have loaded properly");
-    }
-
-    console.log("Extracting recruit data via regex parser...");
-    const recruits = extractRecruits(markdown);
-
-    if (recruits.length === 0) {
-      errors.push("No recruits extracted from the page");
-    }
-
-    // Step 3: UPSERT recruits
-    let recruitsUpserted = 0;
-    if (recruits.length > 0) {
-      const now = new Date().toISOString();
-      const rows = recruits.map((r) => ({
-        full_name: r.full_name,
-        hometown: r.hometown || null,
-        position: r.position || null,
-        sport_category: SPORT_CATEGORY,
-        scouting_year: SCOUTING_YEAR,
-        stars_247: r.stars_247 || null,
-        stars_on3: null,
-        national_rank: r.national_rank || null,
-        status: "committed",
-        updated_at: now,
-      }));
-
-      const { error } = await supabase
-        .from("recruits")
-        .upsert(rows, { onConflict: "full_name,scouting_year" });
-
-      if (error) {
-        errors.push(`Recruits upsert error: ${error.message}`);
-      } else {
-        recruitsUpserted = rows.length;
-      }
-    }
-
-    // Step 4: UPSERT class rankings
-    const class_stats = extractClassStats(markdown, recruits.length);
-    let classStatsUpserted = false;
-    if (class_stats) {
-      const { error } = await supabase
-        .from("recruiting_class_rankings")
-        .upsert({
-          sport_category: SPORT_CATEGORY,
-          scouting_year: SCOUTING_YEAR,
-          rank_247: class_stats.national_rank ?? 0,
-          rank_on3: 0,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "sport_category,scouting_year" });
-
-      if (error) {
-        errors.push(`Class rankings upsert error: ${error.message}`);
-      } else {
-        classStatsUpserted = true;
-      }
-    }
-
-    // Step 5: Update system_health
-    await supabase
-      .from("system_health")
-      .upsert({
-        source_name: "recruiting_sync",
-        last_successful_run: new Date().toISOString(),
-        status: errors.length === 0 ? "healthy" : "stalled",
-      }, { onConflict: "source_name" });
-
+    const markdown = await scrapePage(targetUrl);
     return new Response(
-      JSON.stringify({
-        ok: errors.length === 0,
-        recruits_upserted: recruitsUpserted,
-        class_stats_upserted: classStatsUpserted,
-        recruits_sample: recruits.slice(0, 5),
-        class_stats,
-        errors: errors.length,
-        error_details: errors,
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error(msg);
-
-    await supabase
-      .from("system_health")
-      .upsert({
-        source_name: "recruiting_sync",
-        last_successful_run: new Date().toISOString(),
-        status: "stalled",
-      }, { onConflict: "source_name" });
-
-    return new Response(
-      JSON.stringify({ ok: false, errors: 1, error_details: [msg] }),
+      JSON.stringify({ target_url: targetUrl, markdown_length: markdown.length, markdown_preview: markdown.slice(0, 8000) }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
+
+  const results: SourceResult[] = [];
+  const fatalErrors: string[] = [];
+
+  for (const source of SOURCES) {
+    try {
+      results.push(await syncSource(supabase, source));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`${source.sport_category}: ${msg}`);
+      fatalErrors.push(`${source.sport_category}: ${msg}`);
+    }
+  }
+
+  const allOk = fatalErrors.length === 0 && results.every((r) => r.ok);
+
+  await supabase
+    .from("system_health")
+    .upsert({
+      source_name: "recruiting_sync",
+      last_successful_run: new Date().toISOString(),
+      status: allOk ? "healthy" : "stalled",
+    }, { onConflict: "source_name" });
+
+  return new Response(
+    JSON.stringify({ ok: allOk, sources: results, fatal_errors: fatalErrors }),
+    { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
 });
