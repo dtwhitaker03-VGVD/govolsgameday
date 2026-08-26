@@ -12,9 +12,8 @@ import { DailyPoll } from '../components/polls/DailyPoll';
 import { LastGameLeaders, SeasonLeadersFootball, AllSportLeaders } from '../components/leaderboard/SeasonLeaderboards';
 import type { LiveGame } from '../components/game/LiveGameStatsPanel';
 
-function isActiveGame(game: LiveGame): boolean {
-  if (!['pregame', 'live', 'final'].includes(game.status)) return false;
-  const kickoffDate = new Date(game.kickoff_time).toLocaleDateString('en-US', {
+function isTodayInET(dateStr: string): boolean {
+  const kickoffDate = new Date(dateStr).toLocaleDateString('en-US', {
     timeZone: 'America/New_York',
   });
   const today = new Date().toLocaleDateString('en-US', {
@@ -23,63 +22,69 @@ function isActiveGame(game: LiveGame): boolean {
   return kickoffDate === today;
 }
 
+/**
+ * Picks the single Tennessee game the predictor column should track — the
+ * same "upcoming game" concept the GameDayBanner/UpcomingGameCard uses,
+ * not just whatever happens to kick off today. Priority: a game in
+ * progress, else the soonest not-yet-started game, else today's just-
+ * finished game (so the pregame summary still shows right after kickoff).
+ */
+function pickActiveGame(games: LiveGame[]): LiveGame | null {
+  const live = games.find((g) => g.status === 'live');
+  if (live) return live;
+
+  const now = Date.now();
+  const upcoming = games
+    .filter((g) => g.status === 'pregame' && new Date(g.kickoff_time).getTime() >= now)
+    .sort((a, b) => new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime())[0];
+  if (upcoming) return upcoming;
+
+  const finishedToday = games
+    .filter((g) => ['final', 'calculated'].includes(g.status) && isTodayInET(g.kickoff_time))
+    .sort((a, b) => new Date(b.kickoff_time).getTime() - new Date(a.kickoff_time).getTime())[0];
+  return finishedToday ?? null;
+}
+
 export default function Home() {
   const [liveGame, setLiveGame] = useState<LiveGame | null>(null);
   const [layoutReady, setLayoutReady] = useState(false);
   const [pastKickoff, setPastKickoff] = useState(false);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
-    const today = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York' });
-
-    supabase
+  const fetchActiveGame = useCallback(() => {
+    return supabase
       .from('live_games')
       .select(
         'id, cfbd_game_id, home_team, away_team, kickoff_time, status, home_score, away_score, ' +
         'home_total_yards, away_total_yards, current_quarter, game_clock, possession, ' +
         'down, distance, yardline'
       )
-      .in('status', ['pregame', 'live', 'final'])
+      .in('status', ['pregame', 'live', 'final', 'calculated'])
       .order('kickoff_time', { ascending: true })
       .limit(20)
       .then(({ data }) => {
-        if (data) {
-          const active = (data as LiveGame[]).find((g) => {
-            const kickoffDate = new Date(g.kickoff_time).toLocaleDateString('en-US', {
-              timeZone: 'America/New_York',
-            });
-            return kickoffDate === today;
-          });
-          setLiveGame(active ?? null);
-          if (active) {
-            setPastKickoff(new Date(active.kickoff_time).getTime() <= Date.now());
-          }
-        }
-        setLayoutReady(true);
+        const active = pickActiveGame((data as LiveGame[]) ?? []);
+        setLiveGame(active);
+        setPastKickoff(active ? new Date(active.kickoff_time).getTime() <= Date.now() : false);
       });
   }, []);
 
   useEffect(() => {
-    const currentId = liveGame?.id;
+    fetchActiveGame().then(() => setLayoutReady(true));
+  }, [fetchActiveGame]);
+
+  useEffect(() => {
     const channel = supabase
       .channel('home:live_games')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'live_games' },
-        (payload) => {
-          const updated = payload.new as LiveGame;
-          if (isActiveGame(updated)) {
-            setLiveGame(updated);
-            setPastKickoff(new Date(updated.kickoff_time).getTime() <= Date.now());
-          } else if (currentId && currentId === updated.id) {
-            setLiveGame(null);
-          }
-        }
+        () => { fetchActiveGame(); }
       )
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [liveGame?.id]);
+  }, [fetchActiveGame]);
 
   // Countdown to kickoff for the predictor swap
   useEffect(() => {
