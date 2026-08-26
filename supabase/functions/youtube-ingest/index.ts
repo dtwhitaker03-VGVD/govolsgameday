@@ -33,7 +33,7 @@ const PRIORITY_CHANNELS: ChannelConfig[] = [
   { name: "Locked On Vols",               handle: "@LockedOnVols",      channelId: "UCOUPSMo-PS5kU5CrWh5WFqg",    priority: 1 },
   { name: "TN Fan Talk",                   handle: "@tnfantalk",                                                    priority: 1 },
   { name: "Bluechip Breakdown",            handle: "@bluechipbreakdown",                                            priority: 1 },
-  { name: "Vol Freak",                     handle: "@volfreak",          channelId: "UCH9YFd-kZe4jscnWfDyRU_Q",    priority: 1 },
+  { name: "Vol Freak",                     handle: "@volfreak",          channelId: "UCljH0U0oKAYMH_b2Xomh4fA",    priority: 1 },
   { name: "Sports Talk J",                 handle: "@sportstalkj5110",   channelId: "UCe0hcOQ9ACndfZL0hxYfJLA",    priority: 1 },
   { name: "Tennessee Football Talk",       handle: "@volstalk",          channelId: "UCWOngCoRZqm3sNd_XKT5Tkw",    priority: 1 },
   // ── Tier 2 ──
@@ -221,7 +221,8 @@ function publishedAfterISO(days: number): string {
   return d.toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
-function parseDuration(iso: string): string {
+function parseDuration(iso: string | undefined): string {
+  if (!iso) return "";
   const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
   if (!m) return "";
   const h = parseInt(m[1] ?? "0");
@@ -253,7 +254,7 @@ async function searchVideos(
     items?: Array<{
       id: { videoId: string };
       snippet: {
-        title: string; description: string; channelId: string;
+        title: string; description: string; channelId: string; channelTitle: string;
         publishedAt: string;   // YouTube's real publish date
         thumbnails: { high?: { url: string }; medium?: { url: string } };
       };
@@ -303,8 +304,10 @@ async function searchVideos(
       view_count: views,
       sport_category,
       published_at: item.snippet.publishedAt,
-      // channel_name and channel_priority intentionally omitted —
-      // stays NULL so video lands in Tier 3 for the Main Page.
+      // channel_name is still captured so the UI can display who made the
+      // video — only channel_priority stays NULL, since that's what keeps
+      // it in Tier 3 for the Main Page.
+      channel_name: decodeHtmlEntities(item.snippet.channelTitle),
     });
   }
   return results;
@@ -450,9 +453,10 @@ Deno.serve(async (req: Request) => {
               view_count:       v.view_count,
               sport_category:   v.sport_category,
               published_at:     v.published_at,
+              channel_name:     v.channel_name,
               ingested_at:      new Date().toISOString(),
-              // channel_name and channel_priority deliberately omitted:
-              // ON CONFLICT they will not overwrite values set by Part B.
+              // channel_priority deliberately omitted: ON CONFLICT it will
+              // not overwrite a priority already set by Part B.
             })),
             { onConflict: "youtube_video_id", ignoreDuplicates: false }
           );
@@ -494,7 +498,7 @@ Deno.serve(async (req: Request) => {
         );
 
       if (error) errors.push(`DB upsert error for channel "${channel.name}": ${error.message}`);
-      else totalUpserted += filtered.length;
+      else totalUpserted += videos.length;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Channel "${channel.name}" failed: ${msg}`);
