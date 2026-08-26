@@ -17,6 +17,11 @@ interface SourceConfig {
   sport_category: string;
   scouting_year: number;
   target_url: string;
+  /** On3 commits page for the same team/class — used to backfill stars_on3
+   *  and rank_on3 by matching full_name against what 247 already upserted. */
+  on3_url: string;
+  /** 247Sports "targets" (not-yet-committed prospects) page, if available. */
+  targets_url?: string;
 }
 
 const SOURCES: SourceConfig[] = [
@@ -24,11 +29,14 @@ const SOURCES: SourceConfig[] = [
     sport_category: "football",
     scouting_year: 2027,
     target_url: "https://247sports.com/college/tennessee/season/2027-football/commits/",
+    on3_url: "https://www.on3.com/college/tennessee-volunteers-24635/football/2027/commits/",
+    targets_url: "https://247sports.com/college/tennessee/season/2027-football/targets/",
   },
   {
     sport_category: "basketball",
     scouting_year: 2026,
     target_url: "https://247sports.com/college/tennessee/season/2026-basketball/commits/",
+    on3_url: "https://www.on3.com/college/tennessee-volunteers/basketball/2026/industry-comparison-commits/",
   },
 ];
 
@@ -291,12 +299,83 @@ function extractClassStats(markdown: string, recruitCount: number): ExtractedCla
   return null;
 }
 
+// ─── On3 extraction ─────────────────────────────────────────────────────────
+// On3 team commits page markdown structure per recruit (distinct link host/
+// path from 247's, so this needs its own scan):
+//   [Player Name](https://www.on3.com/rivals/player-name-id/)
+//   School (City, ST)
+//   POS·H-W/ WT
+//   POS
+//   ★★★★★NN.NN                  ← On3's own 0-100 rating (stars glyphs are
+//                                  decorative and always render as 5, not a
+//                                  real count — the trailing number is real)
+//   NNNatl·NNPos·NNSt
+//   [Team logo link] C|S|E MM/DD/YY   ← status letter: Committed/Signed/Enrolled
+
+interface On3Recruit {
+  full_name: string;
+  rating: number;
+  status: string;
+}
+
+function extractOn3Recruits(markdown: string): On3Recruit[] {
+  const recruits: On3Recruit[] = [];
+  const lines = markdown.split("\n");
+  const seenNames = new Set<string>();
+
+  const playerLinkRe = /\[([A-Z][a-zA-Z.'’\-]+(?: [A-Z][a-zA-Z.'’\-]+){1,3})\]\(https:\/\/www\.on3\.com\/rivals\/[^)]+\)/;
+
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(playerLinkRe);
+    if (!match) continue;
+
+    const fullName = decodeHtmlEntities(match[1].trim());
+    if (seenNames.has(fullName)) continue;
+    if (fullName.length < 5 || fullName.length > 60) continue;
+
+    const contextEnd = Math.min(lines.length, i + 20);
+    const contextLines = lines.slice(i, contextEnd);
+
+    let rating = 0;
+    for (const cl of contextLines) {
+      const ratingMatch = cl.trim().match(/^★+([\d.]+)$/);
+      if (ratingMatch) {
+        rating = parseFloat(ratingMatch[1]);
+        break;
+      }
+    }
+    if (rating <= 0) continue;
+
+    let status = "committed";
+    for (const cl of contextLines) {
+      const statusMatch = cl.match(/\]\([^)]*\)\s*([CSE])\d{2}\/\d{2}\/\d{2}/);
+      if (statusMatch) {
+        status = statusMatch[1] === "S" ? "signed" : "committed";
+        break;
+      }
+    }
+
+    seenNames.add(fullName);
+    recruits.push({ full_name: fullName, rating, status });
+  }
+
+  return recruits;
+}
+
+// "National Rank\\\\\n19th" — On3's markdown escapes the line break inside
+// the link label with two literal backslashes before the newline.
+function extractOn3TeamRank(markdown: string): number | null {
+  const m = markdown.match(/National\s*Rank\\*\s*\n+\s*(\d{1,3})(?:st|nd|rd|th)/i);
+  return m ? parseInt(m[1]) : null;
+}
+
 // ─── Per-source sync ────────────────────────────────────────────────────────
 
 interface SourceResult {
   sport_category: string;
   ok: boolean;
   recruits_upserted: number;
+  targets_upserted: number;
   class_stats_upserted: boolean;
   recruits_sample: ExtractedRecruit[];
   class_stats: ExtractedClassStats | null;
@@ -348,6 +427,31 @@ async function syncSource(supabase: ReturnType<typeof createClient>, source: Sou
     }
   }
 
+  // On3: backfill stars_on3 per recruit (matched by exact full_name — a few
+  // recruits go unmatched when On3 lists a nickname 247 doesn't, e.g. "Chris"
+  // vs "Christopher" — those just keep stars_on3 null rather than guessing)
+  // and get On3's real team National Rank for rank_on3.
+  let on3Rank: number | null = null;
+  try {
+    const on3Markdown = await scrapePage(source.on3_url);
+    on3Rank = extractOn3TeamRank(on3Markdown);
+    const on3Recruits = extractOn3Recruits(on3Markdown);
+    for (const r of on3Recruits) {
+      const stars = ratingToStars(Math.floor(r.rating));
+      if (stars <= 0) continue;
+      const { error } = await supabase
+        .from("recruits")
+        .update({ stars_on3: stars })
+        .eq("full_name", r.full_name)
+        .eq("scouting_year", source.scouting_year)
+        .eq("sport_category", source.sport_category);
+      if (error) errors.push(`On3 stars update error for ${r.full_name}: ${error.message}`);
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    errors.push(`On3 scrape failed (non-fatal, stars_on3/rank_on3 unchanged): ${msg}`);
+  }
+
   // UPSERT class rankings
   const class_stats = extractClassStats(markdown, recruits.length);
   let classStatsUpserted = false;
@@ -358,7 +462,7 @@ async function syncSource(supabase: ReturnType<typeof createClient>, source: Sou
         sport_category: source.sport_category,
         scouting_year: source.scouting_year,
         rank_247: class_stats.national_rank ?? 0,
-        rank_on3: 0,
+        rank_on3: on3Rank ?? 0,
         updated_at: new Date().toISOString(),
       }, { onConflict: "sport_category,scouting_year" });
 
@@ -369,10 +473,46 @@ async function syncSource(supabase: ReturnType<typeof createClient>, source: Sou
     }
   }
 
+  // 247 Targets: prospects not yet committed. The targets page also lists
+  // some already-committed recruits (their own board still tracks them), so
+  // never let this downgrade someone this run already confirmed as
+  // committed/signed — only insert names that aren't in that set.
+  let targetsUpserted = 0;
+  if (source.targets_url) {
+    try {
+      const committedNames = new Set(recruits.map((r) => r.full_name));
+      const targetsMarkdown = await scrapePage(source.targets_url);
+      const targetRecruits = extractRecruits(targetsMarkdown).filter((r) => !committedNames.has(r.full_name));
+      if (targetRecruits.length > 0) {
+        const now = new Date().toISOString();
+        const rows = targetRecruits.map((r) => ({
+          full_name: r.full_name,
+          hometown: r.hometown || null,
+          position: r.position || null,
+          sport_category: source.sport_category,
+          scouting_year: source.scouting_year,
+          stars_247: r.stars_247 || null,
+          national_rank: r.national_rank || null,
+          status: "target",
+          updated_at: now,
+        }));
+        const { error } = await supabase
+          .from("recruits")
+          .upsert(rows, { onConflict: "full_name,scouting_year" });
+        if (error) errors.push(`Targets upsert error: ${error.message}`);
+        else targetsUpserted = rows.length;
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(`Targets scrape failed (non-fatal): ${msg}`);
+    }
+  }
+
   return {
     sport_category: source.sport_category,
     ok: errors.length === 0,
     recruits_upserted: recruitsUpserted,
+    targets_upserted: targetsUpserted,
     class_stats_upserted: classStatsUpserted,
     recruits_sample: recruits.slice(0, 5),
     class_stats,
@@ -410,8 +550,9 @@ Deno.serve(async (req: Request) => {
       );
     }
     const markdown = await scrapePage(targetUrl);
+    const previewLen = Math.min(markdown.length, parseInt(urlObj.searchParams.get("len") || "8000", 10) || 8000);
     return new Response(
-      JSON.stringify({ target_url: targetUrl, markdown_length: markdown.length, markdown_preview: markdown.slice(0, 8000) }),
+      JSON.stringify({ target_url: targetUrl, markdown_length: markdown.length, markdown_preview: markdown.slice(0, previewLen) }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
