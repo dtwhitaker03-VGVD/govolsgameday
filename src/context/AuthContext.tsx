@@ -59,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile(p);
           setLoading(false);
         });
+        supabase.rpc('touch_last_seen');
       } else {
         setLoading(false);
       }
@@ -72,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           const p = await fetchProfile(session.user.id);
           setProfile(p);
+          supabase.rpc('touch_last_seen');
         } else {
           setProfile(null);
         }

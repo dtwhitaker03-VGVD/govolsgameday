@@ -42,7 +42,7 @@ export function TrophyRoom({ userId }: { userId: string }) {
             <div className="w-6 h-6 border-2 border-vgd-orange/30 border-t-vgd-orange rounded-full animate-spin" />
           </div>
         ) : (
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
             {badgeList.map((b) => {
               const earned = earnedKeys.has(b.badge_key);
               const Icon = getBadgeIcon(b.icon);
@@ -50,25 +50,28 @@ export function TrophyRoom({ userId }: { userId: string }) {
               return (
                 <div
                   key={b.badge_key}
-                  className="group relative flex flex-col items-center gap-1.5"
                   title={`${b.label} — ${b.description}${earned ? '' : ' (locked)'}`}
+                  className={`relative flex flex-col items-center gap-2 rounded-lg border px-3 py-4 transition-all ${
+                    earned
+                      ? legendary
+                        ? 'border-vgd-orange/50 bg-gradient-to-b from-vgd-orange/10 to-transparent'
+                        : 'border-white/[0.1] bg-white/[0.03]'
+                      : 'border-white/[0.05] bg-white/[0.015]'
+                  }`}
                 >
+                  {!earned && <Lock className="absolute top-2 right-2 w-3 h-3 text-vgd-muted/60" />}
                   <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${
+                    className={`w-11 h-11 rounded-full flex items-center justify-center ${
                       earned
                         ? legendary
-                          ? 'bg-gradient-to-br from-amber-300 via-vgd-orange to-fuchsia-500 border-transparent shadow-lg shadow-vgd-orange/30 badge-shimmer'
-                          : 'bg-vgd-orange/15 border-vgd-orange/40'
-                        : 'bg-white/[0.03] border-white/[0.07] opacity-40'
+                          ? 'bg-gradient-to-br from-amber-300 via-vgd-orange to-fuchsia-500 shadow-lg shadow-vgd-orange/30 badge-shimmer'
+                          : 'bg-vgd-orange/15'
+                        : 'bg-white/[0.04]'
                     }`}
                   >
-                    {earned ? (
-                      <Icon className={`w-5 h-5 ${legendary ? 'text-white' : 'text-vgd-orange'}`} />
-                    ) : (
-                      <Lock className="w-4 h-4 text-vgd-muted" />
-                    )}
+                    <Icon className={`w-5 h-5 ${earned ? (legendary ? 'text-white' : 'text-vgd-orange') : 'text-vgd-muted/50'}`} />
                   </div>
-                  <span className={`text-[9px] text-center leading-tight ${earned ? 'text-white/70' : 'text-vgd-muted'}`}>
+                  <span className={`text-[10px] text-center leading-tight font-medium ${earned ? 'text-white/80' : 'text-vgd-muted'}`}>
                     {b.label}
                   </span>
                 </div>
