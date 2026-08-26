@@ -3,6 +3,7 @@ import { NavLink, Link } from 'react-router-dom';
 import { ShoppingBag, ChevronDown, Menu, X, LogOut, User, Settings, Shield } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import type { UserProfile } from '../../context/AuthContext';
+import { Avatar } from '../ui/Avatar';
 
 interface DropdownItem {
   label: string;
@@ -69,26 +70,7 @@ function NavDropdown({ label, items }: NavDropdownProps) {
 }
 
 function UserAvatar({ profile, size = 'sm' }: { profile: UserProfile; size?: 'sm' | 'md' }) {
-  const dim = size === 'sm' ? 'w-7 h-7 text-[11px]' : 'w-9 h-9 text-sm';
-  const initials = profile.username.slice(0, 2).toUpperCase();
-
-  if (profile.avatar_url) {
-    return (
-      <img
-        src={profile.avatar_url}
-        alt={profile.username}
-        className={`${dim} rounded-full object-cover ring-2 ring-vgd-orange/40`}
-      />
-    );
-  }
-
-  return (
-    <div
-      className={`${dim} rounded-full bg-vgd-orange flex items-center justify-center text-white font-bold flex-shrink-0 ring-2 ring-vgd-orange/40`}
-    >
-      {initials}
-    </div>
-  );
+  return <Avatar url={profile.avatar_url} username={profile.username} size={size} />;
 }
 
 function AvatarDropdown({ profile }: { profile: UserProfile }) {
