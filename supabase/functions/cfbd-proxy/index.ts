@@ -394,8 +394,8 @@ async function getUpcomingGame(apiKey: string) {
 
   // Find next game after today
   const future = (schedule as GameEntry[])
-    .filter((g) => !g.completed && g.start_date > todayIso)
-    .sort((a, b) => a.start_date.localeCompare(b.start_date));
+    .filter((g) => !g.completed && g.startDate > todayIso)
+    .sort((a, b) => a.startDate.localeCompare(b.startDate));
 
   if (future.length === 0) {
     const payload = { upcoming: null, reason: "no_games" };
@@ -404,8 +404,8 @@ async function getUpcomingGame(apiKey: string) {
   }
 
   const game = future[0];
-  const tennesseeIsHome = game.home_team === "Tennessee";
-  const opponentName = tennesseeIsHome ? game.away_team : game.home_team;
+  const tennesseeIsHome = game.homeTeam === "Tennessee";
+  const opponentName = tennesseeIsHome ? game.awayTeam : game.homeTeam;
 
   // 3. Fetch supplementary data — only 2 parallel calls instead of 6:
   //    - Teams (for logos, both TN + opponent in one call each)
@@ -470,28 +470,30 @@ async function getUpcomingGame(apiKey: string) {
     totalDefense: null as { value: number; rank: number } | null,
   });
 
-  // Logo
-  const getLogo = (teamArr: TeamEntry[]) => {
-    const t = teamArr?.[0];
-    return t?.logos?.[0]?.href ?? null;
+  // Logo — CFBD's /teams doesn't reliably filter server-side, and each
+  // entry's logos are plain URL strings (not {href} objects), so match by
+  // school name client-side and take the string directly.
+  const getLogo = (teamArr: TeamEntry[], team: string) => {
+    const t = teamArr.find((x) => x.school === team) ?? teamArr[0];
+    return t?.logos?.[0] ?? null;
   };
 
   const payload = {
     upcoming: {
       game: {
         id: game.id,
-        date: game.start_date,
-        homeTeam: game.home_team,
-        awayTeam: game.away_team,
+        date: game.startDate,
+        homeTeam: game.homeTeam,
+        awayTeam: game.awayTeam,
         venue: game.venue,
-        neutralSite: game.neutral_site ?? false,
+        neutralSite: game.neutralSite ?? false,
       },
       tennesseeIsHome,
       tennessee: {
         record: getRecord("Tennessee"),
         ranking_ap: getRanking("Tennessee", "AP Top 25"),
         ranking_coaches: getRanking("Tennessee", "Coaches Poll"),
-        logo: getLogo(tnTeam as TeamEntry[]),
+        logo: getLogo(tnTeam as TeamEntry[], "Tennessee"),
         stats: buildTeamStats("Tennessee"),
       },
       opponent: {
@@ -499,7 +501,7 @@ async function getUpcomingGame(apiKey: string) {
         record: getRecord(opponentName),
         ranking_ap: getRanking(opponentName, "AP Top 25"),
         ranking_coaches: getRanking(opponentName, "Coaches Poll"),
-        logo: getLogo(opponentTeam as TeamEntry[]),
+        logo: getLogo(opponentTeam as TeamEntry[], opponentName),
         stats: buildTeamStats(opponentName),
       },
     },
@@ -515,12 +517,12 @@ async function getUpcomingGame(apiKey: string) {
 
 interface GameEntry {
   id: number;
-  start_date: string;
+  startDate: string;
   completed: boolean;
-  home_team: string;
-  away_team: string;
+  homeTeam: string;
+  awayTeam: string;
   venue: string;
-  neutral_site?: boolean;
+  neutralSite?: boolean;
 }
 
 interface RecordEntry {
@@ -545,5 +547,6 @@ interface StatEntry {
 }
 
 interface TeamEntry {
-  logos?: Array<{ href: string }>;
+  school: string;
+  logos?: string[];
 }

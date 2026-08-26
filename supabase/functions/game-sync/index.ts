@@ -17,12 +17,12 @@ const SHARED_CACHE_TTL_SECONDS = 6 * 60 * 60;
 
 interface CfbdGame {
   id: number;
-  start_date: string;
+  startDate: string;
   completed: boolean;
-  home_team: string;
-  away_team: string;
-  home_points: number | null;
-  away_points: number | null;
+  homeTeam: string;
+  awayTeam: string;
+  homePoints: number | null;
+  awayPoints: number | null;
 }
 
 interface CachedUpcomingPayload {
@@ -63,18 +63,18 @@ async function upsertGame(
   if (existingStatus === "calculated") return "skipped";
 
   const now = Date.now();
-  const kickoff = new Date(g.start_date).getTime();
+  const kickoff = new Date(g.startDate).getTime();
   const status = g.completed ? "final" : kickoff <= now ? "live" : "pregame";
 
   const { error } = await supabase.from("live_games").upsert(
     {
       cfbd_game_id: g.id,
-      home_team: g.home_team,
-      away_team: g.away_team,
-      kickoff_time: g.start_date,
+      home_team: g.homeTeam,
+      away_team: g.awayTeam,
+      kickoff_time: g.startDate,
       status,
-      home_score: g.home_points ?? 0,
-      away_score: g.away_points ?? 0,
+      home_score: g.homePoints ?? 0,
+      away_score: g.awayPoints ?? 0,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "cfbd_game_id" }
@@ -116,12 +116,12 @@ async function tryFromSharedCache(supabase: Client) {
     supabase,
     {
       id: game.id,
-      start_date: game.date,
+      startDate: game.date,
       completed: false, // "upcoming" cache only ever holds a not-yet-played game
-      home_team: game.homeTeam,
-      away_team: game.awayTeam,
-      home_points: null,
-      away_points: null,
+      homeTeam: game.homeTeam,
+      awayTeam: game.awayTeam,
+      homePoints: null,
+      awayPoints: null,
     },
     existing.get(game.id)
   );
@@ -145,7 +145,7 @@ async function syncFromCfbdDirect(supabase: Client, apiKey: string) {
   const now = Date.now();
   const relevant = schedule.filter((g) => {
     if (g.completed) return true;
-    return new Date(g.start_date).getTime() - now < SYNC_WINDOW_MS;
+    return new Date(g.startDate).getTime() - now < SYNC_WINDOW_MS;
   });
 
   if (relevant.length === 0) {
