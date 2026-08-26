@@ -102,7 +102,7 @@ function TeamLogo({ src, name, size = 28 }: { src: string | null; name: string; 
         alt={name}
         width={size}
         height={size}
-        className="object-contain rounded-full bg-white/5 flex-shrink-0"
+        className="object-contain rounded-md bg-white/5 flex-shrink-0"
         style={{ width: size, height: size }}
         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
       />
