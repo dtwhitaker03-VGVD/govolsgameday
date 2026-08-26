@@ -417,7 +417,7 @@ const SPORT_CATEGORIES = [
   { value: 'lv-basketball', label: 'Lady Vols Basketball' },
   { value: 'lv-softball', label: 'Lady Vols Softball' },
   { value: 'football-recruiting', label: 'Football Recruiting' },
-  { value: 'other-recruiting', label: 'Other Recruiting' },
+  { value: 'basketball-recruiting', label: 'Basketball Recruiting' },
   { value: 'other', label: 'Other' },
 ];
 
