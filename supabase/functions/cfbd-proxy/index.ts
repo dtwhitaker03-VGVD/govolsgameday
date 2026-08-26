@@ -9,10 +9,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-// Cache for 1 hour — the upcoming game doesn't change minute-to-minute,
-// and CFBD's free tier is 1,000 calls/month. Each uncached fetch makes
-// 2-3 API calls; caching means we use ~72 calls/day instead of ~thousands.
-const CACHE_TTL_SECONDS = 3600;
+// Cache for 6 hours — the upcoming game's record/rankings/stats don't
+// change meaningfully more than once a day, so there's no need to refresh
+// hourly. A full uncached fetch makes up to 6 API calls (schedule, records,
+// two teams, rankings, stats); at a 1-hour TTL that could reach ~144
+// calls/day against CFBD's limited free tier, which is what exhausted it.
+// 6 hours cuts that to ~24/day worst case.
+const CACHE_TTL_SECONDS = 6 * 60 * 60;
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
