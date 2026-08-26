@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { DashboardCard } from '../components/ui/DashboardCard';
-import { CheckCircle, AlertCircle, Loader, EyeOff, Trash2, RefreshCw, Pin, Plus, X } from 'lucide-react';
+import { CheckCircle, AlertCircle, Loader, EyeOff, Trash2, RefreshCw, Pin, Plus, X, Search } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -448,25 +448,35 @@ function ScrapedContentReview() {
   const [addCategory, setAddCategory] = useState('main');
   const [addStatus, setAddStatus] = useState<OpStatus>('idle');
   const [addMsg, setAddMsg] = useState('');
+  const [search, setSearch] = useState('');
 
-  async function loadVideos() {
+  // The default recent-100-by-ingested_at view only shows what's just been
+  // (re-)ingested — an older row that hasn't been touched by a recent scrape
+  // silently falls out of it even though it's still live on the public site
+  // (public queries filter by published_at, not ingested_at). Search bypasses
+  // that cap entirely so any row can still be found and moderated.
+  async function loadVideos(term = search) {
     setLoading(true);
-    const { data } = await supabase
+    let query = supabase
       .from('scraped_videos')
-      .select('id, title, source_url:video_url, youtube_video_id, sport_category, channel_name, ingested_at, is_hidden, is_pinned')
-      .order('ingested_at', { ascending: false })
-      .limit(100);
+      .select('id, title, source_url:video_url, youtube_video_id, sport_category, channel_name, ingested_at, is_hidden, is_pinned');
+    query = term.trim()
+      ? query.ilike('title', `%${term.trim()}%`).order('ingested_at', { ascending: false }).limit(200)
+      : query.order('ingested_at', { ascending: false }).limit(100);
+    const { data } = await query;
     setVideos((data ?? []) as ScrapedVideo[]);
     setLoading(false);
   }
 
-  async function loadArticles() {
+  async function loadArticles(term = search) {
     setLoading(true);
-    const { data } = await supabase
+    let query = supabase
       .from('scraped_articles')
-      .select('id, title, source_url, source_name, sport_category, ingested_at, is_hidden, is_pinned')
-      .order('ingested_at', { ascending: false })
-      .limit(100);
+      .select('id, title, source_url, source_name, sport_category, ingested_at, is_hidden, is_pinned');
+    query = term.trim()
+      ? query.ilike('title', `%${term.trim()}%`).order('ingested_at', { ascending: false }).limit(200)
+      : query.order('ingested_at', { ascending: false }).limit(100);
+    const { data } = await query;
     setArticles((data ?? []) as ScrapedArticle[]);
     setLoading(false);
   }
@@ -475,6 +485,17 @@ function ScrapedContentReview() {
     if (tab === 'videos') loadVideos();
     else loadArticles();
   }, [tab]);
+
+  const isFirstSearch = useRef(true);
+  useEffect(() => {
+    if (isFirstSearch.current) { isFirstSearch.current = false; return; }
+    const timer = setTimeout(() => {
+      if (tab === 'videos') loadVideos(search);
+      else loadArticles(search);
+    }, 350);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   async function hideVideo(id: string) {
     const { error } = await supabase
@@ -677,6 +698,25 @@ function ScrapedContentReview() {
         </div>
       )}
 
+      <div className="mx-4 mt-3 relative">
+        <Search className="w-3.5 h-3.5 text-white/30 absolute left-2.5 top-1/2 -translate-y-1/2" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={`Search ${tab} by title… (bypasses the recent-100 view)`}
+          className="w-full bg-vgd-bg border border-white/10 rounded px-2 py-1.5 pl-8 text-xs text-white focus:outline-none focus:border-vgd-orange/50"
+        />
+        {search && (
+          <button
+            onClick={() => setSearch('')}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+
       {showAdd && (
         <div className="mx-4 mt-3 p-3 bg-white/[0.03] border border-white/[0.08] rounded-lg space-y-2">
           <div className="flex items-center justify-between">
@@ -710,7 +750,9 @@ function ScrapedContentReview() {
           <Loader className="w-4 h-4 animate-spin" /> Loading…
         </div>
       ) : rows.length === 0 ? (
-        <p className="text-xs text-white/30 text-center py-10">No {tab} ingested yet.</p>
+        <p className="text-xs text-white/30 text-center py-10">
+          {search ? `No ${tab} match "${search}".` : `No ${tab} ingested yet.`}
+        </p>
       ) : (
         <div className="divide-y divide-white/[0.05] max-h-[500px] overflow-y-auto">
           {rows.map((row) => (
