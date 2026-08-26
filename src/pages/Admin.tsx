@@ -193,9 +193,16 @@ function GameStatusPanel({ games, onRefresh }: { games: LiveGame[]; onRefresh: (
   async function finalize() {
     if (!gameId) return;
     setStatus('loading');
-    const { error } = await supabase.rpc('finalize_game', { p_game_id: gameId });
+    const { data, error } = await supabase.functions.invoke('finalize-game', {
+      body: { game_id: gameId },
+    });
     if (error) { setStatus('error'); setMsg(error.message); }
-    else { setStatus('ok'); setMsg('Game finalized — pregame points calculated.'); onRefresh(); }
+    else {
+      setStatus('ok');
+      const warn = data?.warnings?.length ? ` (warnings: ${data.warnings.join('; ')})` : '';
+      setMsg(`Game finalized — pregame points calculated.${warn}`);
+      onRefresh();
+    }
   }
 
   return (
