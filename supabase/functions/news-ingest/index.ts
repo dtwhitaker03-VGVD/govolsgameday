@@ -20,7 +20,7 @@ const SERVICE_ROLE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 //   "column" — read an explicit SPORT column/badge per row
 
 type TagMethod = "url" | "label" | "column";
-type SportCategory = "football" | "basketball" | "baseball" | "lv-basketball" | "lv-softball" | "other";
+type SportCategory = "football" | "basketball" | "baseball" | "lv-basketball" | "lv-softball" | "football-recruiting" | "basketball-recruiting" | "other";
 
 interface SourceSection {
   url: string;
@@ -76,6 +76,8 @@ const SOURCES: SourceDef[] = [
       { url: "https://allfortennessee.com/vols-basketball/",                           sport_category: "basketball" },
       { url: "https://allfortennessee.com/vols-basketball/vols-womens-basketball/",    sport_category: "lv-basketball" },
       { url: "https://allfortennessee.com/vols-baseball/",                             sport_category: "baseball" },
+      { url: "https://allfortennessee.com/vols-football/vols-football-recruiting/",    sport_category: "football-recruiting" },
+      { url: "https://allfortennessee.com/vols-basketball/vols-basketball-recruiting/", sport_category: "basketball-recruiting" },
     ],
     maxPerSection: 3,
   },
