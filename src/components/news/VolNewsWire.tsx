@@ -104,16 +104,52 @@ export function VolNewsWire({ sportCategory, crossSport = false }: VolNewsWirePr
 
     query
       .order('published_at', { ascending: false, nullsFirst: false })
-      .limit(30)
+      .limit(100)
       .then(({ data }) => {
         const now = Date.now();
-        const sorted = ((data as ScrapedArticle[]) ?? []).sort((a, b) => {
-          const aPinned = a.is_pinned && (!a.pin_expires_at || new Date(a.pin_expires_at).getTime() > now);
-          const bPinned = b.is_pinned && (!b.pin_expires_at || new Date(b.pin_expires_at).getTime() > now);
-          if (aPinned !== bPinned) return aPinned ? -1 : 1;
-          return 0;
-        }).slice(0, 15);
-        setArticles(sorted);
+        const all = (data as ScrapedArticle[]) ?? [];
+
+        const isPinned = (a: ScrapedArticle) =>
+          a.is_pinned && (!a.pin_expires_at || new Date(a.pin_expires_at).getTime() > now);
+
+        const pinned = all.filter(isPinned);
+        const rest = all.filter((a) => !isPinned(a));
+
+        // Group the remainder by source — each group is already in recency
+        // order since the query itself was sorted by published_at desc.
+        const bySource = new Map<string, ScrapedArticle[]>();
+        for (const a of rest) {
+          const key = a.source_name ?? 'Unknown';
+          if (!bySource.has(key)) bySource.set(key, []);
+          bySource.get(key)!.push(a);
+        }
+
+        // Round-robin across sources — one article per source per pass,
+        // starting with whichever source has the freshest article — so a
+        // single prolific source can't crowd the rest out just by
+        // publishing more often, while recency still drives the mix.
+        const sourceOrder = [...bySource.keys()].sort((sa, sb) => {
+          const ta = new Date(bySource.get(sa)![0].published_at ?? bySource.get(sa)![0].ingested_at).getTime();
+          const tb = new Date(bySource.get(sb)![0].published_at ?? bySource.get(sb)![0].ingested_at).getTime();
+          return tb - ta;
+        });
+
+        const targetCount = Math.max(0, 15 - pinned.length);
+        const interleaved: ScrapedArticle[] = [];
+        let tookOne = true;
+        while (tookOne && interleaved.length < targetCount) {
+          tookOne = false;
+          for (const src of sourceOrder) {
+            const bucket = bySource.get(src)!;
+            if (bucket.length > 0) {
+              interleaved.push(bucket.shift()!);
+              tookOne = true;
+              if (interleaved.length >= targetCount) break;
+            }
+          }
+        }
+
+        setArticles([...pinned, ...interleaved].slice(0, 15));
         setLoading(false);
       });
   }, [sportCategory, crossSport]);
