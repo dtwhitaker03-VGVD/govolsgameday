@@ -5,7 +5,9 @@ const CFBD_BASE = "https://api.collegefootballdata.com";
 
 // How far ahead of kickoff a game gets a live_games row — generous margin
 // around the weekly sync windows below, not a tuning knob for call cost
-// (this job only ever calls CFBD twice a week regardless).
+// (the full schedule sync below only ever calls CFBD twice a week
+// regardless; see getSyncWindow for the separate, lighter betting-line
+// check that runs a third time midweek).
 const SYNC_WINDOW_MS = 21 * 24 * 60 * 60 * 1000;
 
 interface CfbdGame {
@@ -53,21 +55,27 @@ async function reportHealth(supabase: Client, status: "healthy" | "stalled") {
   );
 }
 
-type SyncWindow = "weekly-upcoming" | "post-game-final" | null;
+type SyncWindow = "weekly-upcoming" | "midweek-line-check" | "post-game-final" | null;
 
 /**
- * Real CFBD calls only happen twice a week, gated on the current time in
- * America/New_York (so this stays correct across the DST change that
+ * Real CFBD calls only happen three times a week, gated on the current time
+ * in America/New_York (so this stays correct across the DST change that
  * lands mid-season, unlike a fixed UTC cron time would):
  *  - Monday 12:00 AM ET ("weekly-upcoming"): pulls in the upcoming week's
- *    game (pregame row) and refreshes the homepage banner's cache.
+ *    game (pregame row), refreshes the homepage banner's cache, and checks
+ *    for a betting line.
+ *  - Wednesday 12:00 AM ET ("midweek-line-check"): betting-line check only
+ *    — catches a line that wasn't posted yet on Monday, or has moved since,
+ *    without polling CFBD hourly for something that doesn't need to be
+ *    real-time.
  *  - Saturday 11:00 PM ET ("post-game-final"): by then essentially every
  *    game has ended, so this locks in the real final score in live_games
- *    for display through Sunday. It doesn't touch the banner cache — the
+ *    for display through Sunday, and also checks the line (a no-op for any
+ *    game that already kicked off). It doesn't touch the banner cache — the
  *    final-score display reads live_games directly, not that cache, so
  *    refreshing it here would just prematurely show next week's game.
  * The cron that invokes this function still fires hourly, but every tick
- * outside those two windows is a no-op — no CFBD call, no writes.
+ * outside these three windows is a no-op — no CFBD call, no writes.
  */
 function getSyncWindow(): SyncWindow {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -79,6 +87,7 @@ function getSyncWindow(): SyncWindow {
   const weekday = parts.find((p) => p.type === "weekday")?.value;
   const hour = Number(parts.find((p) => p.type === "hour")?.value);
   if (weekday === "Mon" && hour === 0) return "weekly-upcoming";
+  if (weekday === "Wed" && hour === 0) return "midweek-line-check";
   if (weekday === "Sat" && hour === 23) return "post-game-final";
   return null;
 }
@@ -160,17 +169,6 @@ async function syncFromCfbd(supabase: Client, apiKey: string) {
   return { ok: true as const, created, updated, skipped };
 }
 
-// How far ahead of kickoff to start checking for a betting line, and how
-// long a captured line is considered fresh before re-checking. This piggy-
-// backs on the hourly cron that's already running (see Deno.serve below) —
-// it's a targeted, single-game call, not a new polling frequency, and is a
-// zero-CFBD-call no-op every hour that isn't within the window of a TN
-// kickoff. The window is a full week so the pregame predictor's Spread/
-// Total fields have a line (and aren't hidden) for the whole time picks are
-// open, not just the last few hours before lock; the 4h staleness keeps
-// per-game CFBD calls to ~6/day instead of hourly for that whole week.
-const LINE_REFRESH_WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // look ahead 7d to kickoff
-const LINE_REFRESH_STALE_MS = 4 * 60 * 60 * 1000; // don't re-check within 4h of last capture
 const PREFERRED_LINE_PROVIDERS = ["DraftKings", "consensus"];
 
 function pickLine(lines: CfbdLineEntry[]): CfbdLineEntry | null {
@@ -182,32 +180,26 @@ function pickLine(lines: CfbdLineEntry[]): CfbdLineEntry | null {
 }
 
 /**
- * Targeted, kickoff-adjacent betting-line refresh — separate from the
- * twice-weekly full schedule sync below, and runs every hourly tick
- * regardless of getSyncWindow(), since betting lines move throughout the
- * week and the twice-weekly cadence alone could leave a stale or missing
- * line right up to kickoff. Only fires a real CFBD call for games that are
- * pregame, kicking off within LINE_REFRESH_WINDOW_MS, and whose line
- * hasn't been captured within LINE_REFRESH_STALE_MS.
+ * Betting-line check for every currently-pregame game — called only from
+ * inside one of the three weekly sync windows (see getSyncWindow), not on
+ * every hourly tick: a betting line doesn't need to be caught in real time,
+ * so there's no separate staleness/lookahead tracking here — Monday,
+ * Wednesday, and Saturday simply each re-fetch and overwrite whatever CFBD
+ * currently reports for every pregame game.
  */
 async function refreshLinesForUpcomingGames(supabase: Client, apiKey: string) {
-  const now = Date.now();
   const { data: candidates } = await supabase
     .from("live_games")
-    .select("id, cfbd_game_id, home_team, lines_captured_at")
-    .eq("status", "pregame")
-    .gte("kickoff_time", new Date(now).toISOString())
-    .lte("kickoff_time", new Date(now + LINE_REFRESH_WINDOW_MS).toISOString());
+    .select("id, cfbd_game_id, home_team")
+    .eq("status", "pregame");
 
-  const due = ((candidates ?? []) as { id: string; cfbd_game_id: number; home_team: string; lines_captured_at: string | null }[])
-    .filter((g) => !g.lines_captured_at || now - new Date(g.lines_captured_at).getTime() > LINE_REFRESH_STALE_MS);
-
-  if (due.length === 0) {
-    return { checked: candidates?.length ?? 0, refreshed: 0 };
+  const games = (candidates ?? []) as { id: string; cfbd_game_id: number; home_team: string }[];
+  if (games.length === 0) {
+    return { checked: 0, refreshed: 0 };
   }
 
   let refreshed = 0;
-  for (const g of due) {
+  for (const g of games) {
     try {
       const res = await fetch(`${CFBD_BASE}/lines?gameId=${g.cfbd_game_id}`, {
         headers: { Authorization: `Bearer ${apiKey}` },
@@ -239,7 +231,7 @@ async function refreshLinesForUpcomingGames(supabase: Client, apiKey: string) {
       console.error(`game-sync: line refresh failed for cfbd_game_id=${g.cfbd_game_id}: ${err}`);
     }
   }
-  return { checked: candidates?.length ?? 0, refreshed };
+  return { checked: games.length, refreshed };
 }
 
 /**
@@ -280,17 +272,21 @@ async function refreshUpcomingCache(serviceKey: string) {
 Deno.serve(async (_req: Request) => {
   const supabase = getSupabaseClient();
   const apiKey = Deno.env.get("CFBC_API_KEY");
+  const window = getSyncWindow();
 
-  // Kickoff-adjacent line refresh runs on every hourly tick, independent of
-  // the twice-weekly sync window below — see refreshLinesForUpcomingGames.
+  if (!window) {
+    return json({ ok: true, skipped: "not a sync window" });
+  }
+
+  // Betting-line check runs inside all three weekly windows (Mon/Wed/Sat) —
+  // see refreshLinesForUpcomingGames.
   let linesResult: unknown = { skipped: "no api key" };
   if (apiKey) {
     linesResult = await refreshLinesForUpcomingGames(supabase, apiKey).catch((err) => ({ error: String(err) }));
   }
 
-  const window = getSyncWindow();
-  if (!window) {
-    return json({ ok: true, skipped: "not a sync window", lines: linesResult });
+  if (window === "midweek-line-check") {
+    return json({ ok: true, window, lines: linesResult });
   }
 
   try {
