@@ -16,6 +16,21 @@ interface PregamePrediction {
   away_score_points: number | null;
   home_yards_points: number | null;
   away_yards_points: number | null;
+  predicted_spread_pick: 'over' | 'under' | null;
+  predicted_total_pick: 'over' | 'under' | null;
+  predicted_tn_rushing_tds: number | null;
+  predicted_tn_receiving_tds: number | null;
+  predicted_tn_turnovers_forced: number | null;
+  spread_pick_correct: boolean | null;
+  spread_pick_points: number | null;
+  total_pick_correct: boolean | null;
+  total_pick_points: number | null;
+  tn_rushing_tds_correct: boolean | null;
+  tn_rushing_tds_points: number | null;
+  tn_receiving_tds_correct: boolean | null;
+  tn_receiving_tds_points: number | null;
+  tn_turnovers_forced_correct: boolean | null;
+  tn_turnovers_forced_points: number | null;
   total_pregame_points: number | null;
 }
 
@@ -95,6 +110,36 @@ export function MyPicksModal({ game, open, onClose }: Props) {
       actual: isFinal ? (actualOppYards != null ? String(actualOppYards) : '—') : null,
       pts: isFinal ? (!tnIsHome ? pred.home_yards_points : pred.away_yards_points) : null,
     },
+    {
+      label: 'Spread O/U',
+      predicted: pred.predicted_spread_pick ? pred.predicted_spread_pick.toUpperCase() : '—',
+      actual: isFinal ? (game.spread_line_tn != null ? `TN ${game.spread_line_tn > 0 ? '+' : ''}${game.spread_line_tn}` : 'N/A') : null,
+      pts: isFinal ? pred.spread_pick_points : null,
+    },
+    {
+      label: 'Total Points O/U',
+      predicted: pred.predicted_total_pick ? pred.predicted_total_pick.toUpperCase() : '—',
+      actual: isFinal ? (game.total_points_line != null ? String(game.total_points_line) : 'N/A') : null,
+      pts: isFinal ? pred.total_pick_points : null,
+    },
+    {
+      label: 'TN Rushing TDs',
+      predicted: String(pred.predicted_tn_rushing_tds ?? '—'),
+      actual: isFinal ? (game.tn_rushing_tds != null ? String(game.tn_rushing_tds) : 'N/A') : null,
+      pts: isFinal ? pred.tn_rushing_tds_points : null,
+    },
+    {
+      label: 'TN Receiving TDs',
+      predicted: String(pred.predicted_tn_receiving_tds ?? '—'),
+      actual: isFinal ? (game.tn_receiving_tds != null ? String(game.tn_receiving_tds) : 'N/A') : null,
+      pts: isFinal ? pred.tn_receiving_tds_points : null,
+    },
+    {
+      label: 'TN Turnovers Forced',
+      predicted: String(pred.predicted_tn_turnovers_forced ?? '—'),
+      actual: isFinal ? (game.tn_turnovers_forced != null ? String(game.tn_turnovers_forced) : 'N/A') : null,
+      pts: isFinal ? pred.tn_turnovers_forced_points : null,
+    },
   ] : [];
 
   return (
@@ -171,7 +216,7 @@ export function MyPicksModal({ game, open, onClose }: Props) {
                   <span className="text-xs text-white/60 font-semibold">Total Pregame Points</span>
                   <span className="text-lg font-black text-vgd-orange">
                     {pred.total_pregame_points ?? 0}
-                    <span className="text-xs font-normal text-vgd-muted"> / 1,000</span>
+                    <span className="text-xs font-normal text-vgd-muted"> / 1,500</span>
                   </span>
                 </div>
               )}

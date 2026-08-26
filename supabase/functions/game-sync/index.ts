@@ -18,6 +18,18 @@ interface CfbdGame {
   awayPoints: number | null;
 }
 
+interface CfbdLineEntry {
+  provider: string;
+  spread: number | null;
+  overUnder: number | null;
+}
+interface CfbdGameLines {
+  id: number;
+  homeTeam: string;
+  awayTeam: string;
+  lines: CfbdLineEntry[];
+}
+
 type Client = ReturnType<typeof createClient>;
 
 function json(data: unknown, status = 200) {
@@ -148,6 +160,85 @@ async function syncFromCfbd(supabase: Client, apiKey: string) {
   return { ok: true as const, created, updated, skipped };
 }
 
+// How far ahead of kickoff to start checking for a betting line, and how
+// long a captured line is considered fresh before re-checking. This piggy-
+// backs on the hourly cron that's already running (see Deno.serve below) —
+// it's a targeted, single-game call, not a new polling frequency, and is a
+// zero-CFBD-call no-op every hour that isn't within a few hours of a TN
+// kickoff.
+const LINE_REFRESH_WINDOW_MS = 3 * 60 * 60 * 1000; // look ahead 3h to kickoff
+const LINE_REFRESH_STALE_MS = 60 * 60 * 1000; // don't re-check within 1h of last capture
+const PREFERRED_LINE_PROVIDERS = ["DraftKings", "consensus"];
+
+function pickLine(lines: CfbdLineEntry[]): CfbdLineEntry | null {
+  for (const name of PREFERRED_LINE_PROVIDERS) {
+    const hit = lines.find((l) => l.provider === name && l.spread != null);
+    if (hit) return hit;
+  }
+  return lines.find((l) => l.spread != null) ?? null;
+}
+
+/**
+ * Targeted, kickoff-adjacent betting-line refresh — separate from the
+ * twice-weekly full schedule sync below, and runs every hourly tick
+ * regardless of getSyncWindow(), since betting lines move throughout the
+ * week and the twice-weekly cadence alone could leave a stale or missing
+ * line right up to kickoff. Only fires a real CFBD call for games that are
+ * pregame, kicking off within LINE_REFRESH_WINDOW_MS, and whose line
+ * hasn't been captured within LINE_REFRESH_STALE_MS.
+ */
+async function refreshLinesForUpcomingGames(supabase: Client, apiKey: string) {
+  const now = Date.now();
+  const { data: candidates } = await supabase
+    .from("live_games")
+    .select("id, cfbd_game_id, home_team, lines_captured_at")
+    .eq("status", "pregame")
+    .gte("kickoff_time", new Date(now).toISOString())
+    .lte("kickoff_time", new Date(now + LINE_REFRESH_WINDOW_MS).toISOString());
+
+  const due = ((candidates ?? []) as { id: string; cfbd_game_id: number; home_team: string; lines_captured_at: string | null }[])
+    .filter((g) => !g.lines_captured_at || now - new Date(g.lines_captured_at).getTime() > LINE_REFRESH_STALE_MS);
+
+  if (due.length === 0) {
+    return { checked: candidates?.length ?? 0, refreshed: 0 };
+  }
+
+  let refreshed = 0;
+  for (const g of due) {
+    try {
+      const res = await fetch(`${CFBD_BASE}/lines?gameId=${g.cfbd_game_id}`, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      if (!res.ok) continue;
+      const arr = (await res.json()) as CfbdGameLines[];
+      const gameLines = arr[0];
+      const chosen = gameLines ? pickLine(gameLines.lines ?? []) : null;
+      if (!chosen) continue;
+
+      // Normalize to TN-relative (negative = TN favored). CFBD's spread is
+      // home-team-relative, so flip the sign when TN is the away team.
+      const spreadTnRelative =
+        g.home_team === "Tennessee"
+          ? chosen.spread
+          : chosen.spread == null ? null : -chosen.spread;
+
+      await supabase
+        .from("live_games")
+        .update({
+          spread_line_tn: spreadTnRelative,
+          total_points_line: chosen.overUnder,
+          lines_provider: chosen.provider,
+          lines_captured_at: new Date().toISOString(),
+        })
+        .eq("id", g.id);
+      refreshed++;
+    } catch (err) {
+      console.error(`game-sync: line refresh failed for cfbd_game_id=${g.cfbd_game_id}: ${err}`);
+    }
+  }
+  return { checked: candidates?.length ?? 0, refreshed };
+}
+
 /**
  * Keeps cfbd-proxy's cache (and therefore the homepage's Upcoming Game
  * banner) refreshed on this same twice-weekly schedule, instead of it
@@ -184,15 +275,22 @@ async function refreshUpcomingCache(serviceKey: string) {
  * how that gets entered during a live game.
  */
 Deno.serve(async (_req: Request) => {
-  const window = getSyncWindow();
-  if (!window) {
-    return json({ ok: true, skipped: "not a sync window" });
+  const supabase = getSupabaseClient();
+  const apiKey = Deno.env.get("CFBC_API_KEY");
+
+  // Kickoff-adjacent line refresh runs on every hourly tick, independent of
+  // the twice-weekly sync window below — see refreshLinesForUpcomingGames.
+  let linesResult: unknown = { skipped: "no api key" };
+  if (apiKey) {
+    linesResult = await refreshLinesForUpcomingGames(supabase, apiKey).catch((err) => ({ error: String(err) }));
   }
 
-  const supabase = getSupabaseClient();
+  const window = getSyncWindow();
+  if (!window) {
+    return json({ ok: true, skipped: "not a sync window", lines: linesResult });
+  }
 
   try {
-    const apiKey = Deno.env.get("CFBC_API_KEY");
     if (!apiKey) {
       await reportHealth(supabase, "stalled");
       return json({ error: "CFBD API key not configured" }, 500);
@@ -206,7 +304,7 @@ Deno.serve(async (_req: Request) => {
     }
 
     await reportHealth(supabase, result.ok ? "healthy" : "stalled");
-    return json({ ...result, window }, result.ok ? 200 : 502);
+    return json({ ...result, window, lines: linesResult }, result.ok ? 200 : 502);
   } catch (err) {
     await reportHealth(supabase, "stalled");
     return json({ error: String(err) }, 500);

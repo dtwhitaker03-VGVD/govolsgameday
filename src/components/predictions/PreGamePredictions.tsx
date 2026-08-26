@@ -19,6 +19,21 @@ interface PregamePrediction {
   away_score_points: number | null;
   home_yards_points: number | null;
   away_yards_points: number | null;
+  predicted_spread_pick: 'over' | 'under' | null;
+  predicted_total_pick: 'over' | 'under' | null;
+  predicted_tn_rushing_tds: number | null;
+  predicted_tn_receiving_tds: number | null;
+  predicted_tn_turnovers_forced: number | null;
+  spread_pick_correct: boolean | null;
+  spread_pick_points: number | null;
+  total_pick_correct: boolean | null;
+  total_pick_points: number | null;
+  tn_rushing_tds_correct: boolean | null;
+  tn_rushing_tds_points: number | null;
+  tn_receiving_tds_correct: boolean | null;
+  tn_receiving_tds_points: number | null;
+  tn_turnovers_forced_correct: boolean | null;
+  tn_turnovers_forced_points: number | null;
   total_pregame_points: number | null;
 }
 
@@ -28,6 +43,11 @@ interface FormState {
   oppScore: string;
   tnYards: string;
   oppYards: string;
+  spreadPick: 'over' | 'under' | '';
+  totalPick: 'over' | 'under' | '';
+  tnRushingTds: string;
+  tnReceivingTds: string;
+  tnTurnoversForced: string;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -68,10 +88,15 @@ function ScoringTooltip({ open, onClose }: { open: boolean; onClose: () => void 
         <div className="flex justify-between pl-3 text-white/50"><span>+50 bonus if exact</span><span>max 150</span></div>
         <div className="flex justify-between"><span>Yards (each side)</span><span className="text-vgd-orange font-bold">up to 200 pts</span></div>
         <div className="flex justify-between pl-3 text-white/50"><span>+100 bonus if exact</span><span>max 300</span></div>
+        <div className="flex justify-between"><span>Spread O/U</span><span className="text-vgd-orange font-bold">100 pts</span></div>
+        <div className="flex justify-between"><span>Total Points O/U</span><span className="text-vgd-orange font-bold">100 pts</span></div>
+        <div className="flex justify-between"><span>TN Rushing TDs</span><span className="text-vgd-orange font-bold">100 pts</span></div>
+        <div className="flex justify-between"><span>TN Receiving TDs</span><span className="text-vgd-orange font-bold">100 pts</span></div>
+        <div className="flex justify-between"><span>TN Turnovers Forced</span><span className="text-vgd-orange font-bold">100 pts</span></div>
       </div>
       <div className="border-t border-white/10 pt-1.5 flex justify-between font-bold">
         <span>Maximum total</span>
-        <span className="text-vgd-orange">1,000 pts</span>
+        <span className="text-vgd-orange">1,500 pts</span>
       </div>
       <button onClick={onClose} className="absolute top-1 right-1 text-vgd-muted hover:text-white p-1">
         <XCircle className="w-3.5 h-3.5" />
@@ -133,6 +158,41 @@ function PredictionSummary({ pred, game, tnIsHome }: {
       pts: !tnIsHome ? pred.home_yards_points : pred.away_yards_points,
       max: 300,
     },
+    {
+      label: 'Spread O/U',
+      predicted: pred.predicted_spread_pick ? pred.predicted_spread_pick.toUpperCase() : '—',
+      actual: game.spread_line_tn != null ? `TN ${game.spread_line_tn > 0 ? '+' : ''}${game.spread_line_tn}` : 'N/A',
+      pts: pred.spread_pick_points,
+      max: 100,
+    },
+    {
+      label: 'Total Points O/U',
+      predicted: pred.predicted_total_pick ? pred.predicted_total_pick.toUpperCase() : '—',
+      actual: game.total_points_line != null ? String(game.total_points_line) : 'N/A',
+      pts: pred.total_pick_points,
+      max: 100,
+    },
+    {
+      label: 'TN Rushing TDs',
+      predicted: String(pred.predicted_tn_rushing_tds ?? '—'),
+      actual: game.tn_rushing_tds != null ? String(game.tn_rushing_tds) : 'N/A',
+      pts: pred.tn_rushing_tds_points,
+      max: 100,
+    },
+    {
+      label: 'TN Receiving TDs',
+      predicted: String(pred.predicted_tn_receiving_tds ?? '—'),
+      actual: game.tn_receiving_tds != null ? String(game.tn_receiving_tds) : 'N/A',
+      pts: pred.tn_receiving_tds_points,
+      max: 100,
+    },
+    {
+      label: 'TN Turnovers Forced',
+      predicted: String(pred.predicted_tn_turnovers_forced ?? '—'),
+      actual: game.tn_turnovers_forced != null ? String(game.tn_turnovers_forced) : 'N/A',
+      pts: pred.tn_turnovers_forced_points,
+      max: 100,
+    },
   ];
 
   const total = pred.total_pregame_points ?? 0;
@@ -153,7 +213,7 @@ function PredictionSummary({ pred, game, tnIsHome }: {
       </div>
       <div className="flex items-center justify-between pt-1 border-t border-white/10">
         <span className="text-xs text-white/60">Total earned</span>
-        <span className="text-xl font-black text-vgd-orange">{total.toLocaleString()} <span className="text-xs font-normal text-vgd-muted">/ 1,000</span></span>
+        <span className="text-xl font-black text-vgd-orange">{total.toLocaleString()} <span className="text-xs font-normal text-vgd-muted">/ 1,500</span></span>
       </div>
     </div>
   );
@@ -189,10 +249,13 @@ export function PreGamePredictions({ game }: Props) {
 
   const tnIsHome = game.home_team === 'Tennessee';
   const oppName  = tnIsHome ? game.away_team : game.home_team;
+  const spreadAvailable = game.spread_line_tn != null;
+  const totalAvailable = game.total_points_line != null;
 
   const [existing, setExisting] = useState<PregamePrediction | null>(null);
   const [form, setForm] = useState<FormState>({
     winner: '', tnScore: '', oppScore: '', tnYards: '', oppYards: '',
+    spreadPick: '', totalPick: '', tnRushingTds: '', tnReceivingTds: '', tnTurnoversForced: '',
   });
   const [isLocked, setIsLocked] = useState(false);
   const [timeUntilLock, setTimeUntilLock] = useState(0);
@@ -225,6 +288,11 @@ export function PreGamePredictions({ game }: Props) {
             oppScore: String(!tnIsHome ? d.predicted_home_score : d.predicted_away_score),
             tnYards: String(tnIsHome ? d.predicted_home_yards : d.predicted_away_yards),
             oppYards: String(!tnIsHome ? d.predicted_home_yards : d.predicted_away_yards),
+            spreadPick: d.predicted_spread_pick ?? '',
+            totalPick: d.predicted_total_pick ?? '',
+            tnRushingTds: d.predicted_tn_rushing_tds != null ? String(d.predicted_tn_rushing_tds) : '',
+            tnReceivingTds: d.predicted_tn_receiving_tds != null ? String(d.predicted_tn_receiving_tds) : '',
+            tnTurnoversForced: d.predicted_tn_turnovers_forced != null ? String(d.predicted_tn_turnovers_forced) : '',
           });
           setSubmitted(true);
           // Re-read winner field correctly
@@ -263,12 +331,20 @@ export function PreGamePredictions({ game }: Props) {
     const oppScore = parseInt(form.oppScore);
     const tnYards  = parseInt(form.tnYards);
     const oppYards = parseInt(form.oppYards);
+    const tnRushingTds = parseInt(form.tnRushingTds);
+    const tnReceivingTds = parseInt(form.tnReceivingTds);
+    const tnTurnoversForced = parseInt(form.tnTurnoversForced);
 
     if (!form.winner) return setSubmitError('Pick a winner.');
     if (isNaN(tnScore)  || tnScore  < 0 || tnScore  > 99)  return setSubmitError('Tennessee score: 0–99.');
     if (isNaN(oppScore) || oppScore < 0 || oppScore > 99)  return setSubmitError(`${oppName} score: 0–99.`);
     if (isNaN(tnYards)  || tnYards  < 0 || tnYards  > 999) return setSubmitError('Tennessee yards: 0–999.');
     if (isNaN(oppYards) || oppYards < 0 || oppYards > 999) return setSubmitError(`${oppName} yards: 0–999.`);
+    if (spreadAvailable && !form.spreadPick) return setSubmitError('Pick Over or Under for the spread.');
+    if (totalAvailable && !form.totalPick) return setSubmitError('Pick Over or Under for total points.');
+    if (isNaN(tnRushingTds) || tnRushingTds < 0 || tnRushingTds > 10) return setSubmitError('TN rushing TDs: 0–10.');
+    if (isNaN(tnReceivingTds) || tnReceivingTds < 0 || tnReceivingTds > 10) return setSubmitError('TN receiving TDs: 0–10.');
+    if (isNaN(tnTurnoversForced) || tnTurnoversForced < 0 || tnTurnoversForced > 10) return setSubmitError('TN turnovers forced: 0–10.');
 
     // Map UI winner to DB 'home'/'away'
     const predWinner = form.winner; // 'home' | 'away' — already in DB format
@@ -286,6 +362,11 @@ export function PreGamePredictions({ game }: Props) {
       p_away_score: awayScore,
       p_home_yards: homeYards,
       p_away_yards: awayYards,
+      p_spread_pick: spreadAvailable ? form.spreadPick : null,
+      p_total_pick: totalAvailable ? form.totalPick : null,
+      p_tn_rushing_tds: tnRushingTds,
+      p_tn_receiving_tds: tnReceivingTds,
+      p_tn_turnovers_forced: tnTurnoversForced,
     });
     setSubmitting(false);
 
@@ -348,7 +429,7 @@ export function PreGamePredictions({ game }: Props) {
       ) : !session ? (
         // Logged-out state
         <div className="flex flex-col items-center justify-center py-8 gap-3 px-4 text-center">
-          <p className="text-xs text-vgd-muted">Sign in to submit pre-game picks and earn up to 1,000 pts.</p>
+          <p className="text-xs text-vgd-muted">Sign in to submit pre-game picks and earn up to 1,500 pts.</p>
           <button onClick={() => openAuthModal('register')}
             className="text-xs text-vgd-orange hover:underline">
             Sign in / Register
@@ -383,6 +464,30 @@ export function PreGamePredictions({ game }: Props) {
                   {tnIsHome ? existing.predicted_home_yards : existing.predicted_away_yards} –{' '}
                   {tnIsHome ? existing.predicted_away_yards : existing.predicted_home_yards}
                 </span>
+              </div>
+              {existing.predicted_spread_pick && (
+                <div className="flex justify-between">
+                  <span>Spread O/U</span>
+                  <span className="text-white font-semibold uppercase">{existing.predicted_spread_pick}</span>
+                </div>
+              )}
+              {existing.predicted_total_pick && (
+                <div className="flex justify-between">
+                  <span>Total Points O/U</span>
+                  <span className="text-white font-semibold uppercase">{existing.predicted_total_pick}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span>TN Rushing TDs</span>
+                <span className="text-white font-semibold">{existing.predicted_tn_rushing_tds}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>TN Receiving TDs</span>
+                <span className="text-white font-semibold">{existing.predicted_tn_receiving_tds}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>TN Turnovers Forced</span>
+                <span className="text-white font-semibold">{existing.predicted_tn_turnovers_forced}</span>
               </div>
             </div>
           )}
@@ -459,6 +564,88 @@ export function PreGamePredictions({ game }: Props) {
                 <p className="text-[9px] text-vgd-muted mb-0.5 truncate">{oppName}</p>
                 <input type="number" min="0" max="999" placeholder="310"
                   value={form.oppYards} onChange={e => setField('oppYards', e.target.value)}
+                  disabled={isLocked}
+                  className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
+              </div>
+            </div>
+          </div>
+
+          {/* Spread O/U */}
+          {spreadAvailable && (
+            <div>
+              <label className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
+                Spread O/U <span className="text-white/30 normal-case">(TN {game.spread_line_tn! > 0 ? '+' : ''}{game.spread_line_tn})</span>
+              </label>
+              <div className="grid grid-cols-2 gap-1.5">
+                {(['over', 'under'] as const).map(opt => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => setField('spreadPick', opt)}
+                    disabled={isLocked}
+                    className={`py-2 rounded-lg text-xs font-bold uppercase border transition-all ${
+                      form.spreadPick === opt
+                        ? 'bg-vgd-orange border-vgd-orange text-white shadow-lg shadow-vgd-orange/20'
+                        : 'border-white/10 text-white/60 hover:border-white/30 hover:text-white'
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Total Points O/U */}
+          {totalAvailable && (
+            <div>
+              <label className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
+                Total Points O/U <span className="text-white/30 normal-case">({game.total_points_line})</span>
+              </label>
+              <div className="grid grid-cols-2 gap-1.5">
+                {(['over', 'under'] as const).map(opt => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => setField('totalPick', opt)}
+                    disabled={isLocked}
+                    className={`py-2 rounded-lg text-xs font-bold uppercase border transition-all ${
+                      form.totalPick === opt
+                        ? 'bg-vgd-orange border-vgd-orange text-white shadow-lg shadow-vgd-orange/20'
+                        : 'border-white/10 text-white/60 hover:border-white/30 hover:text-white'
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TN Rushing / Receiving TDs / Turnovers Forced */}
+          <div>
+            <label className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
+              TN Stat Guesses
+            </label>
+            <div className="grid grid-cols-3 gap-1.5">
+              <div>
+                <p className="text-[9px] text-vgd-muted mb-0.5 truncate">Rush TDs</p>
+                <input type="number" min="0" max="10" placeholder="2"
+                  value={form.tnRushingTds} onChange={e => setField('tnRushingTds', e.target.value)}
+                  disabled={isLocked}
+                  className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
+              </div>
+              <div>
+                <p className="text-[9px] text-vgd-muted mb-0.5 truncate">Rec TDs</p>
+                <input type="number" min="0" max="10" placeholder="2"
+                  value={form.tnReceivingTds} onChange={e => setField('tnReceivingTds', e.target.value)}
+                  disabled={isLocked}
+                  className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
+              </div>
+              <div>
+                <p className="text-[9px] text-vgd-muted mb-0.5 truncate">Turnovers Forced</p>
+                <input type="number" min="0" max="10" placeholder="1"
+                  value={form.tnTurnoversForced} onChange={e => setField('tnTurnoversForced', e.target.value)}
                   disabled={isLocked}
                   className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
               </div>

@@ -22,6 +22,12 @@ export interface LiveGame {
   down: number | null;
   distance: number | null;
   yardline: number | null;
+  spread_line_tn: number | null;
+  total_points_line: number | null;
+  lines_captured_at: string | null;
+  tn_rushing_tds: number | null;
+  tn_receiving_tds: number | null;
+  tn_turnovers_forced: number | null;
 }
 
 interface TeamStatRow {
