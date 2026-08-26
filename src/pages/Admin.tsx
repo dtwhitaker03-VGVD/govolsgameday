@@ -377,6 +377,7 @@ interface ScrapedVideo {
   source_url?: string;
   youtube_video_id?: string;
   sport_category: string;
+  channel_name?: string | null;
   ingested_at: string;
   is_hidden: boolean;
   is_pinned: boolean;
@@ -452,7 +453,7 @@ function ScrapedContentReview() {
     setLoading(true);
     const { data } = await supabase
       .from('scraped_videos')
-      .select('id, title, source_url:video_url, youtube_video_id, sport_category, ingested_at, is_hidden, is_pinned')
+      .select('id, title, source_url:video_url, youtube_video_id, sport_category, channel_name, ingested_at, is_hidden, is_pinned')
       .order('ingested_at', { ascending: false })
       .limit(100);
     setVideos((data ?? []) as ScrapedVideo[]);
@@ -725,6 +726,11 @@ function ScrapedContentReview() {
                   <span className="text-[10px] text-vgd-orange/70 font-medium">
                     {tab === 'articles' ? (row as ScrapedArticle).source_name ?? row.sport_category : row.sport_category}
                   </span>
+                  {tab === 'videos' && (row as ScrapedVideo).channel_name && (
+                    <span className="text-[10px] text-vgd-muted truncate max-w-[140px]">
+                      {(row as ScrapedVideo).channel_name}
+                    </span>
+                  )}
                   <span className="text-[10px] text-vgd-muted">{timeAgo(row.ingested_at)}</span>
                   {row.is_hidden && (
                     <span className="text-[9px] font-bold uppercase tracking-wider text-red-400/70 bg-red-500/10 px-1.5 py-0.5 rounded-full">
