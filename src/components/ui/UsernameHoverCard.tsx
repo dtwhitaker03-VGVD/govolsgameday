@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { Trophy, Flame, MapPin, Calendar, UserPlus, UserX, Pencil } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { Avatar } from './Avatar';
+import { useBadgeCatalog, badgeLabel, type BadgeDef } from '../../lib/badgeCatalog';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -34,40 +36,6 @@ interface UsernameHoverCardProps {
   children?: React.ReactNode;
 }
 
-// ─── Badge display map ───────────────────────────────────────────────────────
-
-const BADGE_LABELS: Record<string, string> = {
-  first_post: 'First Post',
-  streak_3: '3-Day Streak',
-  streak_7: '7-Day Streak',
-  streak_30: '30-Day Streak',
-  trivia_master: 'Trivia Master',
-  perfect_prediction: 'Perfect Prediction',
-  community_pillar: 'Community Pillar',
-  top_predictor: 'Top Predictor',
-  forum_legend: 'Forum Legend',
-};
-
-function badgeLabel(key: string): string {
-  return BADGE_LABELS[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-// ─── Avatar helper ────────────────────────────────────────────────────────────
-
-function Avatar({ url, username, size = 'md' }: { url: string | null; username: string; size?: 'sm' | 'md' | 'lg' }) {
-  const dims = size === 'lg' ? 'w-14 h-14 text-lg' : size === 'md' ? 'w-10 h-10 text-sm' : 'w-7 h-7 text-[11px]';
-  const initials = username.slice(0, 2).toUpperCase();
-
-  if (url) {
-    return <img src={url} alt={username} className={`${dims} rounded-full object-cover ring-2 ring-vgd-orange/40`} />;
-  }
-  return (
-    <div className={`${dims} rounded-full bg-vgd-orange flex items-center justify-center text-white font-bold flex-shrink-0 ring-2 ring-vgd-orange/40`}>
-      {initials}
-    </div>
-  );
-}
-
 // ─── Stat pill ──────────────────────────────────────────────────────────────────
 
 function StatPill({ label, value }: { label: string; value: string | number }) {
@@ -88,6 +56,7 @@ function HoverCardContent({
   username,
   coords,
   position,
+  badgeCatalog,
   onMouseEnter,
   onMouseLeave,
 }: {
@@ -96,6 +65,7 @@ function HoverCardContent({
   isSelf: boolean;
   username: string;
   coords: { x: number; y: number; width: number };
+  badgeCatalog: Record<string, BadgeDef>;
   position: 'top' | 'bottom';
   onMouseEnter: () => void;
   onMouseLeave: () => void;
@@ -178,7 +148,7 @@ function HoverCardContent({
               {cardData.most_prestigious_badge && (
                 <div className="flex items-center gap-2 text-xs text-vgd-orange">
                   <span className="text-[9px] font-bold uppercase tracking-wider bg-vgd-orange/15 px-1.5 py-0.5 rounded">
-                    {badgeLabel(cardData.most_prestigious_badge)}
+                    {badgeLabel(cardData.most_prestigious_badge, badgeCatalog)}
                   </span>
                 </div>
               )}
@@ -236,6 +206,7 @@ function HoverCardContent({
 
 export function UsernameHoverCard({ userId, username, className = '', children }: UsernameHoverCardProps) {
   const { profile, openAuthModal } = useAuth();
+  const { badges: badgeCatalog } = useBadgeCatalog();
   const [cardData, setCardData] = useState<HoverCardData | null>(null);
   const [loading, setLoading] = useState(false);
   const [showCard, setShowCard] = useState(false);
@@ -350,6 +321,7 @@ export function UsernameHoverCard({ userId, username, className = '', children }
           username={username}
           coords={coords}
           position={position}
+          badgeCatalog={badgeCatalog}
           onMouseEnter={handleCardMouseEnter}
           onMouseLeave={handleCardMouseLeave}
         />,
