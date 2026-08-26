@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { ShoppingBag, ChevronDown, Menu, X, LogOut, User, Shield } from 'lucide-react';
+import { ChevronDown, Menu, X, LogOut, User, Shield } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import type { UserProfile } from '../../context/AuthContext';
 import { Avatar } from '../ui/Avatar';
@@ -167,7 +167,6 @@ const navItems = [
   { label: 'Basketball', to: '/basketball' },
   { label: 'Baseball', to: '/baseball' },
   { label: 'Forums', to: '/forums' },
-  { label: 'Other', to: '/other' },
   { label: 'About', to: '/about' },
 ];
 
@@ -240,18 +239,6 @@ export function Header() {
                   {item.label}
                 </NavLink>
               ))}
-
-              {/* Fan Shop */}
-              <a
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-[13px] font-medium text-vgd-muted hover:text-vgd-orange transition-colors duration-150 whitespace-nowrap"
-                aria-label="Fan Shop"
-              >
-                <ShoppingBag className="w-3.5 h-3.5" />
-                Fan Shop
-              </a>
             </nav>
 
             {/* Desktop auth area */}
@@ -321,7 +308,6 @@ export function Header() {
                 { label: 'LV Softball', to: '/lv-softball' },
                 { label: 'Recruiting', to: '/recruiting' },
                 { label: 'Forums', to: '/forums' },
-                { label: 'Other', to: '/other' },
                 { label: 'About', to: '/about' },
               ].map((item) => (
                 <NavLink
@@ -340,17 +326,6 @@ export function Header() {
                   {item.label}
                 </NavLink>
               ))}
-
-              <a
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-white/[0.04] transition-colors duration-150"
-                onClick={() => setDrawerOpen(false)}
-              >
-                <ShoppingBag className="w-4 h-4" />
-                Fan Shop
-              </a>
             </nav>
 
             {/* Mobile auth footer */}
