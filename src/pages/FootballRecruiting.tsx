@@ -7,7 +7,6 @@ import {
 import { supabase } from '../lib/supabase';
 import { DashboardCard } from '../components/ui/DashboardCard';
 import { DiscussionBoard } from '../components/chat/DiscussionBoard';
-import { VideoGrid } from '../components/video/VideoGrid';
 import { VolNewsWire } from '../components/news/VolNewsWire';
 import { ForumThreadsPanel } from '../components/forums/ForumThreadsPanel';
 
@@ -595,12 +594,6 @@ export default function FootballRecruiting() {
         title="FOOTBALL RECRUITING DISCUSSION BOARD"
         qotdSportCategories={['football']}
         className="h-[700px]"
-      />
-
-      {/* Section 9: 3×8 Video Grid */}
-      <VideoGrid
-        sportCategory="football-recruiting"
-        title="RECRUITING VIDEO HUB — YOUTUBE"
       />
 
       {/* Section 10: 3×10 News Grid */}

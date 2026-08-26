@@ -7,7 +7,6 @@ export default function Football() {
         roomCategory:        'football',
         boardTitle:          'FOOTBALL DISCUSSION BOARD',
         sportCategory:       'football',
-        videoTitle:          'FOOTBALL VIDEO HUB — YOUTUBE',
         forumCategory:       'football',
         recruitingCategory:  'football_recruiting',
         qotdCategories:      ['football'],
