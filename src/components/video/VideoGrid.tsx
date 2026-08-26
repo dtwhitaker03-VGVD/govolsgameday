@@ -3,6 +3,7 @@ import { Play, Clock, Video, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { DashboardCard } from '../ui/DashboardCard';
 import { trackVideoOpen } from '../../lib/analytics';
+import { selectMainPageVideos } from '../../lib/mainPageVideoSelection';
 
 interface ScrapedVideo {
   id: string;
@@ -202,35 +203,7 @@ async function fetchMainPageVideos(tab: Tab): Promise<ScrapedVideo[]> {
   const priority = (priorityRes.data ?? []) as ScrapedVideo[];
   const fallback  = (fallbackRes.data ?? []) as ScrapedVideo[];
 
-  // Step 1: select qualifying videos — up to 2 per channel
-  const seenIds       = new Set<string>();
-  const channelCounts = new Map<string, number>();
-  const qualified: ScrapedVideo[] = [];
-
-  for (const v of priority) {
-    if (seenIds.has(v.id)) continue;
-    const ch = v.channel_name ?? '__unknown__';
-    if ((channelCounts.get(ch) ?? 0) >= 2) continue;
-    channelCounts.set(ch, (channelCounts.get(ch) ?? 0) + 1);
-    seenIds.add(v.id);
-    qualified.push(v);
-  }
-
-  // Step 2: sort the qualified set by the active toggle (spec §17)
-  if (tab === 'latest') {
-    qualified.sort((a, b) => b.published_at.localeCompare(a.published_at));
-  } else {
-    qualified.sort((a, b) => b.view_count - a.view_count);
-  }
-
-  // Step 3: fill remaining slots to 24 from fallback
-  const result = qualified.slice(0, 24);
-  for (const v of fallback) {
-    if (result.length >= 24) break;
-    if (!seenIds.has(v.id)) { seenIds.add(v.id); result.push(v); }
-  }
-
-  return result;
+  return selectMainPageVideos(priority, fallback, tab);
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
