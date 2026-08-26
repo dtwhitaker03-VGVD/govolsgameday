@@ -1,16 +1,39 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { UpcomingGameCard } from '../game/UpcomingGameCard';
 import { LiveGameStatsPanel, type LiveGame } from '../game/LiveGameStatsPanel';
 
-function isTodayInET(dateStr: string): boolean {
-  const kickoffDate = new Date(dateStr).toLocaleDateString('en-US', {
-    timeZone: 'America/New_York',
-  });
-  const today = new Date().toLocaleDateString('en-US', {
-    timeZone: 'America/New_York',
-  });
-  return kickoffDate === today;
+// Calendar-day difference in America/New_York, not raw elapsed hours — a
+// Saturday night game should still count as "recent" through all of the
+// following Sunday regardless of what time it kicked off.
+function daysAgoInET(dateStr: string): number {
+  const dateOnly = (d: Date) =>
+    new Date(
+      `${new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(d)}T00:00:00Z`
+    ).getTime();
+  return Math.round((dateOnly(new Date()) - dateOnly(new Date(dateStr))) / 86400000);
+}
+
+/**
+ * Picks the game the banner should show: live first, else the soonest
+ * upcoming game, else a game that finished today or yesterday (ET) — so a
+ * Saturday final score keeps showing through all of Sunday, not just the
+ * day of the game.
+ */
+function pickBannerGame(games: LiveGame[]): LiveGame | null {
+  const live = games.find((g) => g.status === 'live');
+  if (live) return live;
+
+  const now = Date.now();
+  const upcoming = games
+    .filter((g) => g.status === 'pregame' && new Date(g.kickoff_time).getTime() >= now)
+    .sort((a, b) => new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime())[0];
+  if (upcoming) return upcoming;
+
+  const finishedRecently = games
+    .filter((g) => ['final', 'calculated'].includes(g.status) && daysAgoInET(g.kickoff_time) <= 1)
+    .sort((a, b) => new Date(b.kickoff_time).getTime() - new Date(a.kickoff_time).getTime())[0];
+  return finishedRecently ?? null;
 }
 
 /**
@@ -28,65 +51,44 @@ export function GameDayBanner() {
   const [pastKickoff, setPastKickoff] = useState(false);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Fetch today's active Tennessee Football game (pregame or live today)
-  useEffect(() => {
-    let cancelled = false;
-
-    supabase
+  const fetchActiveGame = useCallback(() => {
+    return supabase
       .from('live_games')
       .select(
         'id, cfbd_game_id, home_team, away_team, kickoff_time, status, home_score, away_score, ' +
         'home_total_yards, away_total_yards, current_quarter, game_clock, possession, ' +
         'down, distance, yardline'
       )
-      .in('status', ['pregame', 'live', 'final'])
+      .in('status', ['pregame', 'live', 'final', 'calculated'])
       .order('kickoff_time', { ascending: true })
       .limit(20)
       .then(({ data }) => {
-        if (cancelled) return;
-
-        if (data && data.length > 0) {
-          // Find a Tennessee game whose kickoff is today in ET
-          const tnGameToday = (data as LiveGame[]).find(
-            (g) =>
-              (g.home_team === 'Tennessee' || g.away_team === 'Tennessee') &&
-              isTodayInET(g.kickoff_time)
-          );
-          if (tnGameToday) {
-            setLiveGame(tnGameToday);
-            setPastKickoff(new Date(tnGameToday.kickoff_time).getTime() <= Date.now());
-          }
-        }
-        setLoading(false);
+        const picked = pickBannerGame((data as LiveGame[]) ?? []);
+        setLiveGame(picked);
+        setPastKickoff(picked ? new Date(picked.kickoff_time).getTime() <= Date.now() : false);
       });
-
-    return () => { cancelled = true; };
   }, []);
 
-  // Subscribe to realtime updates for the active game
+  // Fetch the active Tennessee Football game for the banner
   useEffect(() => {
-    if (!liveGame) return;
+    fetchActiveGame().then(() => setLoading(false));
+  }, [fetchActiveGame]);
 
+  // Subscribe to any live_games change — not just the currently-shown row,
+  // since game-sync's weekly runs create a brand-new row for the next game
+  // rather than updating the old one.
+  useEffect(() => {
     const channel = supabase
-      .channel(`gameday-banner:${liveGame.id}`)
+      .channel('gameday-banner:live_games')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'live_games',
-          filter: `id=eq.${liveGame.id}`,
-        },
-        (payload) => {
-          const updated = payload.new as LiveGame;
-          setLiveGame(updated);
-          setPastKickoff(new Date(updated.kickoff_time).getTime() <= Date.now());
-        }
+        { event: '*', schema: 'public', table: 'live_games' },
+        () => { fetchActiveGame(); }
       )
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [liveGame?.id]);
+  }, [fetchActiveGame]);
 
   // Countdown timer to check if we've crossed kickoff
   useEffect(() => {
