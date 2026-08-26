@@ -48,6 +48,8 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   on_roster:    { label: 'On Roster',   color: '#a78bfa' },
 };
 
+const POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C'];
+
 const PROSPECT_TABS = [
   { key: 'hs_commits', label: 'HS Commits', icon: GraduationCap, status: 'committed' },
   { key: 'transfer',   label: 'Transfer',  icon: ArrowRightLeft, status: 'portal' },
@@ -215,6 +217,8 @@ function CommitTracker({ recruits }: { recruits: Recruit[] }) {
 
 function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading: boolean }) {
   const [activeTab, setActiveTab] = useState<typeof PROSPECT_TABS[number]['key']>('hs_commits');
+  const [posFilter, setPosFilter] = useState<string>('');
+  const [starFilter, setStarFilter] = useState<number>(0);
   const [search, setSearch] = useState('');
 
   const currentTab = PROSPECT_TABS.find((t) => t.key === activeTab)!;
@@ -223,6 +227,8 @@ function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading:
     if (currentTab.status === 'transfer' && r.status !== 'portal') return false;
     if (currentTab.status === 'target' && r.status !== 'target') return false;
     if (currentTab.status === 'roster' && r.status !== 'on_roster') return false;
+    if (posFilter && r.position !== posFilter) return false;
+    if (starFilter && r.stars_247 !== starFilter) return false;
     if (search && !r.full_name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -248,8 +254,8 @@ function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading:
           );
         })}
       </div>
-      <div className="flex items-center gap-2 px-3 py-2.5 border-b border-white/[0.05]">
-        <div className="relative flex-1">
+      <div className="flex items-center gap-2 px-3 py-2.5 border-b border-white/[0.05] flex-wrap">
+        <div className="relative flex-1 min-w-[120px]">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-vgd-muted" />
           <input
             value={search}
@@ -258,6 +264,22 @@ function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading:
             className="w-full bg-vgd-bg border border-white/[0.08] text-white placeholder-vgd-muted rounded-md pl-7 pr-2 py-1 text-[11px] focus:outline-none focus:border-vgd-orange/40"
           />
         </div>
+        <select
+          value={posFilter}
+          onChange={(e) => setPosFilter(e.target.value)}
+          className="bg-vgd-bg border border-white/[0.08] text-white/70 rounded-md px-2 py-1 text-[11px] focus:outline-none focus:border-vgd-orange/40"
+        >
+          <option value="">All Positions</option>
+          {POSITIONS.map((p) => <option key={p} value={p}>{p}</option>)}
+        </select>
+        <select
+          value={starFilter}
+          onChange={(e) => setStarFilter(Number(e.target.value))}
+          className="bg-vgd-bg border border-white/[0.08] text-white/70 rounded-md px-2 py-1 text-[11px] focus:outline-none focus:border-vgd-orange/40"
+        >
+          <option value={0}>All Stars</option>
+          {[5, 4, 3].map((s) => <option key={s} value={s}>{s}★+</option>)}
+        </select>
       </div>
       {loading ? (
         <div className="p-3 space-y-2">
