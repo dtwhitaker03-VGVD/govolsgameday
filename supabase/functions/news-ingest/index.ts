@@ -128,6 +128,19 @@ const SOURCES: SourceDef[] = [
     },
   },
 
+  // ── On3 Tennessee Football Recruiting — dedicated category page ─────────────
+  // On3's own football-recruiting category feed, separate from the general
+  // "On3 Tennessee" label-tagged source above (which only catches articles
+  // whose visible label happens to say "football"/"recruiting" explicitly).
+  {
+    source_name: "On3 Tennessee Recruiting",
+    tag_method: "url",
+    sections: [
+      { url: "https://www.on3.com/teams/tennessee-volunteers/category/football-recruiting/news/", sport_category: "football-recruiting" },
+    ],
+    maxPerSection: 5,
+  },
+
   // ── utsports.com — Story Archives with explicit SPORT column ─────────────────
   {
     source_name: "UT Sports",
@@ -307,8 +320,13 @@ function extractArticleUrlsFromMarkdown(
 
   // Pattern: "### [Title](url)" or "## [Title](url)" — heading with inline link
   const headingLinkRe = /^#{1,4}\s+\[(.+?)\]\((https?:\/\/[^\s)]+)\)/;
-  // Pattern: "[Title](url)" — any markdown link with meaningful text
-  const linkRe = /\[([^\]]{10,200})\]\((https?:\/\/[^\s)]+)\)/g;
+  // Pattern: "[Title](url)" — any markdown link with meaningful text. The
+  // capture excludes newlines: some sources (On3) wrap each thumbnail as
+  // "[![alt](imgurl)](pageurl)" — a link-wrapped image — and a capture group
+  // that could span lines greedily eats through the alt text's own closing
+  // "]" looking for the outer one, mismatching imgurl as the article URL and
+  // desyncing the scan for every real title link that follows on the page.
+  const linkRe = /\[([^\]\n]{10,200})\]\((https?:\/\/[^\s)]+)\)/g;
 
   // First pass: extract from heading-link lines (highest quality)
   for (const line of lines) {
@@ -489,6 +507,36 @@ function utsportsBadgeToCategory(badge: string): SportCategory | null {
 
 // ─── Publish date extraction ──────────────────────────────────────────────────
 
+// Two ways a stray, unrelated date can outrank the real one in article text:
+//  - Wire-service stock photos (Imagn/USA Today Sports style) carry their own
+//    caption as the very first text in the article body — "Aug 30, 2025;
+//    Atlanta, Georgia, USA; ... Mandatory Credit: ..." — often an old file
+//    photo. A caption date is always immediately followed by ";", which a
+//    real byline date never is.
+//  - CMS image CDN URLs embed their upload path as .../cms/2025/09/01.../,
+//    which happens to match the ISO date pattern. That path date is always
+//    immediately preceded by "/", which a real prose date never is.
+// Both are old-file-photo artifacts unrelated to when the article was
+// actually published, so skip matches like that and keep scanning.
+function firstPlausibleDateMatch(
+  text: string,
+  dateRe: RegExp,
+  isSuspicious: (text: string, index: number, matchLength: number) => boolean,
+): RegExpMatchArray | null {
+  const globalRe = new RegExp(dateRe.source, dateRe.flags.includes("g") ? dateRe.flags : dateRe.flags + "g");
+  let m: RegExpExecArray | null;
+  while ((m = globalRe.exec(text)) !== null) {
+    if (!isSuspicious(text, m.index, m[0].length)) return m;
+  }
+  return null;
+}
+
+const isCaptionDate = (text: string, index: number, matchLength: number) => text[index + matchLength] === ";";
+// Suspicious if glued directly onto a URL/filename slug (e.g. ".../cms/2026/05/06.../"
+// or "design-2026-05-06T..."), rather than standing on its own the way a real
+// prose or metadata date would (preceded by whitespace, punctuation, or nothing).
+const isUrlPathDate = (text: string, index: number) => index > 0 && /[A-Za-z0-9/-]/.test(text[index - 1]);
+
 // Try to extract a publish date from the article's markdown or metadata.
 function extractPublishDate(result: FirecrawlScrapeResult, sourceUrl?: string): string | null {
   // 1. Firecrawl metadata.publishedAt (if available)
@@ -515,7 +563,7 @@ function extractPublishDate(result: FirecrawlScrapeResult, sourceUrl?: string): 
 
   // Pattern: "July 13, 2026" or "Jul 13, 2026" or "July 13 2026"
   const longDateRe = /(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2}),?\s+(\d{4})/i;
-  const longMatch = headerText.match(longDateRe);
+  const longMatch = firstPlausibleDateMatch(headerText, longDateRe, isCaptionDate);
   if (longMatch) {
     const d = new Date(`${longMatch[0]}`);
     if (!isNaN(d.getTime())) return d.toISOString();
@@ -523,7 +571,7 @@ function extractPublishDate(result: FirecrawlScrapeResult, sourceUrl?: string): 
 
   // Pattern: "2026-07-13" or "2026/07/13"
   const isoDateRe = /(\d{4})[-/](\d{2})[-/](\d{2})/;
-  const isoMatch = headerText.match(isoDateRe);
+  const isoMatch = firstPlausibleDateMatch(headerText, isoDateRe, isUrlPathDate);
   if (isoMatch) {
     const d = new Date(`${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}T12:00:00Z`);
     if (!isNaN(d.getTime())) return d.toISOString();
@@ -544,14 +592,14 @@ function extractPublishDate(result: FirecrawlScrapeResult, sourceUrl?: string): 
 
   // 4. Look for date patterns deeper in the article (up to 5000 chars)
   const fullText = text.slice(0, 5000);
-  const deepMatch = fullText.match(longDateRe);
+  const deepMatch = firstPlausibleDateMatch(fullText, longDateRe, isCaptionDate);
   if (deepMatch) {
     const d = new Date(deepMatch[0]);
     if (!isNaN(d.getTime())) return d.toISOString();
   }
 
   // 5. Try ISO date deeper in text
-  const deepIsoMatch = fullText.match(isoDateRe);
+  const deepIsoMatch = firstPlausibleDateMatch(fullText, isoDateRe, isUrlPathDate);
   if (deepIsoMatch) {
     const d = new Date(`${deepIsoMatch[1]}-${deepIsoMatch[2]}-${deepIsoMatch[3]}T12:00:00Z`);
     if (!isNaN(d.getTime())) return d.toISOString();
@@ -623,6 +671,7 @@ interface IngestedArticle {
 async function processUrlSection(
   source: SourceDef,
   section: SourceSection,
+  errors: string[],
 ): Promise<IngestedArticle[]> {
   const articles: IngestedArticle[] = [];
   const maxArts = source.maxPerSection ?? 10;
@@ -660,7 +709,10 @@ async function processUrlSection(
   for (const cand of candidates) {
     try {
       const articleResult = await scrapeArticle(cand.url);
-      if (!articleResult) continue;
+      if (!articleResult) {
+        errors.push(`${source.source_name} (skipped): article scrape returned no content for ${cand.url}`);
+        continue;
+      }
 
       const title = articleResult.metadata?.title
         ? decodeHtmlEntities(articleResult.metadata.title.trim())
@@ -668,11 +720,17 @@ async function processUrlSection(
           ? decodeHtmlEntities(cand.title.trim())
           : "Untitled";
 
-      if (title.length > 150 || /^(Home|Welcome to)/i.test(title)) continue;
+      if (title.length > 150 || /^(Home|Welcome to)/i.test(title)) {
+        errors.push(`${source.source_name} (skipped): rejected title "${title.slice(0, 80)}" for ${cand.url}`);
+        continue;
+      }
 
       const thumbnail = articleResult.metadata?.ogImage ?? null;
       const publishedAt = extractPublishDate(articleResult, cand.url);
-      if (isTooOld(publishedAt)) continue;
+      if (isTooOld(publishedAt)) {
+        errors.push(`${source.source_name} (skipped): too old (${publishedAt}) for ${cand.url}`);
+        continue;
+      }
       const summary = generateSummary(articleResult.markdown, title);
 
       articles.push({
@@ -684,7 +742,10 @@ async function processUrlSection(
         sport_category: section.sport_category,
         published_at: publishedAt,
       } as IngestedArticle);
-    } catch { /* skip failed article */ }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(`${source.source_name} (skipped): exception for ${cand.url}: ${msg}`);
+    }
   }
 
   return articles;
@@ -819,7 +880,7 @@ Deno.serve(async (req: Request) => {
         // Process each per-sport section URL
         for (const section of source.sections) {
           try {
-            const sectionArts = await processUrlSection(source, section);
+            const sectionArts = await processUrlSection(source, section, errors);
             articles.push(...sectionArts);
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
