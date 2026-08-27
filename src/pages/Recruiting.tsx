@@ -223,10 +223,10 @@ function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading:
 
   const currentTab = PROSPECT_TABS.find((t) => t.key === activeTab)!;
   const filtered = recruits.filter((r) => {
-    if (currentTab.status === 'hs_commits' && !(r.status === 'committed' || r.status === 'signed')) return false;
-    if (currentTab.status === 'transfer' && r.status !== 'portal') return false;
-    if (currentTab.status === 'target' && r.status !== 'target') return false;
-    if (currentTab.status === 'roster' && r.status !== 'on_roster') return false;
+    if (currentTab.key === 'hs_commits' && !(r.status === 'committed' || r.status === 'signed')) return false;
+    if (currentTab.key === 'transfer' && r.status !== 'portal') return false;
+    if (currentTab.key === 'targets' && r.status !== 'target') return false;
+    if (currentTab.key === 'roster' && r.status !== 'on_roster') return false;
     if (posFilter && r.position !== posFilter) return false;
     if (starFilter && r.stars_247 !== starFilter) return false;
     if (search && !r.full_name.toLowerCase().includes(search.toLowerCase())) return false;
