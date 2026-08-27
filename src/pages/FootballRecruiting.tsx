@@ -32,6 +32,7 @@ interface ClassRanking {
   scouting_year: number;
   rank_247: number;
   rank_on3: number;
+  sec_rank: number;
   updated_at: string | null;
 }
 
@@ -225,7 +226,7 @@ function HeaderStatsBar({
           <div className="bg-white/[0.04] rounded-lg px-3 py-2.5">
             <div className="text-[9px] text-vgd-muted uppercase tracking-wider mb-0.5">SEC Rank</div>
             <div className="text-lg font-bold text-white">
-              {rank ? `#${Math.min(rank, 16)}` : '—'}
+              {rankings?.sec_rank ? `#${rankings.sec_rank}` : '—'}
             </div>
           </div>
           <div className="bg-white/[0.04] rounded-lg px-3 py-2.5">
@@ -260,7 +261,7 @@ function ClassRankingsBanner({ rankings }: { rankings: ClassRanking | null }) {
               <div className="w-px h-8 bg-white/[0.07]" />
               <div>
                 <div className="text-[9px] text-vgd-muted uppercase">SEC</div>
-                <div className="text-2xl font-black text-white">{rankings.rank_247 > 0 ? rankLabel(Math.min(rankings.rank_247, 16)) : '—'}</div>
+                <div className="text-2xl font-black text-white">{rankLabel(rankings.sec_rank)}</div>
               </div>
             </div>
           </div>
@@ -275,7 +276,7 @@ function ClassRankingsBanner({ rankings }: { rankings: ClassRanking | null }) {
               <div className="w-px h-8 bg-white/[0.07]" />
               <div>
                 <div className="text-[9px] text-vgd-muted uppercase">SEC</div>
-                <div className="text-2xl font-black text-white">{rankings.rank_on3 > 0 ? rankLabel(Math.min(rankings.rank_on3, 16)) : '—'}</div>
+                <div className="text-2xl font-black text-white">{rankLabel(rankings.sec_rank)}</div>
               </div>
             </div>
           </div>
