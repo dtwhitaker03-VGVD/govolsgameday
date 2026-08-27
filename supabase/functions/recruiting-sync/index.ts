@@ -28,6 +28,10 @@ interface SourceConfig {
    *  stored under transfers_scouting_year rather than scouting_year. */
   transfers_url?: string;
   transfers_scouting_year?: number;
+  /** On3's industry-composite team rankings page filtered to the team's
+   *  conference (e.g. "?conference=sec") — gives the real conference-only
+   *  rank, unlike guessing one from the national rank. */
+  sec_rankings_url?: string;
 }
 
 // Sources live in the recruiting_sources table (not hardcoded here) so a new
@@ -36,7 +40,7 @@ interface SourceConfig {
 async function loadSources(supabase: ReturnType<typeof createClient>): Promise<SourceConfig[]> {
   const { data, error } = await supabase
     .from("recruiting_sources")
-    .select("sport_category, scouting_year, target_url, on3_url, targets_url, transfers_url, transfers_scouting_year")
+    .select("sport_category, scouting_year, target_url, on3_url, targets_url, transfers_url, transfers_scouting_year, sec_rankings_url")
     .eq("active", true)
     .order("sport_category");
 
@@ -50,6 +54,7 @@ async function loadSources(supabase: ReturnType<typeof createClient>): Promise<S
     targets_url: row.targets_url ?? undefined,
     transfers_url: row.transfers_url ?? undefined,
     transfers_scouting_year: row.transfers_scouting_year ?? undefined,
+    sec_rankings_url: row.sec_rankings_url ?? undefined,
   }));
 }
 
@@ -69,7 +74,6 @@ interface ExtractedClassStats {
   total_commits: number;
   average_stars: number;
   national_rank: number | null;
-  sec_rank: number | null;
 }
 
 // ─── Firecrawl scrape ──────────────────────────────────────────────────────────
@@ -284,14 +288,6 @@ function extractClassStats(markdown: string, recruitCount: number): ExtractedCla
     totalCommits = parseInt(hcMatch[1]);
   }
 
-  // SEC rank — not directly visible in the markdown structure; check for it
-  let secRank: number | null = null;
-  const secRankRe = /SEC\s*Rank\s*:?\s*#?(\d{1,2})/i;
-  const secMatch = markdown.match(secRankRe);
-  if (secMatch) {
-    secRank = parseInt(secMatch[1]);
-  }
-
   // Average stars — compute from recruits if not visible
   let avgStars = 0;
   const avgRe = /(?:Avg|Average)\s*(?:Stars?)?\s*:?\s*(\d\.\d{1,2})/i;
@@ -305,7 +301,6 @@ function extractClassStats(markdown: string, recruitCount: number): ExtractedCla
       total_commits: totalCommits,
       average_stars: avgStars,
       national_rank: nationalRank,
-      sec_rank: secRank,
     };
   }
 
@@ -380,6 +375,38 @@ function extractOn3Recruits(markdown: string): On3Recruit[] {
 function extractOn3TeamRank(markdown: string): number | null {
   const m = markdown.match(/National\s*Rank\\*\s*\n+\s*(\d{1,3})(?:st|nd|rd|th)/i);
   return m ? parseInt(m[1]) : null;
+}
+
+// ─── On3 conference (SEC) team-rankings extraction ───────────────────────────
+// On3's industry-composite team rankings page, filtered to one conference
+// (e.g. .../rankings/industry-team/football/2027/?conference=sec), lists each
+// team as a numbered row in its main table:
+//   09
+//   ![Tennessee](...)
+//   [Tennessee](https://www.on3.com/college/tennessee-volunteers/football/2027/industry-comparison-commits/)
+//   SEC
+//   ...
+// The page also renders the top 3 as "Leader/Challenger/Contender" cards
+// first, where the rank glues to a label on one line ("01Leader") rather than
+// standing alone — so the scan starts at the "Rank Team ... Score" table
+// header to skip those and only match standalone two-digit rank lines.
+function extractOn3ConferenceRank(markdown: string, teamLinkFragment: string): number | null {
+  const tableStart = markdown.search(/Rank\s*Team\s*Stars/i);
+  const lines = (tableStart >= 0 ? markdown.slice(tableStart) : markdown).split("\n");
+
+  let currentRank: number | null = null;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    const rankMatch = trimmed.match(/^(\d{1,2})$/);
+    if (rankMatch) {
+      currentRank = parseInt(rankMatch[1], 10);
+      continue;
+    }
+    if (currentRank !== null && trimmed.includes(teamLinkFragment)) {
+      return currentRank;
+    }
+  }
+  return null;
 }
 
 // ─── On3 transfer portal extraction ──────────────────────────────────────────
@@ -479,6 +506,7 @@ interface SourceResult {
   class_stats_upserted: boolean;
   recruits_sample: ExtractedRecruit[];
   class_stats: ExtractedClassStats | null;
+  sec_rank: number | null;
   errors: string[];
 }
 
@@ -552,6 +580,21 @@ async function syncSource(supabase: ReturnType<typeof createClient>, source: Sou
     errors.push(`On3 scrape failed (non-fatal, stars_on3/rank_on3 unchanged): ${msg}`);
   }
 
+  // On3 conference (SEC) team rankings — a separate page from the team's own
+  // On3 commits page above, giving the real conference-only rank instead of
+  // guessing one from the national rank.
+  let secRank: number | null = null;
+  if (source.sec_rankings_url) {
+    try {
+      const secMarkdown = await scrapePage(source.sec_rankings_url);
+      secRank = extractOn3ConferenceRank(secMarkdown, "tennessee-volunteers");
+      if (secRank === null) errors.push("SEC rankings page scraped but Tennessee's row wasn't found");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(`SEC rankings scrape failed (non-fatal, sec_rank unchanged): ${msg}`);
+    }
+  }
+
   // UPSERT class rankings
   const class_stats = extractClassStats(markdown, recruits.length);
   let classStatsUpserted = false;
@@ -563,6 +606,7 @@ async function syncSource(supabase: ReturnType<typeof createClient>, source: Sou
         scouting_year: source.scouting_year,
         rank_247: class_stats.national_rank ?? 0,
         rank_on3: on3Rank ?? 0,
+        sec_rank: secRank ?? 0,
         updated_at: new Date().toISOString(),
       }, { onConflict: "sport_category,scouting_year" });
 
@@ -648,6 +692,7 @@ async function syncSource(supabase: ReturnType<typeof createClient>, source: Sou
     class_stats_upserted: classStatsUpserted,
     recruits_sample: recruits.slice(0, 5),
     class_stats,
+    sec_rank: secRank,
     errors,
   };
 }
