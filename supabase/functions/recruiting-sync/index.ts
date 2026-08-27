@@ -385,28 +385,70 @@ function extractOn3TeamRank(markdown: string): number | null {
 //   ![Tennessee](...)
 //   [Tennessee](https://www.on3.com/college/tennessee-volunteers/football/2027/industry-comparison-commits/)
 //   SEC
-//   ...
+//   1711                         ← star-count breakdown (5/4/3), digits run
+//                                  together with no separator — not parsed
+//   19
+//   88.58
+//   89.565
+//   Total
+//   19                           ← total commits, unambiguous (labeled)
+//   Avg
+//   88.58                        ← avg rating, unambiguous (labeled)
 // The page also renders the top 3 as "Leader/Challenger/Contender" cards
 // first, where the rank glues to a label on one line ("01Leader") rather than
 // standing alone — so the scan starts at the "Rank Team ... Score" table
 // header to skip those and only match standalone two-digit rank lines.
-function extractOn3ConferenceRank(markdown: string, teamLinkFragment: string): number | null {
+interface On3TeamRanking {
+  rank: number;
+  team: string;
+  total_commits: number;
+  avg_rating: number;
+}
+
+function extractOn3ConferenceTeamRankings(markdown: string): On3TeamRanking[] {
   const tableStart = markdown.search(/Rank\s*Team\s*Stars/i);
   const lines = (tableStart >= 0 ? markdown.slice(tableStart) : markdown).split("\n");
+  const teamLinkRe = /^\[([^\]]+)\]\(https:\/\/www\.on3\.com\/college\/[^)]+\)$/;
 
+  const rankings: On3TeamRanking[] = [];
   let currentRank: number | null = null;
-  for (const line of lines) {
-    const trimmed = line.trim();
+
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+
     const rankMatch = trimmed.match(/^(\d{1,2})$/);
     if (rankMatch) {
       currentRank = parseInt(rankMatch[1], 10);
       continue;
     }
-    if (currentRank !== null && trimmed.includes(teamLinkFragment)) {
-      return currentRank;
+
+    const teamMatch = trimmed.match(teamLinkRe);
+    if (!teamMatch || currentRank === null) continue;
+
+    const team = decodeHtmlEntities(teamMatch[1].trim());
+    let totalCommits = 0;
+    let avgRating = 0;
+
+    // "Total" and "Avg" labels sit a couple of blank lines before their
+    // value, and are unambiguous (unlike the glued-together star counts).
+    for (let j = i + 1; j < Math.min(lines.length, i + 20); j++) {
+      const label = lines[j].trim();
+      if (label !== "Total" && label !== "Avg") continue;
+      for (let k = j + 1; k < Math.min(lines.length, j + 4); k++) {
+        const value = lines[k].trim();
+        if (value === "") continue;
+        if (label === "Total") totalCommits = parseInt(value, 10) || 0;
+        else avgRating = parseFloat(value) || 0;
+        break;
+      }
+      if (label === "Avg") break; // "Avg" is the last labeled field per row
     }
+
+    rankings.push({ rank: currentRank, team, total_commits: totalCommits, avg_rating: avgRating });
+    currentRank = null;
   }
-  return null;
+
+  return rankings;
 }
 
 // ─── On3 transfer portal extraction ──────────────────────────────────────────
@@ -582,13 +624,33 @@ async function syncSource(supabase: ReturnType<typeof createClient>, source: Sou
 
   // On3 conference (SEC) team rankings — a separate page from the team's own
   // On3 commits page above, giving the real conference-only rank instead of
-  // guessing one from the national rank.
+  // guessing one from the national rank. Every team's row is stored too, to
+  // back the "Team Rankings — TN vs SEC" comparison (previously hardcoded to
+  // a few rival names with no data source ever populating them).
   let secRank: number | null = null;
   if (source.sec_rankings_url) {
     try {
       const secMarkdown = await scrapePage(source.sec_rankings_url);
-      secRank = extractOn3ConferenceRank(secMarkdown, "tennessee-volunteers");
+      const conferenceRankings = extractOn3ConferenceTeamRankings(secMarkdown);
+      secRank = conferenceRankings.find((t) => t.team === "Tennessee")?.rank ?? null;
       if (secRank === null) errors.push("SEC rankings page scraped but Tennessee's row wasn't found");
+
+      if (conferenceRankings.length > 0) {
+        const now = new Date().toISOString();
+        const rows = conferenceRankings.map((t) => ({
+          sport_category: source.sport_category,
+          scouting_year: source.scouting_year,
+          team: t.team,
+          rank: t.rank,
+          total_commits: t.total_commits,
+          avg_rating: t.avg_rating,
+          updated_at: now,
+        }));
+        const { error } = await supabase
+          .from("sec_team_rankings")
+          .upsert(rows, { onConflict: "sport_category,scouting_year,team" });
+        if (error) errors.push(`SEC team rankings upsert error: ${error.message}`);
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`SEC rankings scrape failed (non-fatal, sec_rank unchanged): ${msg}`);
