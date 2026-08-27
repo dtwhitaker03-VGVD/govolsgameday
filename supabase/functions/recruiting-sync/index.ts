@@ -30,23 +30,28 @@ interface SourceConfig {
   transfers_scouting_year?: number;
 }
 
-const SOURCES: SourceConfig[] = [
-  {
-    sport_category: "football",
-    scouting_year: 2027,
-    target_url: "https://247sports.com/college/tennessee/season/2027-football/commits/",
-    on3_url: "https://www.on3.com/college/tennessee-volunteers-24635/football/2027/commits/",
-    targets_url: "https://247sports.com/college/tennessee/season/2027-football/targets/",
-    transfers_url: "https://www.on3.com/college/tennessee-volunteers-24635/football/2026/transfers/",
-    transfers_scouting_year: 2026,
-  },
-  {
-    sport_category: "basketball",
-    scouting_year: 2026,
-    target_url: "https://247sports.com/college/tennessee/season/2026-basketball/commits/",
-    on3_url: "https://www.on3.com/college/tennessee-volunteers/basketball/2026/industry-comparison-commits/",
-  },
-];
+// Sources live in the recruiting_sources table (not hardcoded here) so a new
+// URL, a corrected one, or a scouting-year bump is a data change — no code
+// deploy required. See migration create_recruiting_sources.
+async function loadSources(supabase: ReturnType<typeof createClient>): Promise<SourceConfig[]> {
+  const { data, error } = await supabase
+    .from("recruiting_sources")
+    .select("sport_category, scouting_year, target_url, on3_url, targets_url, transfers_url, transfers_scouting_year")
+    .eq("active", true)
+    .order("sport_category");
+
+  if (error) throw new Error(`Failed to load recruiting_sources: ${error.message}`);
+
+  return (data ?? []).map((row) => ({
+    sport_category: row.sport_category,
+    scouting_year: row.scouting_year,
+    target_url: row.target_url,
+    on3_url: row.on3_url,
+    targets_url: row.targets_url ?? undefined,
+    transfers_url: row.transfers_url ?? undefined,
+    transfers_scouting_year: row.transfers_scouting_year ?? undefined,
+  }));
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -666,13 +671,24 @@ Deno.serve(async (req: Request) => {
   // on new sources); otherwise picks a configured source by `?sport=`
   // (defaults to the first configured source).
   const urlParam = urlObj.searchParams.get("url");
+  const mapMode = urlObj.searchParams.get("map") === "1";
+  if (debug && mapMode && urlParam) {
+    const res = await fetch("https://api.firecrawl.dev/v1/map", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${FIRECRAWL_API_KEY}` },
+      body: JSON.stringify({ url: urlParam, search: urlObj.searchParams.get("search") || undefined }),
+    });
+    const data = await res.json();
+    return new Response(JSON.stringify(data), { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
   if (debug) {
+    const sources = await loadSources(supabase);
     const targetUrl = urlParam
       ? urlParam
-      : (sportParam ? SOURCES.find((s) => s.sport_category === sportParam)?.target_url : SOURCES[0].target_url);
+      : (sportParam ? sources.find((s) => s.sport_category === sportParam)?.target_url : sources[0]?.target_url);
     if (!targetUrl) {
       return new Response(
-        JSON.stringify({ error: `Unknown sport "${sportParam}". Known: ${SOURCES.map((s) => s.sport_category).join(", ")}` }),
+        JSON.stringify({ error: `Unknown sport "${sportParam}". Known: ${sources.map((s) => s.sport_category).join(", ")}` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -686,8 +702,9 @@ Deno.serve(async (req: Request) => {
 
   const results: SourceResult[] = [];
   const fatalErrors: string[] = [];
+  const sources = await loadSources(supabase);
 
-  for (const source of SOURCES) {
+  for (const source of sources) {
     try {
       results.push(await syncSource(supabase, source));
     } catch (err) {
