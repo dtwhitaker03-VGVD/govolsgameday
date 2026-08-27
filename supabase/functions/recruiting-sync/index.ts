@@ -22,6 +22,12 @@ interface SourceConfig {
   on3_url: string;
   /** 247Sports "targets" (not-yet-committed prospects) page, if available. */
   targets_url?: string;
+  /** On3 incoming transfer-portal page, if available. Transfers are dated by
+   *  the season the transfer joins the roster for (e.g. "2026"), which is a
+   *  different vintage than the HS recruiting class (e.g. "2027") — so they're
+   *  stored under transfers_scouting_year rather than scouting_year. */
+  transfers_url?: string;
+  transfers_scouting_year?: number;
 }
 
 const SOURCES: SourceConfig[] = [
@@ -31,6 +37,8 @@ const SOURCES: SourceConfig[] = [
     target_url: "https://247sports.com/college/tennessee/season/2027-football/commits/",
     on3_url: "https://www.on3.com/college/tennessee-volunteers-24635/football/2027/commits/",
     targets_url: "https://247sports.com/college/tennessee/season/2027-football/targets/",
+    transfers_url: "https://www.on3.com/college/tennessee-volunteers-24635/football/2026/transfers/",
+    transfers_scouting_year: 2026,
   },
   {
     sport_category: "basketball",
@@ -369,6 +377,92 @@ function extractOn3TeamRank(markdown: string): number | null {
   return m ? parseInt(m[1]) : null;
 }
 
+// ─── On3 transfer portal extraction ──────────────────────────────────────────
+// On3 team transfers page markdown structure per incoming transfer:
+//   [Player Name](https://www.on3.com/rivals/player-name-id/)
+//   Previous School (City, ST)
+//   POS·H-W/ WT[CLASS]
+//   POS
+//   TP                            ← "Transfer Portal" rating section marker
+//   ★★★★★NN.NN                  ← the player's transfer-portal rating (used
+//                                  here, not their older HS rating that follows)
+//   HS— or HS\n★★★★★NN.NN       ← original HS rating, sometimes absent
+//   Committed | Enrolled | Signed
+//   [previous school logo(s)][destination logo]
+// This only covers "Portal In" (players joining Tennessee) — the page's
+// static markdown doesn't include the "Portal Out" tab's content.
+
+interface On3Transfer {
+  full_name: string;
+  hometown: string;
+  position: string;
+  rating: number;
+}
+
+function extractOn3Transfers(markdown: string): On3Transfer[] {
+  const transfers: On3Transfer[] = [];
+  const lines = markdown.split("\n");
+  const seenNames = new Set<string>();
+
+  const playerLinkRe = /\[([A-Z][a-zA-Z.'’\-]+(?: [A-Z][a-zA-Z.'’\-]+){1,3})\]\(https:\/\/www\.on3\.com\/rivals\/[^)]+\)/;
+  const schoolCityRe = /^([A-Z][a-zA-Z.'\s]+)\s*\(([A-Z][a-zA-Z.'\s]+,\s*[A-Z]{2})\)$/;
+  const positionRe = /^(QB|RB|WR|TE|OL|OT|OG|IOL|C|DL|DE|DT|LB|ILB|OLB|CB|S|K|P|ATH|EDGE|FB|LS)$/;
+
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(playerLinkRe);
+    if (!match) continue;
+
+    const fullName = decodeHtmlEntities(match[1].trim());
+    if (seenNames.has(fullName)) continue;
+    if (fullName.length < 5 || fullName.length > 60) continue;
+
+    const contextEnd = Math.min(lines.length, i + 25);
+    const contextLines = lines.slice(i, contextEnd);
+
+    let hometown = "";
+    for (const cl of contextLines) {
+      const scMatch = cl.trim().match(schoolCityRe);
+      if (scMatch) {
+        hometown = `${scMatch[2].trim()} | ${scMatch[1].trim()}`;
+        break;
+      }
+    }
+
+    let position = "";
+    for (const cl of contextLines) {
+      if (positionRe.test(cl.trim())) {
+        position = cl.trim();
+        break;
+      }
+    }
+
+    // The transfer-portal rating is the ★ line immediately following the
+    // "TP" marker — not the HS rating that may follow it further down.
+    let rating = 0;
+    let sawTP = false;
+    for (const cl of contextLines) {
+      const trimmed = cl.trim();
+      if (trimmed === "TP") {
+        sawTP = true;
+        continue;
+      }
+      if (sawTP) {
+        const ratingMatch = trimmed.match(/^★+([\d.]+)$/);
+        if (ratingMatch) {
+          rating = parseFloat(ratingMatch[1]);
+          break;
+        }
+      }
+    }
+    if (rating <= 0) continue;
+
+    seenNames.add(fullName);
+    transfers.push({ full_name: fullName, hometown, position, rating });
+  }
+
+  return transfers;
+}
+
 // ─── Per-source sync ────────────────────────────────────────────────────────
 
 interface SourceResult {
@@ -376,6 +470,7 @@ interface SourceResult {
   ok: boolean;
   recruits_upserted: number;
   targets_upserted: number;
+  transfers_upserted: number;
   class_stats_upserted: boolean;
   recruits_sample: ExtractedRecruit[];
   class_stats: ExtractedClassStats | null;
@@ -508,11 +603,43 @@ async function syncSource(supabase: ReturnType<typeof createClient>, source: Sou
     }
   }
 
+  // On3 incoming transfer portal: stored under transfers_scouting_year since
+  // a transfer's season vintage differs from the HS recruiting class's.
+  let transfersUpserted = 0;
+  if (source.transfers_url) {
+    try {
+      const transfersMarkdown = await scrapePage(source.transfers_url);
+      const transfers = extractOn3Transfers(transfersMarkdown);
+      if (transfers.length > 0) {
+        const now = new Date().toISOString();
+        const rows = transfers.map((t) => ({
+          full_name: t.full_name,
+          hometown: t.hometown || null,
+          position: t.position || null,
+          sport_category: source.sport_category,
+          scouting_year: source.transfers_scouting_year ?? source.scouting_year,
+          stars_on3: ratingToStars(Math.floor(t.rating)) || null,
+          status: "portal",
+          updated_at: now,
+        }));
+        const { error } = await supabase
+          .from("recruits")
+          .upsert(rows, { onConflict: "full_name,scouting_year" });
+        if (error) errors.push(`Transfers upsert error: ${error.message}`);
+        else transfersUpserted = rows.length;
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(`Transfers scrape failed (non-fatal): ${msg}`);
+    }
+  }
+
   return {
     sport_category: source.sport_category,
     ok: errors.length === 0,
     recruits_upserted: recruitsUpserted,
     targets_upserted: targetsUpserted,
+    transfers_upserted: transfersUpserted,
     class_stats_upserted: classStatsUpserted,
     recruits_sample: recruits.slice(0, 5),
     class_stats,
