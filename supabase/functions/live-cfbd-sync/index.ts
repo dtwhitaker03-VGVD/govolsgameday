@@ -41,10 +41,15 @@ function mapDriveResult(result: string): string | null {
   // — matched live against drive 1 of today's TCU/UNC game returning
   // "Field Goal" unrecognized by the abbreviation-only version of this
   // function. Match on substring so both vocabularies work. Order matters:
-  // "Missed Field Goal" must be checked before the general "Field Goal"
-  // match, since it contains that substring.
+  // a missed-FG variant must be checked before the general "Field Goal"
+  // match, since it contains that substring. CFBD isn't even consistent
+  // with itself here — drive 18 of the same game returned "Missed FG"
+  // (abbreviated), a THIRD variant distinct from both "Missed Field Goal"
+  // (full) and "FG"/"Field Goal" (makes) — this left drive 18 permanently
+  // stuck unresolved (mapDriveResult returned null every poll) until this
+  // fix. Check both "FIELD GOAL" and bare "FG" alongside "MISSED".
   const r = result.toUpperCase().trim();
-  if (r.includes("MISSED") && r.includes("FIELD GOAL")) return "turnover_on_downs";
+  if (r.includes("MISSED") && (r.includes("FIELD GOAL") || r.includes("FG"))) return "turnover_on_downs";
   if (r.includes("FIELD GOAL") || r === "FG") return "field_goal";
   if (r.includes("TOUCHDOWN") || r === "TD") return "touchdown";
   if (r === "PUNT") return "punt";
