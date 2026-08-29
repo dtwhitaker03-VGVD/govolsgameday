@@ -150,6 +150,14 @@ export function LiveDrivePrediction({ game }: Props) {
   const resultTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showMyPicks, setShowMyPicks] = useState(false);
 
+  // Tracks the currently-displayed window's id outside React's render cycle
+  // so the Realtime handler below (set up once per game/session, not per
+  // window) can tell a genuinely new drive from a redundant update to the
+  // same still-open one — without this, any duplicate/no-op update to an
+  // open window wipes the user's already-submitted pick.
+  const windowIdRef = useRef<string | null>(null);
+  useEffect(() => { windowIdRef.current = window_?.id ?? null; }, [window_?.id]);
+
   // ── Subscribe to latest open/locked drive window for this game ──────────────
   useEffect(() => {
     async function fetchLatest() {
@@ -191,7 +199,8 @@ export function LiveDrivePrediction({ game }: Props) {
               supabase
                 .from('drive_predictions')
                 .select('prediction, points_earned')
-                .eq('drive_window_id', updated.id)
+                .eq('game_id', game.id)
+                .eq('drive_number', updated.drive_number)
                 .eq('user_id', session.user.id)
                 .maybeSingle()
                 .then(({ data }) => {
@@ -212,8 +221,14 @@ export function LiveDrivePrediction({ game }: Props) {
             return;
           }
           setWindow(updated);
-          setMyPick(null);
-          setSubmitError('');
+          // Only clear the user's pick/error when this is actually a new
+          // drive's window — a redundant update to the same still-open
+          // window (e.g. a re-run open call) must not wipe an already
+          // submitted pick out from under the user.
+          if (updated.id !== windowIdRef.current) {
+            setMyPick(null);
+            setSubmitError('');
+          }
         }
       )
       .subscribe();
@@ -230,7 +245,8 @@ export function LiveDrivePrediction({ game }: Props) {
     supabase
       .from('drive_predictions')
       .select('prediction, points_earned')
-      .eq('drive_window_id', window_.id)
+      .eq('game_id', game.id)
+      .eq('drive_number', window_.drive_number)
       .eq('user_id', session.user.id)
       .maybeSingle()
       .then(({ data }) => setMyPick(data as MyPick | null));
