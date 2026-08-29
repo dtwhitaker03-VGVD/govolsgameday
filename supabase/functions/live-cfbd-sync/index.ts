@@ -36,14 +36,22 @@ function getSupabaseClient() {
 // left unsettled (returns null) rather than guessed, since a wrong
 // settlement would corrupt user scoring.
 function mapDriveResult(result: string): string | null {
+  // CFBD's historical /drives endpoint uses abbreviations ("FG", "TD") but
+  // the live/plays endpoint spells results out ("Field Goal", "Touchdown")
+  // — matched live against drive 1 of today's TCU/UNC game returning
+  // "Field Goal" unrecognized by the abbreviation-only version of this
+  // function. Match on substring so both vocabularies work. Order matters:
+  // "Missed Field Goal" must be checked before the general "Field Goal"
+  // match, since it contains that substring.
   const r = result.toUpperCase().trim();
-  if (r === "TD") return "touchdown";
-  if (r === "FG") return "field_goal";
+  if (r.includes("MISSED") && r.includes("FIELD GOAL")) return "turnover_on_downs";
+  if (r.includes("FIELD GOAL") || r === "FG") return "field_goal";
+  if (r.includes("TOUCHDOWN") || r === "TD") return "touchdown";
   if (r === "PUNT") return "punt";
-  if (r === "FUMBLE" || r === "INT" || r === "INT TD" || r === "FUMBLE TD" || r === "INTERCEPTION") return "turnover";
-  if (r === "DOWNS" || r === "MISSED FG") return "turnover_on_downs";
-  if (r === "SAFETY") return "safety";
-  if (r === "END OF HALF" || r === "END OF GAME" || r === "END OF 4TH QUARTER" || r.includes("END OF")) return "end_of_quarter";
+  if (r.includes("FUMBLE") || r.includes("INTERCEPTION") || r === "INT") return "turnover";
+  if (r.includes("DOWNS")) return "turnover_on_downs";
+  if (r.includes("SAFETY")) return "safety";
+  if (r.includes("END OF")) return "end_of_quarter";
   return null;
 }
 
