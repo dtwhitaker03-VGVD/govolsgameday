@@ -115,6 +115,13 @@ Deno.serve(async (req: Request) => {
     { headers: { Authorization: `Bearer ${apiKey}` } }
   );
 
+  // Fire-and-forget request log so CFBD call volume is visible without
+  // slowing down the sync itself — see cfbd_request_log.
+  supabase
+    .from("cfbd_request_log")
+    .insert({ endpoint: "/live/plays", status_code: res.status, source: "live-cfbd-sync" })
+    .then(() => {});
+
   if (res.status === 400) {
     // Game hasn't started yet — no plays available.
     return json({ ok: true, skipped: "not started yet" });
