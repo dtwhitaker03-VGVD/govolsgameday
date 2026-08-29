@@ -200,6 +200,9 @@ async function fetchMainPageVideos(tab: Tab): Promise<ScrapedVideo[]> {
       .limit(24),
   ]);
 
+  if (priorityRes.error) console.error('scraped_videos priority query failed:', priorityRes.error);
+  if (fallbackRes.error) console.error('scraped_videos fallback query failed:', fallbackRes.error);
+
   const priority = (priorityRes.data ?? []) as ScrapedVideo[];
   const fallback  = (fallbackRes.data ?? []) as ScrapedVideo[];
 
@@ -242,7 +245,8 @@ export function VideoGrid({
       .gte('published_at', cutoff.toISOString())
       .order(tab === 'latest' ? 'published_at' : 'view_count', { ascending: false, nullsFirst: false })
       .limit(24)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) console.error('scraped_videos query failed:', error);
         setVideos((data as ScrapedVideo[]) ?? []);
         setLoading(false);
       });
