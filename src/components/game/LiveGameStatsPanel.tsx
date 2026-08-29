@@ -16,6 +16,14 @@ export interface LiveGame {
   away_score: number;
   home_total_yards: number | null;
   away_total_yards: number | null;
+  home_rushing_yards: number | null;
+  away_rushing_yards: number | null;
+  home_passing_yards: number | null;
+  away_passing_yards: number | null;
+  home_turnovers: number | null;
+  away_turnovers: number | null;
+  home_timeouts_remaining: number | null;
+  away_timeouts_remaining: number | null;
   current_quarter: number | null;
   game_clock: string | null;
   possession: string | null;
@@ -118,7 +126,11 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
       : null;
 
   const statRows: TeamStatRow[] = [
+    { label: 'Rushing Yards', homeVal: game.home_rushing_yards ?? '—', awayVal: game.away_rushing_yards ?? '—' },
+    { label: 'Passing Yards', homeVal: game.home_passing_yards ?? '—', awayVal: game.away_passing_yards ?? '—' },
     { label: 'Total Yards', homeVal: tnYards ?? '—', awayVal: oppYards ?? '—' },
+    { label: 'Turnovers', homeVal: game.home_turnovers ?? '—', awayVal: game.away_turnovers ?? '—', danger: true },
+    { label: 'Timeouts Left', homeVal: game.home_timeouts_remaining ?? '—', awayVal: game.away_timeouts_remaining ?? '—' },
   ];
 
   const metaTag = isLive ? (
@@ -195,7 +207,13 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
               key={row.label}
               className="grid grid-cols-[1fr_auto_1fr] items-center py-1.5 border-b border-white/[0.04] last:border-0"
             >
-              <span className="text-white text-sm font-semibold text-right">{row.homeVal}</span>
+              <span
+                className={`text-sm font-semibold text-right ${
+                  row.danger && Number(row.homeVal) > 0 ? 'text-vgd-red' : 'text-white'
+                }`}
+              >
+                {row.homeVal}
+              </span>
               <span className="text-[10px] text-vgd-muted w-28 text-center">{row.label}</span>
               <span
                 className={`text-sm font-semibold text-left ${

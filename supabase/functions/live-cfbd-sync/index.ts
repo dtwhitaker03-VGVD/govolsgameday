@@ -64,6 +64,11 @@ interface LiveGameTeam {
 interface LiveGamePlay {
   down: number;
   distance: number;
+  yardsGained: number | null;
+  rushPass: string | null;
+  playType: string | null;
+  team: string;
+  period: number | null;
 }
 
 interface LiveGameDrive {
@@ -88,6 +93,50 @@ interface LiveGame {
   yardsToGoal: number | null;
   teams: LiveGameTeam[];
   drives: LiveGameDrive[];
+}
+
+// Rushing/passing yards come straight from each play's rushPass classification
+// (verified live: CFBD tags sacks as "pass" and turnover-return plays as
+// "rush" regardless of the original play type — a known CFBD quirk, not
+// something this function tries to correct). Turnovers count drives whose
+// result mentions a fumble or interception, charged to that drive's
+// offense. Timeouts remaining resets each half (periods 1-2 vs 3-4+) since
+// NCAA timeouts don't carry over — OT periods are lumped into "half 2" as a
+// simplification, not exact NCAA OT timeout rules.
+interface TeamStats {
+  rushingYards: number;
+  passingYards: number;
+  turnovers: number;
+  timeoutsUsedThisHalf: number;
+}
+
+function halfOf(period: number | null | undefined): number {
+  return (period ?? 1) <= 2 ? 1 : 2;
+}
+
+function computeTeamStats(live: LiveGame, teamName: string): TeamStats {
+  let rushingYards = 0;
+  let passingYards = 0;
+  let turnovers = 0;
+  let timeoutsUsedThisHalf = 0;
+  const currentHalf = halfOf(live.period);
+
+  for (const drive of live.drives) {
+    for (const play of drive.plays) {
+      if (play.team !== teamName) continue;
+      if (play.rushPass === "rush") rushingYards += play.yardsGained ?? 0;
+      else if (play.rushPass === "pass") passingYards += play.yardsGained ?? 0;
+      if (play.playType === "Timeout" && halfOf(play.period) === currentHalf) {
+        timeoutsUsedThisHalf++;
+      }
+    }
+    if (drive.offense === teamName && drive.result) {
+      const r = drive.result.toUpperCase();
+      if (r.includes("FUMBLE") || r.includes("INTERCEPTION")) turnovers++;
+    }
+  }
+
+  return { rushingYards, passingYards, turnovers, timeoutsUsedThisHalf };
 }
 
 Deno.serve(async (req: Request) => {
@@ -150,6 +199,9 @@ Deno.serve(async (req: Request) => {
   const isFinal = statusLower.includes("final") || statusLower.includes("complete");
   const newStatus = isFinal ? "final" : "live";
 
+  const homeStats = computeTeamStats(live, homeTeam?.team ?? "");
+  const awayStats = computeTeamStats(live, awayTeam?.team ?? "");
+
   await supabase
     .from("live_games")
     .update({
@@ -162,6 +214,16 @@ Deno.serve(async (req: Request) => {
       down: live.down,
       distance: live.distance,
       yardline: live.yardsToGoal != null ? 100 - live.yardsToGoal : null,
+      home_rushing_yards: homeStats.rushingYards,
+      away_rushing_yards: awayStats.rushingYards,
+      home_passing_yards: homeStats.passingYards,
+      away_passing_yards: awayStats.passingYards,
+      home_total_yards: homeStats.rushingYards + homeStats.passingYards,
+      away_total_yards: awayStats.rushingYards + awayStats.passingYards,
+      home_turnovers: homeStats.turnovers,
+      away_turnovers: awayStats.turnovers,
+      home_timeouts_remaining: Math.max(0, 3 - homeStats.timeoutsUsedThisHalf),
+      away_timeouts_remaining: Math.max(0, 3 - awayStats.timeoutsUsedThisHalf),
       updated_at: new Date().toISOString(),
     })
     .eq("id", game.id);
