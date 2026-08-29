@@ -181,10 +181,15 @@ Deno.serve(async (req: Request) => {
     const lastPlay = drive.plays[drive.plays.length - 1];
 
     if (!hasResult) {
-      // Drive still in progress — open/refresh its prediction window with
-      // the current real situation. Score differential is offense-relative
-      // (offense's own score minus the opponent's), matching how
-      // open_drive_window's odds heuristics are written.
+      // Drive still in progress. open_drive_window upserts and resets
+      // status back to 'open' (clearing actual_outcome) every time it
+      // runs, which the frontend reacts to as a fresh window — so only
+      // call it once, the first time this drive is seen, not on every
+      // poll while the same drive continues. Score differential is
+      // offense-relative (offense's own score minus the opponent's),
+      // matching how open_drive_window's odds heuristics are written.
+      if (existing) continue;
+
       const offenseIsHome = drive.offense === homeTeam?.team;
       const offenseScore = offenseIsHome ? homeScore : awayScore;
       const defenseScore = offenseIsHome ? awayScore : homeScore;
