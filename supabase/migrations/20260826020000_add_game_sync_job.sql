@@ -35,6 +35,6 @@ $$;
 
 -- ── 3. Register pg_cron schedule ────────────────────────────────────────────
 -- Hourly, on the hour (UTC). One lightweight CFBD schedule call per run —
--- keeps well within the free-tier budget noted in cfbd-proxy while still
+-- keeps well within the free-tier budget noted in cfbd-data while still
 -- catching a pregame->live->final transition within about an hour.
 SELECT cron.schedule('game-sync-hourly', '0 * * * *', 'SELECT public.invoke_game_sync()');
