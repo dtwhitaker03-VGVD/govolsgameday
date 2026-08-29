@@ -652,7 +652,7 @@ function ScrapedContentReview() {
           return;
         }
 
-        const { data, error } = await supabase.functions.invoke('cfbd-proxy', {
+        const { data, error } = await supabase.functions.invoke('cfbd-data', {
           body: { type: 'youtube_lookup', videoId },
         });
 
@@ -687,7 +687,7 @@ function ScrapedContentReview() {
         setAddUrl('');
         loadVideos();
       } else {
-        const { data, error } = await supabase.functions.invoke('cfbd-proxy', {
+        const { data, error } = await supabase.functions.invoke('cfbd-data', {
           body: { type: 'article_scrape', url: addUrl.trim(), sport_category: addCategory },
         });
 

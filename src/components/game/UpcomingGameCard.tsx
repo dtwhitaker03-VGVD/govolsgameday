@@ -146,7 +146,7 @@ export function UpcomingGameCard() {
 
   useEffect(() => {
     supabase.functions
-      .invoke('cfbd-proxy', { body: { type: 'upcoming' } })
+      .invoke('cfbd-data', { body: { type: 'upcoming' } })
       .then(({ data: res, error }) => {
         if (error) {
           setFetchState('api_error');

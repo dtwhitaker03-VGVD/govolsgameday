@@ -235,21 +235,21 @@ async function refreshLinesForUpcomingGames(supabase: Client, apiKey: string) {
 }
 
 /**
- * Keeps cfbd-proxy's cache (and therefore the homepage's Upcoming Game
+ * Keeps cfbd-data's cache (and therefore the homepage's Upcoming Game
  * banner) refreshed on this same twice-weekly schedule, instead of it
  * making its own separate CFBD calls whenever site traffic finds its
- * cache stale. cfbd-proxy only honors "force" for this service-role
+ * cache stale. cfbd-data only honors "force" for this service-role
  * -authenticated call — a public caller can't trigger a real API call.
  */
 async function refreshUpcomingCache(serviceKey: string) {
   try {
-    await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/cfbd-proxy`, {
+    await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/cfbd-data`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceKey}` },
       body: JSON.stringify({ type: "upcoming", force: true }),
     });
   } catch (err) {
-    console.error(`game-sync: cfbd-proxy refresh failed: ${err}`);
+    console.error(`game-sync: cfbd-data refresh failed: ${err}`);
   }
 }
 
