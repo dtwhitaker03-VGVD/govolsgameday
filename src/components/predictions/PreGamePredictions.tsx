@@ -112,7 +112,7 @@ function PredictionSummary({ pred, game, tnIsHome }: {
   game: LiveGame;
   tnIsHome: boolean;
 }) {
-  const tnName = 'Tennessee';
+  const tnName = tnIsHome ? game.home_team : game.away_team;
   const oppName = tnIsHome ? game.away_team : game.home_team;
   const actualTnScore  = tnIsHome ? game.home_score : game.away_score;
   const actualOppScore = tnIsHome ? game.away_score : game.home_score;
@@ -247,7 +247,10 @@ export function PreGamePredictions({ game }: Props) {
     );
   }
 
-  const tnIsHome = game.home_team === 'Tennessee';
+  // "tn" naming throughout refers to whichever team is home — generalized
+  // for the 2026-08-29 one-off live test (see live-cfbd-sync).
+  const tnIsHome = true;
+  const tnName = game.home_team;
   const oppName  = tnIsHome ? game.away_team : game.home_team;
   const spreadAvailable = game.spread_line_tn != null;
   const totalAvailable = game.total_points_line != null;
@@ -336,9 +339,9 @@ export function PreGamePredictions({ game }: Props) {
     const tnTurnoversForced = parseInt(form.tnTurnoversForced);
 
     if (!form.winner) return setSubmitError('Pick a winner.');
-    if (isNaN(tnScore)  || tnScore  < 0 || tnScore  > 99)  return setSubmitError('Tennessee score: 0–99.');
+    if (isNaN(tnScore)  || tnScore  < 0 || tnScore  > 99)  return setSubmitError(`${tnName} score: 0–99.`);
     if (isNaN(oppScore) || oppScore < 0 || oppScore > 99)  return setSubmitError(`${oppName} score: 0–99.`);
-    if (isNaN(tnYards)  || tnYards  < 0 || tnYards  > 999) return setSubmitError('Tennessee yards: 0–999.');
+    if (isNaN(tnYards)  || tnYards  < 0 || tnYards  > 999) return setSubmitError(`${tnName} yards: 0–999.`);
     if (isNaN(oppYards) || oppYards < 0 || oppYards > 999) return setSubmitError(`${oppName} yards: 0–999.`);
     if (spreadAvailable && !form.spreadPick) return setSubmitError('Pick Over or Under for the spread.');
     if (totalAvailable && !form.totalPick) return setSubmitError('Pick Over or Under for total points.');
@@ -383,7 +386,7 @@ export function PreGamePredictions({ game }: Props) {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
-  const winnerLabel = form.winner === (tnIsHome ? 'home' : 'away') ? 'Tennessee'
+  const winnerLabel = form.winner === (tnIsHome ? 'home' : 'away') ? tnName
     : form.winner === (tnIsHome ? 'away' : 'home') ? oppName
     : '';
 
@@ -448,7 +451,7 @@ export function PreGamePredictions({ game }: Props) {
               <div className="flex justify-between">
                 <span>Winner</span>
                 <span className="text-white font-semibold">
-                  {existing.predicted_winner === (tnIsHome ? 'home' : 'away') ? 'Tennessee' : oppName}
+                  {existing.predicted_winner === (tnIsHome ? 'home' : 'away') ? tnName : oppName}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -502,7 +505,7 @@ export function PreGamePredictions({ game }: Props) {
             </label>
             <div className="grid grid-cols-2 gap-1.5">
               {[
-                { label: 'Tennessee', val: tnIsHome ? 'home' : 'away' as 'home' | 'away' },
+                { label: tnName, val: tnIsHome ? 'home' : 'away' as 'home' | 'away' },
                 { label: oppName,     val: tnIsHome ? 'away' : 'home' as 'home' | 'away' },
               ].map(opt => (
                 <button
@@ -529,7 +532,7 @@ export function PreGamePredictions({ game }: Props) {
             </label>
             <div className="grid grid-cols-[1fr_auto_1fr] gap-1.5 items-center">
               <div>
-                <p className="text-[9px] text-vgd-muted mb-0.5">TN</p>
+                <p className="text-[9px] text-vgd-muted mb-0.5 truncate">{tnName}</p>
                 <input type="number" min="0" max="99" placeholder="35"
                   value={form.tnScore} onChange={e => setField('tnScore', e.target.value)}
                   disabled={isLocked}
@@ -553,7 +556,7 @@ export function PreGamePredictions({ game }: Props) {
             </label>
             <div className="grid grid-cols-[1fr_auto_1fr] gap-1.5 items-center">
               <div>
-                <p className="text-[9px] text-vgd-muted mb-0.5">TN</p>
+                <p className="text-[9px] text-vgd-muted mb-0.5 truncate">{tnName}</p>
                 <input type="number" min="0" max="999" placeholder="420"
                   value={form.tnYards} onChange={e => setField('tnYards', e.target.value)}
                   disabled={isLocked}
@@ -574,7 +577,7 @@ export function PreGamePredictions({ game }: Props) {
           {spreadAvailable && (
             <div>
               <label className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
-                Spread O/U <span className="text-white/30 normal-case">(TN {game.spread_line_tn! > 0 ? '+' : ''}{game.spread_line_tn})</span>
+                Spread O/U <span className="text-white/30 normal-case">({tnName} {game.spread_line_tn! > 0 ? '+' : ''}{game.spread_line_tn})</span>
               </label>
               <div className="grid grid-cols-2 gap-1.5">
                 {(['over', 'under'] as const).map(opt => (

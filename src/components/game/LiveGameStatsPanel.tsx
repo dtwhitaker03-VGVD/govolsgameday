@@ -96,12 +96,12 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
     return () => { supabase.removeChannel(channel); };
   }, [game.id]);
 
-  const isTennesseeHome = game.home_team === 'Tennessee';
-  const tnScore = isTennesseeHome ? game.home_score : game.away_score;
-  const oppScore = isTennesseeHome ? game.away_score : game.home_score;
-  const oppName = isTennesseeHome ? game.away_team : game.home_team;
-  const tnYards = isTennesseeHome ? game.home_total_yards : game.away_total_yards;
-  const oppYards = isTennesseeHome ? game.away_total_yards : game.home_total_yards;
+  // Home/away, shown generically — not assumed to be Tennessee.
+  const tnScore = game.home_score;
+  const oppScore = game.away_score;
+  const oppName = game.away_team;
+  const tnYards = game.home_total_yards;
+  const oppYards = game.away_total_yards;
 
   const isLive = game.status === 'live';
   const isFinal = game.status === 'final' || game.status === 'calculated';
@@ -138,13 +138,13 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
         {/* Scoreboard strip */}
         <div className="bg-vgd-bg rounded-lg p-3">
           <div className="flex items-center justify-between gap-2">
-            {/* Tennessee */}
+            {/* Home team */}
             <div className="flex flex-col items-center gap-0.5 flex-1">
               <div className="w-9 h-9 rounded-full bg-vgd-orange/20 flex items-center justify-center">
-                <span className="text-vgd-orange font-black text-xs">TN</span>
+                <span className="text-vgd-orange font-black text-xs">{game.home_team.slice(0, 2).toUpperCase()}</span>
               </div>
               <span className="text-white font-black text-3xl leading-none">{tnScore}</span>
-              <span className="text-xs text-white/60">Tennessee</span>
+              <span className="text-xs text-white/60">{game.home_team}</span>
             </div>
 
             {/* Clock / status */}
@@ -186,7 +186,7 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
         {/* Team stat rows */}
         <div className="space-y-0">
           <div className="grid grid-cols-[1fr_auto_1fr] text-[10px] text-vgd-muted uppercase tracking-wider pb-1 border-b border-white/[0.06]">
-            <span className="text-right">TN</span>
+            <span className="text-right">{game.home_team.split(' ')[0]}</span>
             <span className="text-center w-28">Stat</span>
             <span className="text-left">{oppName.split(' ')[0]}</span>
           </div>

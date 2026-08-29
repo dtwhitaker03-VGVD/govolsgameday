@@ -109,6 +109,20 @@ export default function Home() {
     };
   }, [liveGame?.kickoff_time, pastKickoff]);
 
+  // One-off live-game test harness (2026-08-29): actively pulls real CFBD
+  // live data into live_games/drive_windows while this page is open, in
+  // place of manual admin entry. See supabase/functions/live-cfbd-sync.
+  useEffect(() => {
+    if (!liveGame) return;
+    if (liveGame.status !== 'pregame' && liveGame.status !== 'live') return;
+    const poll = () => {
+      supabase.functions.invoke('live-cfbd-sync', { body: { game_id: liveGame.id } });
+    };
+    poll();
+    const id = setInterval(poll, 15000);
+    return () => clearInterval(id);
+  }, [liveGame?.id, liveGame?.status]);
+
   const isGameday = layoutReady && liveGame !== null;
 
   // ── Measure right column height so the chat card matches it ──────────────

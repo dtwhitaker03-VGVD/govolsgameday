@@ -374,9 +374,9 @@ export function LiveDrivePrediction({ game }: Props) {
                 {window_.yardline !== null && <span>{yardlineStr(window_.yardline)}</span>}
                 {window_.score_differential !== null && (
                   <span>{window_.score_differential > 0
-                    ? `TN +${window_.score_differential}`
+                    ? `Offense +${window_.score_differential}`
                     : window_.score_differential < 0
-                    ? `TN ${window_.score_differential}`
+                    ? `Offense ${window_.score_differential}`
                     : 'Tied'}</span>
                 )}
               </div>
