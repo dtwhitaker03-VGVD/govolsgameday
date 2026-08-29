@@ -192,38 +192,56 @@ export function GameLeaderboard({ game }: Props) {
   }
 
   async function fetchLeaderboard() {
+    // game_leaderboard's real columns are `rank`/`total_game_points`, and it
+    // has no drive_correct/drive_total — this previously queried columns
+    // that don't exist at all (rank_position, total_points, drive_correct,
+    // drive_total), which PostgREST rejects outright, so the leaderboard
+    // never loaded. Accuracy is computed here from drive_predictions since
+    // game_leaderboard doesn't track it.
     const { data } = await supabase
       .from('game_leaderboard')
-      .select(
-        'user_id, rank_position, total_points, drive_correct, drive_total'
-      )
+      .select('user_id, rank, total_game_points')
       .eq('game_id', game.id)
-      .order('rank_position', { ascending: true })
+      .order('rank', { ascending: true })
       .limit(10);
 
     if (!data) return;
 
-    // Fetch usernames and streak status from profiles
     const userIds = (data as { user_id: string }[]).map(r => r.user_id);
-    const { data: profiles } = userIds.length
-      ? await supabase
-          .from('profiles')
-          .select('id, username, hot_streak_active')
-          .in('id', userIds)
-      : { data: [] };
+
+    const [{ data: profiles }, { data: predictions }] = await Promise.all([
+      userIds.length
+        ? supabase.from('profiles').select('id, username, hot_streak_active').in('id', userIds)
+        : Promise.resolve({ data: [] as { id: string; username: string; hot_streak_active: boolean }[] }),
+      supabase
+        .from('drive_predictions')
+        .select('user_id, correct')
+        .eq('game_id', game.id)
+        .eq('status', 'resolved'),
+    ]);
 
     const profileMap = new Map(
       (profiles ?? []).map((p: { id: string; username: string; hot_streak_active: boolean }) => [p.id, p])
     );
 
+    const accuracyMap = new Map<string, { correct: number; total: number }>();
+    for (const p of (predictions ?? []) as { user_id: string; correct: boolean | null }[]) {
+      const acc = accuracyMap.get(p.user_id) ?? { correct: 0, total: 0 };
+      acc.total += 1;
+      if (p.correct) acc.correct += 1;
+      accuracyMap.set(p.user_id, acc);
+    }
+
     const enriched: LeaderboardRow[] = (data as {
       user_id: string;
-      rank_position: number;
-      total_points: number;
-      drive_correct: number;
-      drive_total: number;
+      rank: number;
+      total_game_points: number;
     }[]).map(r => ({
-      ...r,
+      user_id: r.user_id,
+      rank_position: r.rank,
+      total_points: r.total_game_points,
+      drive_correct: accuracyMap.get(r.user_id)?.correct ?? 0,
+      drive_total: accuracyMap.get(r.user_id)?.total ?? 0,
       username: profileMap.get(r.user_id)?.username ?? 'Unknown',
       hot_streak_active: profileMap.get(r.user_id)?.hot_streak_active ?? false,
     }));
@@ -240,15 +258,20 @@ export function GameLeaderboard({ game }: Props) {
       // Fetch user's own row
       const { data: myData } = await supabase
         .from('game_leaderboard')
-        .select('user_id, rank_position, total_points, drive_correct, drive_total')
+        .select('user_id, rank, total_game_points')
         .eq('game_id', game.id)
         .eq('user_id', session.user.id)
         .maybeSingle();
 
       if (myData) {
+        const m = myData as { user_id: string; rank: number; total_game_points: number };
         const p = profileMap.get(session.user.id) ?? { username: profile?.username ?? 'You', hot_streak_active: false };
         setMyRow({
-          ...(myData as { user_id: string; rank_position: number; total_points: number; drive_correct: number; drive_total: number }),
+          user_id: m.user_id,
+          rank_position: m.rank,
+          total_points: m.total_game_points,
+          drive_correct: accuracyMap.get(m.user_id)?.correct ?? 0,
+          drive_total: accuracyMap.get(m.user_id)?.total ?? 0,
           username: p.username,
           hot_streak_active: p.hot_streak_active,
         });
