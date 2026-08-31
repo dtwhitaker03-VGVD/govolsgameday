@@ -30,7 +30,7 @@ function getServiceClient() {
 // response against) ────────────────────────────────────────────────────────
 
 interface TeamStatEntry { category: string; stat: string }
-interface GameTeamStatsTeam { team: string; stats: TeamStatEntry[] }
+interface GameTeamStatsTeam { team: string; homeAway: "home" | "away"; points: number | null; stats: TeamStatEntry[] }
 interface GameTeamStatsEntry { teams: GameTeamStatsTeam[] }
 
 interface PlayerStatAthlete { name: string; stat: string }
@@ -51,6 +51,43 @@ async function cfbdGet(path: string, apiKey: string): Promise<{ ok: true; data: 
   } catch (err) {
     return { ok: false, message: `Network error fetching ${path}: ${String(err)}` };
   }
+}
+
+// Final score + total yards per team, straight from /games/teams — CFBD's
+// canonical post-game numbers. Written unconditionally on finalize so a
+// manually-controlled game (live-cfbd-sync skipped it entirely — see
+// live_games.manual_control) still ends up with real values instead of
+// whatever was last typed in by hand, and so a normal game's numbers get
+// reconciled against CFBD's final tally rather than trusting live tracking.
+// "totalYards" matches CFBD's documented category vocabulary but, like
+// findTurnoversForced below, hasn't been confirmed against a live response
+// in this codebase — normalize() guards against reasonable case variants.
+function findTeamPointsAndYards(entries: GameTeamStatsEntry[]): {
+  homePoints: number | null;
+  awayPoints: number | null;
+  homeYards: number | null;
+  awayYards: number | null;
+} {
+  const game = entries[0];
+  const empty = { homePoints: null, awayPoints: null, homeYards: null, awayYards: null };
+  if (!game?.teams) return empty;
+
+  const home = game.teams.find((t) => t.homeAway === "home");
+  const away = game.teams.find((t) => t.homeAway === "away");
+
+  function yardsFor(team: GameTeamStatsTeam | undefined): number | null {
+    const stat = team?.stats.find((s) => normalize(s.category) === "totalyards");
+    if (!stat) return null;
+    const n = parseInt(stat.stat, 10);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  return {
+    homePoints: home?.points ?? null,
+    awayPoints: away?.points ?? null,
+    homeYards: yardsFor(home),
+    awayYards: yardsFor(away),
+  };
 }
 
 function findTurnoversForced(entries: GameTeamStatsEntry[]): number | null {
@@ -143,9 +180,13 @@ Deno.serve(async (req: Request) => {
   let tnTurnoversForced: number | null = null;
   let tnRushingTds: number | null = null;
   let tnReceivingTds: number | null = null;
+  let homePoints: number | null = null;
+  let awayPoints: number | null = null;
+  let homeYards: number | null = null;
+  let awayYards: number | null = null;
 
   if (!apiKey) {
-    warnings.push("CFBD API key not configured — rushing/receiving TDs and turnovers-forced will grade as 0 for everyone.");
+    warnings.push("CFBD API key not configured — final score/yards and rushing/receiving TDs/turnovers-forced won't be updated from CFBD.");
   } else {
     const [teamsResult, playersResult] = await Promise.all([
       cfbdGet(`/games/teams?gameId=${game.cfbd_game_id}`, apiKey),
@@ -153,8 +194,17 @@ Deno.serve(async (req: Request) => {
     ]);
 
     if (teamsResult.ok) {
-      tnTurnoversForced = findTurnoversForced(teamsResult.data as GameTeamStatsEntry[]);
+      const teamsData = teamsResult.data as GameTeamStatsEntry[];
+      tnTurnoversForced = findTurnoversForced(teamsData);
       if (tnTurnoversForced === null) warnings.push("Could not find opponent turnovers stat in CFBD /games/teams response.");
+
+      const pointsAndYards = findTeamPointsAndYards(teamsData);
+      homePoints = pointsAndYards.homePoints;
+      awayPoints = pointsAndYards.awayPoints;
+      homeYards = pointsAndYards.homeYards;
+      awayYards = pointsAndYards.awayYards;
+      if (homePoints === null || awayPoints === null) warnings.push("Could not find final score in CFBD /games/teams response — left live_games score untouched.");
+      if (homeYards === null || awayYards === null) warnings.push("Could not find total yards in CFBD /games/teams response — left live_games yards untouched.");
     } else {
       warnings.push(teamsResult.message);
     }
@@ -169,9 +219,21 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  // Score/yards only get written when CFBD actually returned a value —
+  // unlike the tn_* prop stats below (which only ever come from this
+  // function), score/yards may already be correctly populated by game-sync
+  // or live-cfbd-sync, so a failed/missing CFBD lookup here must never wipe
+  // out already-good data.
+  const scoreAndYardsUpdate: Record<string, number> = {};
+  if (homePoints !== null) scoreAndYardsUpdate.home_score = homePoints;
+  if (awayPoints !== null) scoreAndYardsUpdate.away_score = awayPoints;
+  if (homeYards !== null) scoreAndYardsUpdate.home_total_yards = homeYards;
+  if (awayYards !== null) scoreAndYardsUpdate.away_total_yards = awayYards;
+
   const { error: updateErr } = await service
     .from("live_games")
     .update({
+      ...scoreAndYardsUpdate,
       tn_rushing_tds: tnRushingTds,
       tn_receiving_tds: tnReceivingTds,
       tn_turnovers_forced: tnTurnoversForced,
@@ -189,7 +251,11 @@ Deno.serve(async (req: Request) => {
 
   return json({
     ok: true,
-    stats: { tn_rushing_tds: tnRushingTds, tn_receiving_tds: tnReceivingTds, tn_turnovers_forced: tnTurnoversForced },
+    stats: {
+      home_score: homePoints, away_score: awayPoints,
+      home_total_yards: homeYards, away_total_yards: awayYards,
+      tn_rushing_tds: tnRushingTds, tn_receiving_tds: tnReceivingTds, tn_turnovers_forced: tnTurnoversForced,
+    },
     warnings,
   });
 });

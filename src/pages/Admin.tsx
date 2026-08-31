@@ -102,127 +102,6 @@ function ActionButton({
   );
 }
 
-// ─── Panel: Create Test Game ──────────────────────────────────────────────────
-
-function CreateGamePanel({ onCreated }: { onCreated: () => void }) {
-  const [homeTeam, setHomeTeam] = useState('Tennessee');
-  const [awayTeam, setAwayTeam] = useState('Alabama');
-  const [kickoff, setKickoff] = useState(() => {
-    const d = new Date();
-    d.setSeconds(0, 0);
-    d.setMinutes(d.getMinutes() + 30);
-    // Use local getters so the datetime-local input shows the user's actual clock time
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  });
-  const [status, setStatus] = useState<OpStatus>('idle');
-  const [msg, setMsg] = useState('');
-
-  async function create() {
-    setStatus('loading');
-    const { error } = await supabase.rpc('admin_create_test_game', {
-      p_home_team: homeTeam,
-      p_away_team: awayTeam,
-      p_kickoff_time: new Date(kickoff).toISOString(),
-    });
-    if (error) {
-      setStatus('error'); setMsg(error.message);
-    } else {
-      setStatus('ok'); setMsg(`Game created: ${homeTeam} vs ${awayTeam}`);
-      onCreated();
-    }
-  }
-
-  return (
-    <DashboardCard title="Create Test Game">
-      <div className="p-4 space-y-3">
-        <div className="grid grid-cols-2 gap-2">
-          <LabelInput label="Home Team" value={homeTeam} onChange={setHomeTeam} />
-          <LabelInput label="Away Team" value={awayTeam} onChange={setAwayTeam} />
-        </div>
-        <LabelInput label="Kickoff (local)" value={kickoff} onChange={setKickoff} type="datetime-local" />
-        <ActionButton onClick={create} disabled={status === 'loading'}>Create Game</ActionButton>
-        <OpResult status={status} message={msg} />
-      </div>
-    </DashboardCard>
-  );
-}
-
-// ─── Panel: Game Status ───────────────────────────────────────────────────────
-
-function GameStatusPanel({ games, onRefresh }: { games: LiveGame[]; onRefresh: () => void }) {
-  const [gameId, setGameId] = useState('');
-  const [newStatus, setNewStatus] = useState('pregame');
-  const [homeScore, setHomeScore] = useState('0');
-  const [awayScore, setAwayScore] = useState('0');
-  const [status, setStatus] = useState<OpStatus>('idle');
-  const [msg, setMsg] = useState('');
-
-  const gameOptions = [{ value: '', label: 'Select game…' }, ...games.map(g => ({
-    value: g.id,
-    label: `${g.away_team} @ ${g.home_team} [${g.status}]`,
-  }))];
-
-  useEffect(() => {
-    if (gameId) {
-      const g = games.find(x => x.id === gameId);
-      if (g) { setHomeScore(String(g.home_score)); setAwayScore(String(g.away_score)); setNewStatus(g.status); }
-    }
-  }, [gameId, games]);
-
-  async function update() {
-    if (!gameId) return;
-    setStatus('loading');
-    const { error } = await supabase.rpc('admin_update_game', {
-      p_game_id: gameId,
-      p_status: newStatus,
-      p_home_score: parseInt(homeScore) || 0,
-      p_away_score: parseInt(awayScore) || 0,
-    });
-    if (error) { setStatus('error'); setMsg(error.message); }
-    else { setStatus('ok'); setMsg('Game updated.'); onRefresh(); }
-  }
-
-  async function finalize() {
-    if (!gameId) return;
-    setStatus('loading');
-    const { data, error } = await supabase.functions.invoke('finalize-game', {
-      body: { game_id: gameId },
-    });
-    if (error) { setStatus('error'); setMsg(error.message); }
-    else {
-      setStatus('ok');
-      const warn = data?.warnings?.length ? ` (warnings: ${data.warnings.join('; ')})` : '';
-      setMsg(`Game finalized — pregame points calculated.${warn}`);
-      onRefresh();
-    }
-  }
-
-  return (
-    <DashboardCard title="Update Game Status">
-      <div className="p-4 space-y-3">
-        <SelectInput label="Game" value={gameId} onChange={setGameId} options={gameOptions} />
-        <SelectInput label="Status" value={newStatus} onChange={setNewStatus} options={[
-          { value: 'scheduled', label: 'scheduled' },
-          { value: 'pregame', label: 'pregame' },
-          { value: 'live', label: 'live' },
-          { value: 'final', label: 'final' },
-          { value: 'calculated', label: 'calculated' },
-        ]} />
-        <div className="grid grid-cols-2 gap-2">
-          <LabelInput label="Home Score" value={homeScore} onChange={setHomeScore} type="number" />
-          <LabelInput label="Away Score" value={awayScore} onChange={setAwayScore} type="number" />
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <ActionButton onClick={update} disabled={!gameId || status === 'loading'}>Update</ActionButton>
-          <ActionButton onClick={finalize} disabled={!gameId || status === 'loading'}>Finalize Game</ActionButton>
-        </div>
-        <OpResult status={status} message={msg} />
-      </div>
-    </DashboardCard>
-  );
-}
-
 // ─── Panel: Live Drive Control ─────────────────────────────────────────────────
 //
 // Replaces the old "Open Drive Window" + "Settle Drive Outcome" test-harness
@@ -701,6 +580,57 @@ function LiveDriveControlPanel({ games, onRefresh }: { games: LiveGame[]; onRefr
           )}
         </div>
       )}
+    </DashboardCard>
+  );
+}
+
+// ─── Panel: Finalized Game Stats ───────────────────────────────────────────────
+//
+// The one deliberate action that scores pregame predictions and credits real
+// points (see finalize_game() / CLAUDE.md) — never automatic. finalize-game
+// itself now pulls the final score and each team's total yards from CFBD
+// (on top of the TN rushing/receiving TDs and turnovers-forced it already
+// fetched), so this stays a single button: no manual score entry needed,
+// even for a manually-controlled game that live-cfbd-sync never touched.
+// Player-level prop-bet stats (not yet a built feature) will get their own
+// manual-entry UI once that scoring category exists — nothing to add here yet.
+
+function FinalizedGameStatsPanel({ games, onRefresh }: { games: LiveGame[]; onRefresh: () => void }) {
+  const [gameId, setGameId] = useState('');
+  const [status, setStatus] = useState<OpStatus>('idle');
+  const [msg, setMsg] = useState('');
+
+  const gameOptions = [
+    { value: '', label: 'Select game…' },
+    ...games.filter(g => g.status !== 'calculated').map(g => ({
+      value: g.id,
+      label: `${g.away_team} @ ${g.home_team} [${g.status}]`,
+    })),
+  ];
+
+  async function finalize() {
+    if (!gameId) return;
+    setStatus('loading');
+    const { data, error } = await supabase.functions.invoke('finalize-game', {
+      body: { game_id: gameId },
+    });
+    if (error) { setStatus('error'); setMsg(error.message); }
+    else {
+      setStatus('ok');
+      const warn = data?.warnings?.length ? ` (warnings: ${data.warnings.join('; ')})` : '';
+      setMsg(`Game finalized — final score/yards pulled from CFBD, pregame points calculated.${warn}`);
+      setGameId('');
+      onRefresh();
+    }
+  }
+
+  return (
+    <DashboardCard title="Finalized Game Stats" statusDotColor="#FF8200">
+      <div className="p-4 space-y-3">
+        <SelectInput label="Game" value={gameId} onChange={setGameId} options={gameOptions} />
+        <ActionButton onClick={finalize} disabled={!gameId || status === 'loading'}>Finalize Game</ActionButton>
+        <OpResult status={status} message={msg} />
+      </div>
     </DashboardCard>
   );
 }
@@ -1275,12 +1205,8 @@ export default function Admin() {
         <p className="text-xs text-vgd-muted mt-0.5">Dev test tools — admin only</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <CreateGamePanel onCreated={loadGames} />
-        <GameStatusPanel games={games} onRefresh={loadGames} />
-      </div>
-
       <LiveDriveControlPanel games={games} onRefresh={loadGames} />
+      <FinalizedGameStatsPanel games={games} onRefresh={loadGames} />
 
       <ScrapedContentReview />
     </div>
