@@ -271,6 +271,26 @@ function LiveDriveControlPanel({ games, onRefresh }: { games: LiveGame[]; onRefr
     else { setManualStatus('idle'); onRefresh(); }
   }
 
+  // Advances pregame -> live -> final. A manually-controlled game's status
+  // never gets touched by live-cfbd-sync (it skips manual_control games
+  // entirely), and game-sync's automatic pregame->live flip only runs
+  // inside its three weekly windows — so without this, a manually-driven
+  // game can sit stuck on "pregame" past kickoff with nothing showing on
+  // the live site. 'calculated' is deliberately not selectable here — that
+  // transition only ever happens through Finalize Game.
+  async function setGameStatus(newStatus: string) {
+    if (!selectedGame) return;
+    setManualStatus('loading');
+    const { error } = await supabase.rpc('admin_update_game', {
+      p_game_id: selectedGame.id,
+      p_status: newStatus,
+      p_home_score: selectedGame.home_score,
+      p_away_score: selectedGame.away_score,
+    });
+    if (error) { setManualStatus('error'); setOpMsg(error.message); }
+    else { setManualStatus('idle'); onRefresh(); }
+  }
+
   async function activate() {
     if (!gameId || !manualControlOn || windowStatus !== 'pending') return;
     setOpStatus('loading');
@@ -364,6 +384,32 @@ function LiveDriveControlPanel({ games, onRefresh }: { games: LiveGame[]; onRefr
     <DashboardCard title="Live Drive Control" statusDotColor="#FF8200">
       <div className="p-4 space-y-4">
         <SelectInput label="Game" value={gameId} onChange={setGameId} options={gameOptions} />
+
+        {selectedGame && selectedGame.status !== 'calculated' && (
+          <div className="flex items-center justify-between gap-3 px-3 py-2 rounded border border-white/10 bg-vgd-bg">
+            <span className="text-[11px] text-white/50">
+              Status: <span className="font-bold text-white/80 uppercase">{selectedGame.status}</span>
+            </span>
+            {selectedGame.status === 'pregame' && (
+              <button
+                onClick={() => setGameStatus('live')}
+                disabled={manualStatus === 'loading'}
+                className="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-vgd-orange hover:bg-orange-500 text-white transition-colors disabled:opacity-40"
+              >
+                Set Live
+              </button>
+            )}
+            {selectedGame.status === 'live' && (
+              <button
+                onClick={() => setGameStatus('final')}
+                disabled={manualStatus === 'loading'}
+                className="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-white/15 text-white/70 hover:border-white/30 transition-colors disabled:opacity-40"
+              >
+                Set Final
+              </button>
+            )}
+          </div>
+        )}
 
         {selectedGame && !manualControlOn && (
           <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded border border-vgd-red/30 bg-vgd-red/5">
