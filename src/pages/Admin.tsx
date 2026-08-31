@@ -385,29 +385,53 @@ function LiveDriveControlPanel({ games, onRefresh }: { games: LiveGame[]; onRefr
       <div className="p-4 space-y-4">
         <SelectInput label="Game" value={gameId} onChange={setGameId} options={gameOptions} />
 
-        {selectedGame && selectedGame.status !== 'calculated' && (
+        {selectedGame && (selectedGame.status === 'pregame' || selectedGame.status === 'live') && (
+          <div className="flex items-center justify-between gap-3 px-3 py-2 rounded border border-white/10 bg-vgd-bg">
+            <span className="text-[11px] text-white/50">
+              Status controls what shows on the main page.
+            </span>
+            <div className="flex items-center gap-2">
+              <div className="flex rounded overflow-hidden border border-white/10">
+                <button
+                  onClick={() => setGameStatus('pregame')}
+                  disabled={manualStatus === 'loading' || selectedGame.status === 'pregame'}
+                  className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors disabled:cursor-default ${
+                    selectedGame.status === 'pregame'
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/50 hover:text-white/80 disabled:opacity-40'
+                  }`}
+                >
+                  Pregame
+                </button>
+                <button
+                  onClick={() => setGameStatus('live')}
+                  disabled={manualStatus === 'loading' || selectedGame.status === 'live'}
+                  className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors disabled:cursor-default ${
+                    selectedGame.status === 'live'
+                      ? 'bg-vgd-orange text-white'
+                      : 'text-white/50 hover:text-white/80 disabled:opacity-40'
+                  }`}
+                >
+                  Live Game
+                </button>
+              </div>
+              {selectedGame.status === 'live' && (
+                <button
+                  onClick={() => setGameStatus('final')}
+                  disabled={manualStatus === 'loading'}
+                  className="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-white/15 text-white/70 hover:border-white/30 transition-colors disabled:opacity-40"
+                >
+                  Set Final
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        {selectedGame && (selectedGame.status === 'final' || selectedGame.status === 'calculated') && (
           <div className="flex items-center justify-between gap-3 px-3 py-2 rounded border border-white/10 bg-vgd-bg">
             <span className="text-[11px] text-white/50">
               Status: <span className="font-bold text-white/80 uppercase">{selectedGame.status}</span>
             </span>
-            {selectedGame.status === 'pregame' && (
-              <button
-                onClick={() => setGameStatus('live')}
-                disabled={manualStatus === 'loading'}
-                className="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-vgd-orange hover:bg-orange-500 text-white transition-colors disabled:opacity-40"
-              >
-                Set Live
-              </button>
-            )}
-            {selectedGame.status === 'live' && (
-              <button
-                onClick={() => setGameStatus('final')}
-                disabled={manualStatus === 'loading'}
-                className="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-white/15 text-white/70 hover:border-white/30 transition-colors disabled:opacity-40"
-              >
-                Set Final
-              </button>
-            )}
           </div>
         )}
 
