@@ -12,6 +12,7 @@ export interface LiveGame {
   away_team: string;
   kickoff_time: string;
   status: string;
+  updated_at?: string;
   home_score: number;
   away_score: number;
   home_total_yards: number | null;

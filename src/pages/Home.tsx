@@ -31,11 +31,24 @@ function daysAgoInET(dateStr: string): number {
  * finished today or yesterday (ET), so a Saturday final score — and its
  * pregame-prediction summary — keeps showing through all of Sunday.
  */
+// How long a just-finished game keeps priority over an upcoming one — long
+// enough to comfortably see the final leaderboard without it getting
+// bumped the instant the game resolves (the original bug report), short
+// enough that the next game's pregame predictor still takes over same-day.
+const JUST_FINISHED_GRACE_MS = 3 * 60 * 60 * 1000;
+
 function pickActiveGame(games: LiveGame[]): LiveGame | null {
   const live = games.find((g) => g.status === 'live');
   if (live) return live;
 
   const now = Date.now();
+
+  const justFinished = games
+    .filter((g) => ['final', 'calculated'].includes(g.status) && g.updated_at)
+    .filter((g) => now - new Date(g.updated_at!).getTime() <= JUST_FINISHED_GRACE_MS)
+    .sort((a, b) => new Date(b.updated_at!).getTime() - new Date(a.updated_at!).getTime())[0];
+  if (justFinished) return justFinished;
+
   const upcoming = games
     .filter((g) => g.status === 'pregame' && new Date(g.kickoff_time).getTime() >= now)
     .sort((a, b) => new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime())[0];
@@ -59,7 +72,7 @@ export default function Home() {
       .select(
         'id, cfbd_game_id, home_team, away_team, kickoff_time, status, home_score, away_score, ' +
         'home_total_yards, away_total_yards, current_quarter, game_clock, possession, ' +
-        'down, distance, yardline'
+        'down, distance, yardline, updated_at'
       )
       .in('status', ['pregame', 'live', 'final', 'calculated'])
       .order('kickoff_time', { ascending: true })
@@ -109,19 +122,12 @@ export default function Home() {
     };
   }, [liveGame?.kickoff_time, pastKickoff]);
 
-  // One-off live-game test harness (2026-08-29): actively pulls real CFBD
-  // live data into live_games/drive_windows while this page is open, in
-  // place of manual admin entry. See supabase/functions/live-cfbd-sync.
-  useEffect(() => {
-    if (!liveGame) return;
-    if (liveGame.status !== 'pregame' && liveGame.status !== 'live') return;
-    const poll = () => {
-      supabase.functions.invoke('live-cfbd-sync', { body: { game_id: liveGame.id } });
-    };
-    poll();
-    const id = setInterval(poll, 15000);
-    return () => clearInterval(id);
-  }, [liveGame?.id, liveGame?.status]);
+  // Live CFBD data (live_games/drive_windows) is kept in sync by a single
+  // server-side pg_cron job (invoke_live_cfbd_sync, every 15s) rather than
+  // client-side polling here — client-side polling meant CFBD call volume
+  // scaled with concurrent viewers instead of staying constant. The
+  // Realtime subscriptions elsewhere on this page still pick up the
+  // resulting changes live. See supabase/functions/live-cfbd-sync.
 
   const isGameday = layoutReady && liveGame !== null;
 

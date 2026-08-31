@@ -1,12 +1,14 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// ─── ONE-OFF LIVE TEST HARNESS (2026-08-29) ────────────────────────────────
-// Wired up for a single non-Tennessee test game (TCU vs North Carolina,
-// CFBD game 401856766) to dry-run the live drive predictor end-to-end
-// against CFBD's real live/plays feed (requires Patreon Tier 2+). Polled
-// client-side while a game's status is 'live'/'pregame' rather than via
-// pg_cron, since this only needs to run for the lifetime of one game today.
+// ─── LIVE CFBD SYNC ─────────────────────────────────────────────────────────
+// Pulls CFBD's real live/plays feed for in-progress games and drives the
+// live drive predictor from it (requires Patreon Tier 2+). Originally built
+// as a one-off harness for a single test game on 2026-08-29, polled
+// client-side; now runs on a single server-side pg_cron schedule
+// (invoke_live_cfbd_sync, every 15s) so CFBD call volume doesn't scale with
+// concurrent viewers. Pass a game_id to sync just that game (used for
+// manual/debug calls); omit it to sync every currently-eligible game.
 // Reuses the existing open_drive_window/settle_drive_outcome RPCs so the
 // odds math and scoring pipeline are untouched — this only replaces the
 // manual admin data entry with real CFBD data.
@@ -144,32 +146,19 @@ function computeTeamStats(live: LiveGame, teamName: string): TeamStats {
   return { rushingYards, passingYards, turnovers, timeoutsUsedThisHalf };
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 200, headers: corsHeaders });
-  }
+type SupabaseClient = ReturnType<typeof getSupabaseClient>;
 
-  const apiKey = Deno.env.get("CFBC_API_KEY");
-  if (!apiKey) return json({ error: "CFBD API key not configured" }, 500);
+interface GameRow {
+  id: string;
+  cfbd_game_id: number;
+  home_team: string;
+  away_team: string;
+  status: string;
+}
 
-  let body: { game_id?: string } = {};
-  try {
-    body = await req.json();
-  } catch { /* empty body */ }
-
-  if (!body.game_id) return json({ error: "Missing game_id" }, 400);
-
-  const supabase = getSupabaseClient();
-
-  const { data: game, error: gameErr } = await supabase
-    .from("live_games")
-    .select("id, cfbd_game_id, home_team, away_team, status")
-    .eq("id", body.game_id)
-    .maybeSingle();
-
-  if (gameErr || !game) return json({ error: "Game not found" }, 404);
+async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow) {
   if (game.status === "final" || game.status === "calculated") {
-    return json({ ok: true, skipped: `status is ${game.status}` });
+    return { game_id: game.id, ok: true, skipped: `status is ${game.status}` };
   }
 
   const res = await fetch(
@@ -186,11 +175,11 @@ Deno.serve(async (req: Request) => {
 
   if (res.status === 400) {
     // Game hasn't started yet — no plays available.
-    return json({ ok: true, skipped: "not started yet" });
+    return { game_id: game.id, ok: true, skipped: "not started yet" };
   }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    return json({ ok: false, error: `CFBD live/plays HTTP ${res.status}: ${text}` }, 502);
+    return { game_id: game.id, ok: false, error: `CFBD live/plays HTTP ${res.status}: ${text}` };
   }
 
   const live = (await res.json()) as LiveGame;
@@ -314,7 +303,8 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  return json({
+  return {
+    game_id: game.id,
     ok: true,
     status: newStatus,
     homeScore,
@@ -323,5 +313,55 @@ Deno.serve(async (req: Request) => {
     opened,
     settled,
     settleErrors,
-  });
+  };
+}
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 200, headers: corsHeaders });
+  }
+
+  const apiKey = Deno.env.get("CFBC_API_KEY");
+  if (!apiKey) return json({ error: "CFBD API key not configured" }, 500);
+
+  let body: { game_id?: string } = {};
+  try {
+    body = await req.json();
+  } catch { /* empty body */ }
+
+  const supabase = getSupabaseClient();
+
+  if (body.game_id) {
+    // Single-game mode — used for manual/debug calls.
+    const { data: game, error: gameErr } = await supabase
+      .from("live_games")
+      .select("id, cfbd_game_id, home_team, away_team, status")
+      .eq("id", body.game_id)
+      .maybeSingle();
+
+    if (gameErr || !game) return json({ error: "Game not found" }, 404);
+
+    const result = await syncGame(supabase, apiKey, game as GameRow);
+    return json(result, result.ok ? 200 : 502);
+  }
+
+  // No game_id — sync every currently-eligible game. Only 'live' games
+  // and 'pregame' games within an hour of kickoff are polled, so a game
+  // scheduled weeks out doesn't get hit every 15s once it gets a
+  // live_games row (the actual driver of CFBD call volume this guards
+  // against — see cfbd_request_log).
+  const soon = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  const { data: games, error: gamesErr } = await supabase
+    .from("live_games")
+    .select("id, cfbd_game_id, home_team, away_team, status, kickoff_time")
+    .or(`status.eq.live,and(status.eq.pregame,kickoff_time.lte.${soon})`);
+
+  if (gamesErr) return json({ error: gamesErr.message }, 500);
+
+  const results = [];
+  for (const game of (games ?? []) as GameRow[]) {
+    results.push(await syncGame(supabase, apiKey, game));
+  }
+
+  return json({ ok: true, gamesSynced: results.length, results });
 });

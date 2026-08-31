@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Eye, Flame } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { DashboardCard } from '../ui/DashboardCard';
+import { UsernameHoverCard } from '../ui/UsernameHoverCard';
 
 interface ForumThread {
   id: string;
+  user_id: string | null;
   username: string | null;
   title: string;
   category: string;
@@ -67,9 +69,21 @@ function ThreadRow({ thread }: { thread: ForumThread }) {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-vgd-orange/70 font-medium truncate max-w-[80px]">
-            {thread.username ?? 'Unknown'}
-          </span>
+          {thread.user_id ? (
+            // Row navigates to the thread on click — stop propagation so
+            // clicking the username goes to their profile instead.
+            <span onClick={(e) => e.stopPropagation()}>
+              <UsernameHoverCard userId={thread.user_id} username={thread.username ?? 'Unknown'}>
+                <span className="text-[10px] text-vgd-orange/70 font-medium truncate max-w-[80px] cursor-pointer">
+                  {thread.username ?? 'Unknown'}
+                </span>
+              </UsernameHoverCard>
+            </span>
+          ) : (
+            <span className="text-[10px] text-vgd-orange/70 font-medium truncate max-w-[80px]">
+              {thread.username ?? 'Unknown'}
+            </span>
+          )}
           <span className="text-[10px] text-vgd-muted">
             {timeAgo(thread.created_at)}
           </span>
@@ -121,7 +135,7 @@ export function ForumThreadsPanel({ mode, category, recruitingCategory }: ForumT
 
     const query = supabase
       .from('forum_threads')
-      .select('id, username, title, category, reply_count, view_count, created_at, last_active_at')
+      .select('id, user_id, username, title, category, reply_count, view_count, created_at, last_active_at')
       .limit(10);
 
     if (mode === 'recruiting') {

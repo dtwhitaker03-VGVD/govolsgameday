@@ -54,7 +54,7 @@ const OUTCOME_BUTTONS: { outcome: DriveOutcome; label: string; ptKey: keyof Driv
   { outcome: 'turnover',          label: 'Turnover',          ptKey: 'pts_turnover' },
   { outcome: 'safety',            label: 'Safety',            ptKey: 'pts_safety' },
   { outcome: 'turnover_on_downs', label: 'Turnover on Downs', ptKey: 'pts_turnover_on_downs' },
-  { outcome: 'end_of_quarter',    label: 'End of Quarter',    ptKey: 'pts_end_of_quarter' },
+  { outcome: 'end_of_quarter',    label: 'End of Half/Game',  ptKey: 'pts_end_of_quarter' },
 ];
 
 const MULTIPLIER_LABELS: Record<number, string> = {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Crown, Trophy, Flame } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { DashboardCard } from '../ui/DashboardCard';
+import { UsernameHoverCard } from '../ui/UsernameHoverCard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,8 +42,9 @@ function rowBg(rank: number) {
   return 'border border-white/[0.04]';
 }
 
-function LeaderRow({ rank, username, points, hotStreak }: {
+function LeaderRow({ rank, userId, username, points, hotStreak }: {
   rank: number;
+  userId: string;
   username: string;
   points: number;
   hotStreak: boolean;
@@ -59,7 +61,9 @@ function LeaderRow({ rank, username, points, hotStreak }: {
       </div>
       {/* Username */}
       <div className="flex items-center gap-1 min-w-0">
-        <span className="text-xs font-semibold text-white/90 truncate">{username}</span>
+        <UsernameHoverCard userId={userId} username={username}>
+          <span className="text-xs font-semibold text-white/90 truncate cursor-pointer">{username}</span>
+        </UsernameHoverCard>
         {hotStreak && (
           <Flame className="w-3 h-3 text-vgd-orange flex-shrink-0 drop-shadow-[0_0_4px_rgba(255,100,0,0.6)]" />
         )}
@@ -158,6 +162,7 @@ export function LastGameLeaders() {
             <LeaderRow
               key={r.user_id}
               rank={r.rank ?? i + 1}
+              userId={r.user_id}
               username={r.username}
               points={r.total_game_points}
               hotStreak={r.hot_streak_active}
@@ -215,6 +220,7 @@ export function SeasonLeadersFootball() {
             <LeaderRow
               key={r.user_id}
               rank={i + 1}
+              userId={r.user_id}
               username={r.username}
               points={r.points}
               hotStreak={r.hot_streak_active}
@@ -270,6 +276,7 @@ export function AllSportLeaders() {
             <LeaderRow
               key={r.user_id}
               rank={i + 1}
+              userId={r.user_id}
               username={r.username}
               points={r.points}
               hotStreak={r.hot_streak_active}

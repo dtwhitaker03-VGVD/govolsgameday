@@ -3,6 +3,7 @@ import { Crown, TrendingUp, TrendingDown, Minus, Flame } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardCard } from '../ui/DashboardCard';
+import { UsernameHoverCard } from '../ui/UsernameHoverCard';
 import type { LiveGame } from '../game/LiveGameStatsPanel';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -12,6 +13,8 @@ interface LeaderboardRow {
   username: string;
   rank_position: number;
   total_points: number;
+  pregame_points: number;
+  drive_points: number;
   drive_correct: number;
   drive_total: number;
   hot_streak_active: boolean;
@@ -104,11 +107,13 @@ function LeaderRow({
   prevRank,
   isMe,
   isPinned,
+  showBreakdown,
 }: {
   row: LeaderboardRow;
   prevRank: number | undefined;
   isMe: boolean;
   isPinned: boolean;
+  showBreakdown: boolean;
 }) {
   const { rowClass, rankClass, icon } = tierStyle(row.rank_position);
   const delta = prevRank !== undefined ? prevRank - row.rank_position : 0;
@@ -137,9 +142,11 @@ function LeaderRow({
 
       {/* Username */}
       <div className="flex items-center gap-1 min-w-0">
-        <span className={`text-xs font-semibold truncate ${isMe ? 'text-vgd-orange' : 'text-white/90'}`}>
-          {row.username}
-        </span>
+        <UsernameHoverCard userId={row.user_id} username={row.username}>
+          <span className={`text-xs font-semibold truncate cursor-pointer ${isMe ? 'text-vgd-orange' : 'text-white/90'}`}>
+            {row.username}
+          </span>
+        </UsernameHoverCard>
         {row.hot_streak_active && (
           <Flame className="w-3 h-3 text-vgd-orange flex-shrink-0 drop-shadow-[0_0_4px_rgba(255,100,0,0.7)]" />
         )}
@@ -149,9 +156,16 @@ function LeaderRow({
       </div>
 
       {/* Points */}
-      <span className={`text-xs font-black tabular-nums ${isMe || isPinned ? 'text-vgd-orange' : 'text-white/80'}`}>
-        <AnimatedPoints pts={row.total_points} />
-      </span>
+      <div className="flex flex-col items-end">
+        <span className={`text-xs font-black tabular-nums ${isMe || isPinned ? 'text-vgd-orange' : 'text-white/80'}`}>
+          <AnimatedPoints pts={row.total_points} />
+        </span>
+        {showBreakdown && (
+          <span className="text-[8px] text-white/30 tabular-nums whitespace-nowrap">
+            PG {row.pregame_points} · LG {row.drive_points}
+          </span>
+        )}
+      </div>
 
       {/* Accuracy */}
       <span className="text-[9px] text-white/30 text-right tabular-nums">
@@ -202,7 +216,7 @@ export function GameLeaderboard({ game }: Props) {
     // so reading the aggregate counts from there works for everyone.
     const { data } = await supabase
       .from('game_leaderboard')
-      .select('user_id, rank, total_game_points, drive_correct, drive_total')
+      .select('user_id, rank, total_game_points, pregame_points, total_drive_points, drive_correct, drive_total')
       .eq('game_id', game.id)
       .order('rank', { ascending: true })
       .limit(10);
@@ -223,12 +237,16 @@ export function GameLeaderboard({ game }: Props) {
       user_id: string;
       rank: number;
       total_game_points: number;
+      pregame_points: number;
+      total_drive_points: number;
       drive_correct: number;
       drive_total: number;
     }[]).map(r => ({
       user_id: r.user_id,
       rank_position: r.rank,
       total_points: r.total_game_points,
+      pregame_points: r.pregame_points,
+      drive_points: r.total_drive_points,
       drive_correct: r.drive_correct,
       drive_total: r.drive_total,
       username: profileMap.get(r.user_id)?.username ?? 'Unknown',
@@ -247,18 +265,28 @@ export function GameLeaderboard({ game }: Props) {
       // Fetch user's own row
       const { data: myData } = await supabase
         .from('game_leaderboard')
-        .select('user_id, rank, total_game_points, drive_correct, drive_total')
+        .select('user_id, rank, total_game_points, pregame_points, total_drive_points, drive_correct, drive_total')
         .eq('game_id', game.id)
         .eq('user_id', session.user.id)
         .maybeSingle();
 
       if (myData) {
-        const m = myData as { user_id: string; rank: number; total_game_points: number; drive_correct: number; drive_total: number };
+        const m = myData as {
+          user_id: string;
+          rank: number;
+          total_game_points: number;
+          pregame_points: number;
+          total_drive_points: number;
+          drive_correct: number;
+          drive_total: number;
+        };
         const p = profileMap.get(session.user.id) ?? { username: profile?.username ?? 'You', hot_streak_active: false };
         setMyRow({
           user_id: m.user_id,
           rank_position: m.rank,
           total_points: m.total_game_points,
+          pregame_points: m.pregame_points,
+          drive_points: m.total_drive_points,
           drive_correct: m.drive_correct,
           drive_total: m.drive_total,
           username: p.username,
@@ -300,6 +328,10 @@ export function GameLeaderboard({ game }: Props) {
   const myUserId = session?.user.id;
   const topUserIds = new Set(rows.map(r => r.user_id));
   const myRowIsInTop = myUserId ? topUserIds.has(myUserId) : false;
+  // PG/LG breakdown is only meaningful once pregame picks have actually
+  // been scored (finalize_game), which only happens once the game is
+  // 'calculated' — showing "PG 0" throughout a live game isn't useful.
+  const showBreakdown = game.status === 'calculated';
 
   return (
     <DashboardCard
@@ -341,6 +373,7 @@ export function GameLeaderboard({ game }: Props) {
                 prevRank={prevRanksRef.current.get(row.user_id)}
                 isMe={row.user_id === myUserId}
                 isPinned={false}
+                showBreakdown={showBreakdown}
               />
             ))}
 
@@ -357,6 +390,7 @@ export function GameLeaderboard({ game }: Props) {
                   prevRank={prevRanksRef.current.get(myRow.user_id)}
                   isMe={true}
                   isPinned={true}
+                  showBreakdown={showBreakdown}
                 />
               </>
             )}

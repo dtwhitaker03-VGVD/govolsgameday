@@ -1,18 +1,20 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Flame, MapPin, Calendar, UserPlus, UserCheck, UserX, Settings, MessageSquare,
-  MessagesSquare, EyeOff, Eye as EyeIcon, Award,
+  MessagesSquare, EyeOff, Eye as EyeIcon, Award, Camera, Pencil, Loader2, Check, X,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { DashboardCard } from '../components/ui/DashboardCard';
 import { Avatar } from '../components/ui/Avatar';
 import { TrophyRoom } from '../components/profile/TrophyRoom';
-import { EditProfileCard } from '../components/profile/EditProfileCard';
 import { useBadgeCatalog, badgeLabel } from '../lib/badgeCatalog';
 import { getBadgeIcon } from '../lib/badgeIcons';
 import { ComingSoon } from '../components/ui/ComingSoon';
+
+const USERNAME_REGEX = /^[a-zA-Z0-9]+$/;
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -128,7 +130,8 @@ function PrivacyToggle({
 
 export default function UserProfile() {
   const { username } = useParams<{ username: string }>();
-  const { session, profile: myProfile } = useAuth();
+  const navigate = useNavigate();
+  const { session, profile: myProfile, updateUsername, refreshProfile } = useAuth();
   const { badges: badgeCatalog } = useBadgeCatalog();
 
   const [data, setData] = useState<ProfilePageData | null | undefined>(undefined); // undefined = loading
@@ -136,6 +139,16 @@ export default function UserProfile() {
   const [activity, setActivity] = useState<ActivityRow[]>([]);
   const [followBusy, setFollowBusy] = useState(false);
   const [ignoreBusy, setIgnoreBusy] = useState(false);
+
+  // Avatar/username editing — moved into the header itself (was previously
+  // a separate EditProfileCard further down the page).
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingUsername, setEditingUsername] = useState(false);
+  const [usernameInput, setUsernameInput] = useState('');
+  const [usernameSaving, setUsernameSaving] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
 
   const load = useCallback(async () => {
     if (!username) return;
@@ -199,6 +212,82 @@ export default function UserProfile() {
     load();
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !session) return;
+
+    setAvatarError('');
+    if (!file.type.startsWith('image/')) {
+      setAvatarError('Please choose an image file.');
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      setAvatarError('Image must be under 5MB.');
+      return;
+    }
+
+    setAvatarUploading(true);
+    const ext = file.name.split('.').pop();
+    const path = `${session.user.id}/${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+    if (uploadError) {
+      setAvatarError('Upload failed. Please try again.');
+      setAvatarUploading(false);
+      return;
+    }
+
+    const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ avatar_url: pub.publicUrl })
+      .eq('id', session.user.id);
+
+    setAvatarUploading(false);
+
+    if (updateError) {
+      setAvatarError('Could not save your new photo. Please try again.');
+      return;
+    }
+
+    await refreshProfile();
+    load();
+  };
+
+  const startEditingUsername = () => {
+    setUsernameInput(data?.username ?? '');
+    setUsernameError('');
+    setEditingUsername(true);
+  };
+
+  const handleUsernameSave = async () => {
+    setUsernameError('');
+    if (!USERNAME_REGEX.test(usernameInput)) {
+      setUsernameError('Letters and numbers only.');
+      return;
+    }
+    if (usernameInput.length > 50) {
+      setUsernameError('Maximum 50 characters.');
+      return;
+    }
+
+    setUsernameSaving(true);
+    const { error } = await updateUsername(usernameInput);
+    setUsernameSaving(false);
+
+    if (error) {
+      setUsernameError(error);
+      return;
+    }
+
+    setEditingUsername(false);
+    // The page is routed by username (/profile/:username) — navigate to the
+    // new one so `load()` re-fetches under the right param instead of
+    // looking up a username that no longer exists.
+    navigate(`/profile/${usernameInput}`, { replace: true });
+  };
+
   if (data === undefined) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -226,10 +315,72 @@ export default function UserProfile() {
         />
         <div className="px-5 pb-5">
           <div className="flex items-end gap-4 -mt-12">
-            <Avatar url={data.avatar_url} username={data.username} size="xl" className="border-4 border-vgd-card" />
+            <div className="relative flex-shrink-0">
+              <Avatar url={data.avatar_url} username={data.username} size="xl" className="border-4 border-vgd-card" />
+              {isSelf && (
+                <>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={avatarUploading}
+                    className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-vgd-orange hover:bg-orange-500 flex items-center justify-center text-white transition-colors disabled:opacity-60 border-2 border-vgd-card"
+                    aria-label="Change profile photo"
+                  >
+                    {avatarUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
+                </>
+              )}
+            </div>
             <div className="flex-1 min-w-0 pb-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-black text-white">{data.username}</h1>
+                {editingUsername ? (
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      autoFocus
+                      type="text"
+                      maxLength={50}
+                      value={usernameInput}
+                      onChange={(e) => { setUsernameInput(e.target.value); setUsernameError(''); }}
+                      disabled={usernameSaving}
+                      className="bg-vgd-bg border border-white/10 text-white text-lg font-black rounded-lg px-2 py-1 w-40 focus:outline-none focus:ring-1 focus:border-vgd-orange/60 focus:ring-vgd-orange/30 disabled:opacity-50"
+                    />
+                    <button
+                      onClick={handleUsernameSave}
+                      disabled={usernameSaving || usernameInput.length === 0}
+                      className="w-7 h-7 rounded-full bg-vgd-orange hover:bg-orange-500 flex items-center justify-center text-white transition-colors disabled:opacity-40"
+                      aria-label="Save username"
+                    >
+                      {usernameSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                    </button>
+                    <button
+                      onClick={() => { setEditingUsername(false); setUsernameError(''); }}
+                      disabled={usernameSaving}
+                      className="w-7 h-7 rounded-full bg-white/[0.08] hover:bg-white/[0.15] flex items-center justify-center text-white/70 transition-colors disabled:opacity-40"
+                      aria-label="Cancel"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <h1 className="text-xl font-black text-white flex items-center gap-1.5">
+                    {data.username}
+                    {isSelf && (
+                      <button
+                        onClick={startEditingUsername}
+                        className="text-white/30 hover:text-vgd-orange transition-colors"
+                        aria-label="Edit username"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </h1>
+                )}
                 {data.hot_streak_active && (
                   <span className="flex items-center gap-0.5 text-orange-400">
                     <Flame className="w-5 h-5 animate-pulse" />
@@ -240,6 +391,8 @@ export default function UserProfile() {
                 {data.is_premium && <span className="text-[9px] font-bold uppercase bg-vgd-orange/20 text-vgd-orange px-1.5 py-0.5 rounded">Pro</span>}
               </div>
               {data.tagline && <p className="text-sm text-white/70 mt-0.5">{data.tagline}</p>}
+              {usernameError && <p className="text-[11px] text-vgd-red mt-1">{usernameError}</p>}
+              {avatarError && <p className="text-[11px] text-vgd-red mt-1">{avatarError}</p>}
             </div>
             <div className="pb-1 flex-shrink-0 flex items-center gap-2">
               {isSelf ? (
@@ -431,9 +584,6 @@ export default function UserProfile() {
           )}
         </div>
       </DashboardCard>
-
-      {/* Edit profile — own profile only */}
-      {isSelf && <EditProfileCard onSaved={load} />}
 
       {/* Privacy settings — own profile only */}
       {isSelf && (

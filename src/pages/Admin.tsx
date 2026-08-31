@@ -368,7 +368,7 @@ function SettleDrivePanel({ games }: { games: LiveGame[] }) {
           { value: 'turnover', label: 'Turnover' },
           { value: 'safety', label: 'Safety' },
           { value: 'turnover_on_downs', label: 'Turnover on Downs' },
-          { value: 'end_of_quarter', label: 'End of Quarter' },
+          { value: 'end_of_quarter', label: 'End of Half/Game' },
         ]} />
         <ActionButton onClick={settle} disabled={!windowId || status === 'loading'}>Settle Drive</ActionButton>
         <OpResult status={status} message={msg} />
