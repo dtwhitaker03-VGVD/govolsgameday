@@ -72,7 +72,8 @@ export default function Home() {
       .select(
         'id, cfbd_game_id, home_team, away_team, kickoff_time, status, home_score, away_score, ' +
         'home_total_yards, away_total_yards, current_quarter, game_clock, possession, ' +
-        'down, distance, yardline, updated_at'
+        'down, distance, yardline, updated_at, spread_line_tn, total_points_line, ' +
+        'lines_provider, lines_captured_at, tn_rushing_tds, tn_receiving_tds, tn_turnovers_forced'
       )
       .in('status', ['pregame', 'live', 'final', 'calculated'])
       .order('kickoff_time', { ascending: true })
