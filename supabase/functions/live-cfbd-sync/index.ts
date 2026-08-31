@@ -154,11 +154,18 @@ interface GameRow {
   home_team: string;
   away_team: string;
   status: string;
+  manual_control: boolean;
 }
 
 async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow) {
   if (game.status === "final" || game.status === "calculated") {
     return { game_id: game.id, ok: true, skipped: `status is ${game.status}` };
+  }
+  if (game.manual_control) {
+    // An admin is manually driving this game's drive windows from the Admin
+    // Dashboard — back off entirely so this poller never races open_drive_window
+    // / settle_drive_outcome against a manual call for the same drive.
+    return { game_id: game.id, ok: true, skipped: "manual control active" };
   }
 
   const res = await fetch(
@@ -335,7 +342,7 @@ Deno.serve(async (req: Request) => {
     // Single-game mode — used for manual/debug calls.
     const { data: game, error: gameErr } = await supabase
       .from("live_games")
-      .select("id, cfbd_game_id, home_team, away_team, status")
+      .select("id, cfbd_game_id, home_team, away_team, status, manual_control")
       .eq("id", body.game_id)
       .maybeSingle();
 
@@ -353,7 +360,7 @@ Deno.serve(async (req: Request) => {
   const soon = new Date(Date.now() + 60 * 60 * 1000).toISOString();
   const { data: games, error: gamesErr } = await supabase
     .from("live_games")
-    .select("id, cfbd_game_id, home_team, away_team, status, kickoff_time")
+    .select("id, cfbd_game_id, home_team, away_team, status, kickoff_time, manual_control")
     .or(`status.eq.live,and(status.eq.pregame,kickoff_time.lte.${soon})`);
 
   if (gamesErr) return json({ error: gamesErr.message }, 500);

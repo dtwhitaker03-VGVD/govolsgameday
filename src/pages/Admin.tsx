@@ -17,6 +17,7 @@ interface LiveGame {
   status: string;
   home_score: number;
   away_score: number;
+  manual_control: boolean;
 }
 
 interface DriveWindow {
@@ -205,6 +206,23 @@ function GameStatusPanel({ games, onRefresh }: { games: LiveGame[]; onRefresh: (
     }
   }
 
+  const selectedGame = games.find(g => g.id === gameId);
+
+  async function toggleManualControl() {
+    if (!selectedGame) return;
+    setStatus('loading');
+    const { error } = await supabase.rpc('admin_set_manual_control', {
+      p_game_id: selectedGame.id,
+      p_manual_control: !selectedGame.manual_control,
+    });
+    if (error) { setStatus('error'); setMsg(error.message); }
+    else {
+      setStatus('ok');
+      setMsg(selectedGame.manual_control ? 'Manual control turned off — auto sync resumed.' : 'Manual control turned on — auto sync is now skipping this game.');
+      onRefresh();
+    }
+  }
+
   return (
     <DashboardCard title="Update Game Status">
       <div className="p-4 space-y-3">
@@ -225,6 +243,27 @@ function GameStatusPanel({ games, onRefresh }: { games: LiveGame[]; onRefresh: (
           <ActionButton onClick={finalize} disabled={!gameId || status === 'loading'}>Finalize Game</ActionButton>
         </div>
         <OpResult status={status} message={msg} />
+
+        {selectedGame && (
+          <div className="pt-3 mt-1 border-t border-white/10">
+            <button
+              onClick={toggleManualControl}
+              disabled={status === 'loading'}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded border text-xs font-semibold transition-colors disabled:opacity-40 ${
+                selectedGame.manual_control
+                  ? 'bg-vgd-orange/10 border-vgd-orange/40 text-vgd-orange'
+                  : 'bg-vgd-bg border-white/10 text-white/60 hover:border-white/20'
+              }`}
+            >
+              <span>Manual Control</span>
+              <span className="uppercase tracking-wider">{selectedGame.manual_control ? 'On' : 'Off'}</span>
+            </button>
+            <p className="text-[10px] text-white/30 mt-1">
+              When on, the automatic CFBD sync (every 15s) skips this game entirely — use this before
+              driving drives manually so the two don't race each other.
+            </p>
+          </div>
+        )}
       </div>
     </DashboardCard>
   );
@@ -928,7 +967,7 @@ export default function Admin() {
   async function loadGames() {
     const { data } = await supabase
       .from('live_games')
-      .select('id, cfbd_game_id, home_team, away_team, kickoff_time, status, home_score, away_score')
+      .select('id, cfbd_game_id, home_team, away_team, kickoff_time, status, home_score, away_score, manual_control')
       .order('kickoff_time', { ascending: false })
       .limit(20);
     setGames((data ?? []) as LiveGame[]);
