@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { DashboardCard } from '../components/ui/DashboardCard';
-import { CheckCircle, AlertCircle, Loader, EyeOff, Trash2, RefreshCw, Pin, Plus, X, Search } from 'lucide-react';
+import { CheckCircle, AlertCircle, Loader, EyeOff, Trash2, RefreshCw, Pin, Plus, X, Search, Pencil, Play, Check } from 'lucide-react';
 import { selectMainPageVideos } from '../lib/mainPageVideoSelection';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -18,14 +18,6 @@ interface LiveGame {
   home_score: number;
   away_score: number;
   manual_control: boolean;
-}
-
-interface DriveWindow {
-  id: string;
-  game_id: string;
-  drive_number: number;
-  status: string;
-  actual_outcome: string | null;
 }
 
 type OpStatus = 'idle' | 'loading' | 'ok' | 'error';
@@ -206,23 +198,6 @@ function GameStatusPanel({ games, onRefresh }: { games: LiveGame[]; onRefresh: (
     }
   }
 
-  const selectedGame = games.find(g => g.id === gameId);
-
-  async function toggleManualControl() {
-    if (!selectedGame) return;
-    setStatus('loading');
-    const { error } = await supabase.rpc('admin_set_manual_control', {
-      p_game_id: selectedGame.id,
-      p_manual_control: !selectedGame.manual_control,
-    });
-    if (error) { setStatus('error'); setMsg(error.message); }
-    else {
-      setStatus('ok');
-      setMsg(selectedGame.manual_control ? 'Manual control turned off — auto sync resumed.' : 'Manual control turned on — auto sync is now skipping this game.');
-      onRefresh();
-    }
-  }
-
   return (
     <DashboardCard title="Update Game Status">
       <div className="p-4 space-y-3">
@@ -243,175 +218,489 @@ function GameStatusPanel({ games, onRefresh }: { games: LiveGame[]; onRefresh: (
           <ActionButton onClick={finalize} disabled={!gameId || status === 'loading'}>Finalize Game</ActionButton>
         </div>
         <OpResult status={status} message={msg} />
-
-        {selectedGame && (
-          <div className="pt-3 mt-1 border-t border-white/10">
-            <button
-              onClick={toggleManualControl}
-              disabled={status === 'loading'}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded border text-xs font-semibold transition-colors disabled:opacity-40 ${
-                selectedGame.manual_control
-                  ? 'bg-vgd-orange/10 border-vgd-orange/40 text-vgd-orange'
-                  : 'bg-vgd-bg border-white/10 text-white/60 hover:border-white/20'
-              }`}
-            >
-              <span>Manual Control</span>
-              <span className="uppercase tracking-wider">{selectedGame.manual_control ? 'On' : 'Off'}</span>
-            </button>
-            <p className="text-[10px] text-white/30 mt-1">
-              When on, the automatic CFBD sync (every 15s) skips this game entirely — use this before
-              driving drives manually so the two don't race each other.
-            </p>
-          </div>
-        )}
       </div>
     </DashboardCard>
   );
 }
 
-// ─── Panel: Drive Window ──────────────────────────────────────────────────────
+// ─── Panel: Live Drive Control ─────────────────────────────────────────────────
+//
+// Replaces the old "Open Drive Window" + "Settle Drive Outcome" test-harness
+// panels with a real manual operator console: prep a drive's situation, hit
+// Active when you're ready to open the pick window for users (choosing how
+// long it stays open), then pick the outcome and Submit once the drive
+// actually ends. Activating and submitting are deliberately separate actions
+// so the admin controls exactly when users see the next window — right away
+// for a fast possession change, or after a commercial break/halftime.
+//
+// Gated behind live_games.manual_control so this never races the automatic
+// live-cfbd-sync poller for the same game (see admin_set_manual_control).
 
-function DriveWindowPanel({ games }: { games: LiveGame[] }) {
+interface DriveWindowRow {
+  id: string;
+  drive_number: number;
+  status: string;
+  actual_outcome: string | null;
+  yardline: number;
+  quarter: number;
+  game_clock: string;
+  window_locked_at: string;
+}
+
+const DRIVE_OUTCOMES: { key: string; label: string; polarity: 'pos' | 'neg' | 'neu' }[] = [
+  { key: 'touchdown', label: 'Touchdown', polarity: 'pos' },
+  { key: 'field_goal', label: 'Field Goal', polarity: 'pos' },
+  { key: 'punt', label: 'Punt', polarity: 'neu' },
+  { key: 'turnover', label: 'Turnover', polarity: 'neg' },
+  { key: 'safety', label: 'Safety', polarity: 'neg' },
+  { key: 'turnover_on_downs', label: 'Turnover on Downs', polarity: 'neg' },
+  { key: 'end_of_quarter', label: 'End of Half/Game', polarity: 'neu' },
+];
+
+function outcomeLabel(key: string): string {
+  return DRIVE_OUTCOMES.find(o => o.key === key)?.label ?? key;
+}
+
+function outcomeClasses(polarity: 'pos' | 'neg' | 'neu', selected: boolean): string {
+  if (selected) return 'bg-vgd-orange border-vgd-orange text-white';
+  if (polarity === 'pos') return 'bg-green-400/10 border-green-400/30 text-green-400';
+  if (polarity === 'neg') return 'bg-vgd-red/10 border-vgd-red/30 text-vgd-red';
+  return 'bg-white/[0.03] border-white/10 text-white/50';
+}
+
+// Field position is stored as a single 0-100 "progress toward the opponent's
+// goal line" number (see open_drive_window). The broadcast-style own/opp
+// label is fully recoverable from that one number by convention: describe
+// it from whichever goal line is nearer.
+function fieldPositionLabel(progress: number): string {
+  return progress <= 50 ? `Own ${progress}` : `Opp ${100 - progress}`;
+}
+
+function zoneLabel(progress: number): string {
+  if (progress >= 80) return 'Red Zone';
+  if (progress >= 60) return 'Opponent Territory';
+  if (progress >= 40) return 'Midfield';
+  if (progress <= 20) return 'Own End (backed up)';
+  return '';
+}
+
+function formatCountdown(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+const LOW_CLOCK_TEXT = '1:00';
+const NORMAL_CLOCK_TEXT = '10:00';
+
+function LiveDriveControlPanel({ games, onRefresh }: { games: LiveGame[]; onRefresh: () => void }) {
   const [gameId, setGameId] = useState('');
-  const [driveNum, setDriveNum] = useState('1');
-  const [yardline, setYardline] = useState('25');
+  const [windows, setWindows] = useState<DriveWindowRow[]>([]);
+  const [now, setNow] = useState(Date.now());
+
   const [quarter, setQuarter] = useState('1');
-  const [clock, setClock] = useState('15:00');
-  const [scoreDiff, setScoreDiff] = useState('0');
-  const [down, setDown] = useState('1');
-  const [distance, setDistance] = useState('10');
-  const [status, setStatus] = useState<OpStatus>('idle');
-  const [msg, setMsg] = useState('');
+  const [yardline, setYardline] = useState('25');
+  const [yardlineSide, setYardlineSide] = useState<'own' | 'opp'>('own');
+  const [lowClock, setLowClock] = useState(false);
+  const [durationChoice, setDurationChoice] = useState(30);
+  const [selectedOutcome, setSelectedOutcome] = useState<string | null>(null);
+  const [editingHistoryDrive, setEditingHistoryDrive] = useState<number | null>(null);
+
+  const [opStatus, setOpStatus] = useState<OpStatus>('idle');
+  const [opMsg, setOpMsg] = useState('');
+  const [manualStatus, setManualStatus] = useState<OpStatus>('idle');
 
   const gameOptions = [{ value: '', label: 'Select game…' }, ...games.map(g => ({
     value: g.id,
     label: `${g.away_team} @ ${g.home_team} [${g.status}]`,
   }))];
-
-  async function open() {
-    if (!gameId) return;
-    setStatus('loading');
-    const { error } = await supabase.rpc('open_drive_window', {
-      p_game_id: gameId,
-      p_drive_number: parseInt(driveNum) || 1,
-      p_yardline: parseInt(yardline) || 25,
-      p_quarter: parseInt(quarter) || 1,
-      p_game_clock: clock,
-      p_score_diff: parseInt(scoreDiff) || 0,
-      p_down: parseInt(down) || 1,
-      p_distance: parseInt(distance) || 10,
-      p_cfbd_drive_id: null,
-    });
-    if (error) { setStatus('error'); setMsg(error.message); }
-    else { setStatus('ok'); setMsg(`Drive ${driveNum} window opened (60s).`); setDriveNum(String((parseInt(driveNum) || 1) + 1)); }
-  }
-
-  return (
-    <DashboardCard title="Open Drive Window">
-      <div className="p-4 space-y-3">
-        <SelectInput label="Game" value={gameId} onChange={setGameId} options={gameOptions} />
-        <div className="grid grid-cols-3 gap-2">
-          <LabelInput label="Drive #" value={driveNum} onChange={setDriveNum} type="number" />
-          <LabelInput label="Quarter" value={quarter} onChange={setQuarter} type="number" />
-          <LabelInput label="Clock" value={clock} onChange={setClock} placeholder="15:00" />
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          <LabelInput label="Yardline" value={yardline} onChange={setYardline} type="number" placeholder="25" />
-          <LabelInput label="Down" value={down} onChange={setDown} type="number" />
-          <LabelInput label="Distance" value={distance} onChange={setDistance} type="number" />
-        </div>
-        <LabelInput label="Score Diff (TN − Opp)" value={scoreDiff} onChange={setScoreDiff} type="number" placeholder="0" />
-        <ActionButton onClick={open} disabled={!gameId || status === 'loading'}>Open Window</ActionButton>
-        <OpResult status={status} message={msg} />
-      </div>
-    </DashboardCard>
-  );
-}
-
-// ─── Panel: Settle Drive ─────────────────────────────────────────────────────
-
-function SettleDrivePanel({ games }: { games: LiveGame[] }) {
-  const [gameId, setGameId] = useState('');
-  const [windows, setWindows] = useState<DriveWindow[]>([]);
-  const [windowId, setWindowId] = useState('');
-  const [outcome, setOutcome] = useState('touchdown');
-  const [status, setStatus] = useState<OpStatus>('idle');
-  const [msg, setMsg] = useState('');
-
-  const gameOptions = [{ value: '', label: 'Select game…' }, ...games.map(g => ({
-    value: g.id,
-    label: `${g.away_team} @ ${g.home_team} [${g.status}]`,
-  }))];
+  const selectedGame = games.find(g => g.id === gameId);
 
   function fetchWindows(id: string) {
     supabase
       .from('drive_windows')
-      .select('id, game_id, drive_number, status, actual_outcome')
+      .select('id, drive_number, status, actual_outcome, yardline, quarter, game_clock, window_locked_at')
       .eq('game_id', id)
-      .in('status', ['open', 'locked'])
       .order('drive_number', { ascending: false })
-      .then(({ data }) => {
-        const rows = (data ?? []) as DriveWindow[];
-        setWindows(rows);
-        if (rows.length > 0) setWindowId(rows[0].id);
-        else setWindowId('');
-      });
+      .then(({ data }) => setWindows((data ?? []) as DriveWindowRow[]));
   }
 
-  // Fetch open windows on game select, then subscribe to Realtime so the list
-  // refreshes automatically when DriveWindowPanel opens a new window.
   useEffect(() => {
-    if (!gameId) { setWindows([]); setWindowId(''); return; }
+    if (!gameId) { setWindows([]); return; }
     fetchWindows(gameId);
-
     const channel = supabase
-      .channel(`admin:drive_windows:${gameId}`)
+      .channel(`admin:live-drive:${gameId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'drive_windows', filter: `game_id=eq.${gameId}` },
         () => fetchWindows(gameId)
       )
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [gameId]);
 
-  async function settle() {
-    if (!windowId) return;
-    const win = windows.find(w => w.id === windowId);
-    if (!win) return;
-    setStatus('loading');
-    const { error } = await supabase.rpc('settle_drive_outcome', {
-      p_game_id: gameId,
-      p_drive_number: win.drive_number,
-      p_actual_outcome: outcome,
+  // Live-ticking clock for the countdown display — reads window_locked_at
+  // directly rather than keeping a local timer, so it's correct across
+  // refreshes/multiple admin tabs.
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const sorted = [...windows].sort((a, b) => b.drive_number - a.drive_number);
+  const top = sorted[0];
+  const isNewDrive = !top || top.status === 'resolved';
+  const currentDriveNumber = isNewDrive ? (top?.drive_number ?? 0) + 1 : top.drive_number;
+  const currentRow = isNewDrive ? null : top;
+  const history = isNewDrive ? sorted : sorted.slice(1);
+
+  // Reset the prep form whenever a new drive number comes into focus (fresh
+  // selection, or right after Submit advances past the drive currentRow was on).
+  useEffect(() => {
+    setQuarter('1');
+    setYardline('25');
+    setYardlineSide('own');
+    setLowClock(false);
+    setSelectedOutcome(null);
+  }, [gameId, currentDriveNumber]);
+
+  const windowLockedAtMs = currentRow ? new Date(currentRow.window_locked_at).getTime() : 0;
+  const windowStatus: 'pending' | 'active' | 'closed' = !currentRow ? 'pending' : (windowLockedAtMs > now ? 'active' : 'closed');
+  const remainingSeconds = currentRow ? Math.max(0, Math.round((windowLockedAtMs - now) / 1000)) : 0;
+
+  const fieldsDisabled = windowStatus !== 'pending';
+  const displayQuarter = currentRow ? String(currentRow.quarter) : quarter;
+  const displayYardlineNum = currentRow
+    ? (currentRow.yardline <= 50 ? currentRow.yardline : 100 - currentRow.yardline)
+    : (parseInt(yardline, 10) || 0);
+  const displaySide: 'own' | 'opp' = currentRow ? (currentRow.yardline <= 50 ? 'own' : 'opp') : yardlineSide;
+  const displayLowClock = currentRow ? currentRow.game_clock === LOW_CLOCK_TEXT : lowClock;
+
+  const progress = displaySide === 'own' ? displayYardlineNum : 100 - displayYardlineNum;
+  const zone = zoneLabel(progress);
+
+  const manualControlOn = !!selectedGame?.manual_control;
+
+  async function toggleManualControl() {
+    if (!selectedGame) return;
+    setManualStatus('loading');
+    const { error } = await supabase.rpc('admin_set_manual_control', {
+      p_game_id: selectedGame.id,
+      p_manual_control: !selectedGame.manual_control,
     });
-    if (error) { setStatus('error'); setMsg(error.message); }
-    else { setStatus('ok'); setMsg(`Drive ${win.drive_number} settled as ${outcome}.`); setWindows([]); setWindowId(''); }
+    if (error) { setManualStatus('error'); setOpMsg(error.message); }
+    else { setManualStatus('idle'); onRefresh(); }
   }
 
-  const windowOptions = [
-    { value: '', label: windows.length === 0 ? 'No open windows' : 'Select window…' },
-    ...windows.map(w => ({ value: w.id, label: `Drive ${w.drive_number} [${w.status}]` })),
+  async function activate() {
+    if (!gameId || !manualControlOn || windowStatus !== 'pending') return;
+    setOpStatus('loading');
+    const y = parseInt(yardline, 10) || 25;
+    const p = yardlineSide === 'own' ? y : 100 - y;
+    const { error } = await supabase.rpc('open_drive_window', {
+      p_game_id: gameId,
+      p_drive_number: currentDriveNumber,
+      p_yardline: p,
+      p_quarter: parseInt(quarter, 10) || 1,
+      p_game_clock: lowClock ? LOW_CLOCK_TEXT : NORMAL_CLOCK_TEXT,
+      p_window_seconds: durationChoice,
+    });
+    if (error) { setOpStatus('error'); setOpMsg(error.message); }
+    else { setOpStatus('ok'); setOpMsg(`Drive ${currentDriveNumber} window active.`); fetchWindows(gameId); }
+  }
+
+  async function reset() {
+    if (!gameId || !manualControlOn || !currentRow) return;
+    setOpStatus('loading');
+    const { error } = await supabase.rpc('open_drive_window', {
+      p_game_id: gameId,
+      p_drive_number: currentDriveNumber,
+      p_yardline: currentRow.yardline,
+      p_quarter: currentRow.quarter,
+      p_game_clock: currentRow.game_clock,
+      p_window_seconds: durationChoice,
+    });
+    if (error) { setOpStatus('error'); setOpMsg(error.message); }
+    else { setOpStatus('ok'); setOpMsg(`Drive ${currentDriveNumber} timer reset.`); fetchWindows(gameId); }
+  }
+
+  async function submit() {
+    if (!gameId || !manualControlOn || !selectedOutcome) return;
+    setOpStatus('loading');
+
+    if (!currentRow) {
+      // Never activated — a drive that resolved too fast to open a window
+      // for. Open (with a 1s window so nothing lingers visible to users)
+      // then immediately settle.
+      const y = parseInt(yardline, 10) || 25;
+      const p = yardlineSide === 'own' ? y : 100 - y;
+      const { error: openErr } = await supabase.rpc('open_drive_window', {
+        p_game_id: gameId,
+        p_drive_number: currentDriveNumber,
+        p_yardline: p,
+        p_quarter: parseInt(quarter, 10) || 1,
+        p_game_clock: lowClock ? LOW_CLOCK_TEXT : NORMAL_CLOCK_TEXT,
+        p_window_seconds: 1,
+      });
+      if (openErr) { setOpStatus('error'); setOpMsg(openErr.message); return; }
+    }
+
+    const { error } = await supabase.rpc('settle_drive_outcome', {
+      p_game_id: gameId,
+      p_drive_number: currentDriveNumber,
+      p_actual_outcome: selectedOutcome,
+    });
+    if (error) { setOpStatus('error'); setOpMsg(error.message); }
+    else {
+      setOpStatus('ok');
+      setOpMsg(`Drive ${currentDriveNumber} settled as ${outcomeLabel(selectedOutcome)}.`);
+      fetchWindows(gameId);
+    }
+  }
+
+  async function correctHistoryOutcome(driveNumber: number, key: string) {
+    if (!gameId) return;
+    setOpStatus('loading');
+    const { error } = await supabase.rpc('settle_drive_outcome', {
+      p_game_id: gameId,
+      p_drive_number: driveNumber,
+      p_actual_outcome: key,
+    });
+    if (error) { setOpStatus('error'); setOpMsg(error.message); }
+    else {
+      setOpStatus('ok');
+      setOpMsg(`Drive ${driveNumber} outcome corrected to ${outcomeLabel(key)} — already-awarded points/streaks are unchanged.`);
+      setEditingHistoryDrive(null);
+      fetchWindows(gameId);
+    }
+  }
+
+  const durationOptions: { value: number; label: string }[] = [
+    { value: 30, label: '30s' },
+    { value: 60, label: '1m' },
+    { value: 120, label: '2m' },
   ];
 
   return (
-    <DashboardCard title="Settle Drive Outcome">
-      <div className="p-4 space-y-3">
+    <DashboardCard title="Live Drive Control" statusDotColor="#FF8200">
+      <div className="p-4 space-y-4">
         <SelectInput label="Game" value={gameId} onChange={setGameId} options={gameOptions} />
-        <SelectInput label="Drive Window" value={windowId} onChange={setWindowId} options={windowOptions} />
-        <SelectInput label="Actual Outcome" value={outcome} onChange={setOutcome} options={[
-          { value: 'touchdown', label: 'Touchdown' },
-          { value: 'field_goal', label: 'Field Goal' },
-          { value: 'punt', label: 'Punt' },
-          { value: 'turnover', label: 'Turnover' },
-          { value: 'safety', label: 'Safety' },
-          { value: 'turnover_on_downs', label: 'Turnover on Downs' },
-          { value: 'end_of_quarter', label: 'End of Half/Game' },
-        ]} />
-        <ActionButton onClick={settle} disabled={!windowId || status === 'loading'}>Settle Drive</ActionButton>
-        <OpResult status={status} message={msg} />
+
+        {selectedGame && !manualControlOn && (
+          <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded border border-vgd-red/30 bg-vgd-red/5">
+            <p className="text-[11px] text-vgd-red/90">
+              Manual control is off — the automatic CFBD sync may still touch this game's drives.
+            </p>
+            <button
+              onClick={toggleManualControl}
+              disabled={manualStatus === 'loading'}
+              className="flex-shrink-0 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-vgd-red/20 text-vgd-red hover:bg-vgd-red/30 transition-colors disabled:opacity-40"
+            >
+              Turn On
+            </button>
+          </div>
+        )}
+        {selectedGame && manualControlOn && (
+          <div className="flex items-center justify-between gap-3 px-3 py-2 rounded border border-vgd-orange/30 bg-vgd-orange/5">
+            <p className="text-[11px] text-vgd-orange/90">Manual control is on — auto sync is skipping this game.</p>
+            <button
+              onClick={toggleManualControl}
+              disabled={manualStatus === 'loading'}
+              className="flex-shrink-0 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-white/15 text-white/60 hover:text-white/80 transition-colors disabled:opacity-40"
+            >
+              Turn Off
+            </button>
+          </div>
+        )}
+
+        {selectedGame && (
+          <>
+            {/* Drive number + status pill + Submit */}
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-3">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-vgd-muted">Drive</span>
+                  <span className="text-2xl font-black text-white leading-none">{currentDriveNumber}</span>
+                </div>
+                <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+                  windowStatus === 'active'
+                    ? 'bg-vgd-orange/10 border-vgd-orange/40 text-vgd-orange'
+                    : windowStatus === 'closed'
+                    ? 'bg-vgd-red/10 border-vgd-red/30 text-vgd-red'
+                    : 'bg-white/[0.03] border-white/10 text-white/40'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full bg-current ${windowStatus === 'active' ? 'animate-pulse' : ''}`} />
+                  {windowStatus === 'active' ? `Active · ${formatCountdown(remainingSeconds)}` : windowStatus === 'closed' ? 'Closed — awaiting result' : 'Pending'}
+                </span>
+              </div>
+              <ActionButton onClick={submit} disabled={!manualControlOn || !selectedOutcome || opStatus === 'loading'}>
+                <span className="flex items-center gap-1.5"><Check className="w-3 h-3" /> Submit</span>
+              </ActionButton>
+            </div>
+
+            {/* Prep fields */}
+            <div className="grid grid-cols-2 gap-2">
+              <LabelInput label="Quarter" value={displayQuarter} onChange={setQuarter} type="number" />
+              <div>
+                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-0.5">Yardline</label>
+                <div className="flex gap-1">
+                  <input
+                    type="number"
+                    value={displayYardlineNum}
+                    onChange={e => setYardline(e.target.value)}
+                    disabled={fieldsDisabled}
+                    className="w-16 bg-vgd-bg border border-white/10 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50"
+                  />
+                  <div className="flex flex-1 rounded border border-white/10 overflow-hidden">
+                    <button
+                      onClick={() => setYardlineSide('own')}
+                      disabled={fieldsDisabled}
+                      className={`flex-1 text-[10px] font-bold border-r border-white/10 disabled:opacity-50 ${displaySide === 'own' ? 'bg-vgd-orange text-white' : 'bg-vgd-bg text-white/50'}`}
+                    >
+                      OWN
+                    </button>
+                    <button
+                      onClick={() => setYardlineSide('opp')}
+                      disabled={fieldsDisabled}
+                      className={`flex-1 text-[10px] font-bold disabled:opacity-50 ${displaySide === 'opp' ? 'bg-vgd-orange text-white' : 'bg-vgd-bg text-white/50'}`}
+                    >
+                      OPP
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setLowClock(v => !v)}
+              disabled={fieldsDisabled}
+              className={`flex items-center gap-2 self-start px-3 py-1.5 rounded border text-[11px] font-semibold disabled:opacity-50 ${
+                displayLowClock ? 'bg-vgd-orange/10 border-vgd-orange/40 text-vgd-orange' : 'bg-vgd-bg border-white/15 text-white/60'
+              }`}
+            >
+              <span className={`w-3.5 h-3.5 rounded-sm border flex items-center justify-center ${displayLowClock ? 'border-vgd-orange' : 'border-white/40'}`}>
+                {displayLowClock && <Check className="w-2.5 h-2.5" />}
+              </span>
+              Under 2:00 left in the quarter
+            </button>
+
+            {zone && (
+              <p className="text-[11px] text-vgd-orange">Field position: {fieldPositionLabel(progress)} — {zone} — this shifts the point odds below.</p>
+            )}
+
+            {/* Window activation */}
+            <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-white/[0.06]">
+              <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Window</span>
+              <div className="flex rounded border border-white/10 overflow-hidden">
+                {durationOptions.map(d => (
+                  <button
+                    key={d.value}
+                    onClick={() => setDurationChoice(d.value)}
+                    disabled={fieldsDisabled}
+                    className={`px-2.5 py-1 text-[11px] font-bold border-r border-white/10 last:border-r-0 disabled:opacity-50 ${
+                      durationChoice === d.value ? 'bg-vgd-orange text-white' : 'bg-vgd-bg text-white/50'
+                    }`}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={activate}
+                disabled={!manualControlOn || fieldsDisabled || opStatus === 'loading'}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-vgd-orange hover:bg-orange-500 text-white text-[11px] font-bold uppercase tracking-wider transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Play className="w-3 h-3" /> Active
+              </button>
+              <button
+                onClick={reset}
+                disabled={!manualControlOn || !currentRow || opStatus === 'loading'}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-white/15 text-white/70 text-[11px] font-bold uppercase tracking-wider hover:border-white/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <RefreshCw className="w-3 h-3" /> Reset
+              </button>
+            </div>
+
+            {/* Outcome picker */}
+            <div>
+              <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-1.5">Outcome</label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {DRIVE_OUTCOMES.map(o => (
+                  <button
+                    key={o.key}
+                    onClick={() => setSelectedOutcome(o.key)}
+                    className={`py-2 px-1.5 rounded border text-[11px] font-bold transition-colors ${outcomeClasses(o.polarity, selectedOutcome === o.key)}`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+              {!selectedOutcome && <p className="text-[10px] text-vgd-muted mt-1.5">Select an outcome to enable Submit.</p>}
+            </div>
+
+            <OpResult status={opStatus} message={opMsg} />
+          </>
+        )}
       </div>
+
+      {selectedGame && (
+        <div className="border-t border-white/[0.07]">
+          <div className="px-4 py-2 flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Drive History</span>
+            <span className="text-[10px] text-vgd-muted">{history.length} drives</span>
+          </div>
+          {history.length === 0 ? (
+            <p className="px-4 pb-4 text-[11px] text-vgd-muted">No settled drives yet.</p>
+          ) : (
+            <div>
+              {history.map(h => {
+                const progressH = h.yardline;
+                const editing = editingHistoryDrive === h.drive_number;
+                return (
+                  <div key={h.id} className="flex items-center justify-between gap-3 px-4 py-2 border-b border-white/[0.05] last:border-0">
+                    <div className="flex items-baseline gap-2.5 min-w-0">
+                      <span className="text-xs font-bold text-white/70 whitespace-nowrap">Drive {h.drive_number}</span>
+                      <span className="text-[11px] text-white/30 whitespace-nowrap">
+                        Q{h.quarter} · {fieldPositionLabel(progressH)}{h.game_clock === LOW_CLOCK_TEXT ? ' · <2:00 left' : ''}
+                      </span>
+                    </div>
+                    {editing ? (
+                      <div className="flex flex-wrap items-center gap-1 justify-end">
+                        {DRIVE_OUTCOMES.map(o => (
+                          <button
+                            key={o.key}
+                            onClick={() => correctHistoryOutcome(h.drive_number, o.key)}
+                            className={`px-2 py-0.5 rounded-full border text-[10px] font-bold whitespace-nowrap ${outcomeClasses(o.polarity, o.key === h.actual_outcome)}`}
+                          >
+                            {o.label}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${outcomeClasses(DRIVE_OUTCOMES.find(o => o.key === h.actual_outcome)?.polarity ?? 'neu', false)}`}>
+                          {h.actual_outcome ? outcomeLabel(h.actual_outcome) : '—'}
+                        </span>
+                        <button
+                          onClick={() => setEditingHistoryDrive(h.drive_number)}
+                          className="w-5 h-5 flex items-center justify-center rounded text-white/30 hover:text-white/60"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {editingHistoryDrive !== null && (
+                <p className="px-4 py-2 text-[10px] text-vgd-muted border-t border-white/[0.05]">
+                  Corrects the recorded outcome only — points/streaks already awarded for that drive are not recalculated.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </DashboardCard>
   );
 }
@@ -989,9 +1278,9 @@ export default function Admin() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <CreateGamePanel onCreated={loadGames} />
         <GameStatusPanel games={games} onRefresh={loadGames} />
-        <DriveWindowPanel games={games} />
-        <SettleDrivePanel games={games} />
       </div>
+
+      <LiveDriveControlPanel games={games} onRefresh={loadGames} />
 
       <ScrapedContentReview />
     </div>
