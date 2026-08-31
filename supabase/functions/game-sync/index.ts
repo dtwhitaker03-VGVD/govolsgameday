@@ -269,10 +269,16 @@ async function refreshUpcomingCache(serviceKey: string) {
  * Dashboard's existing "Update Game Status" / drive-window tools remain
  * how that gets entered during a live game.
  */
-Deno.serve(async (_req: Request) => {
+Deno.serve(async (req: Request) => {
   const supabase = getSupabaseClient();
   const apiKey = Deno.env.get("CFBC_API_KEY");
-  const window = getSyncWindow();
+  let body: { force?: boolean } = {};
+  try { body = await req.json(); } catch { /* empty body */ }
+  // `force` lets an admin manually trigger a full sync (schedule + lines)
+  // outside the three weekly windows — e.g. to backfill a missed run —
+  // without opening up real-time CFBD polling. The hourly cron always
+  // calls with an empty body, so this never affects its normal cadence.
+  const window = getSyncWindow() ?? (body.force ? "weekly-upcoming" : null);
 
   if (!window) {
     return json({ ok: true, skipped: "not a sync window" });
