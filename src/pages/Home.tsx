@@ -63,8 +63,6 @@ function pickActiveGame(games: LiveGame[]): LiveGame | null {
 export default function Home() {
   const [liveGame, setLiveGame] = useState<LiveGame | null>(null);
   const [layoutReady, setLayoutReady] = useState(false);
-  const [pastKickoff, setPastKickoff] = useState(false);
-  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchActiveGame = useCallback(() => {
     return supabase
@@ -81,7 +79,6 @@ export default function Home() {
       .then(({ data }) => {
         const active = pickActiveGame((data as LiveGame[]) ?? []);
         setLiveGame(active);
-        setPastKickoff(active ? new Date(active.kickoff_time).getTime() <= Date.now() : false);
       });
   }, []);
 
@@ -102,27 +99,6 @@ export default function Home() {
     return () => { supabase.removeChannel(channel); };
   }, [fetchActiveGame]);
 
-  // Countdown to kickoff for the predictor swap
-  useEffect(() => {
-    if (!liveGame || pastKickoff) return;
-
-    const check = () => {
-      if (new Date(liveGame.kickoff_time).getTime() <= Date.now()) {
-        setPastKickoff(true);
-        if (tickRef.current) {
-          clearInterval(tickRef.current);
-          tickRef.current = null;
-        }
-      }
-    };
-
-    check();
-    tickRef.current = setInterval(check, 1000);
-    return () => {
-      if (tickRef.current) clearInterval(tickRef.current);
-    };
-  }, [liveGame?.kickoff_time, pastKickoff]);
-
   // Live CFBD data (live_games/drive_windows) is kept in sync by a single
   // server-side pg_cron job (invoke_live_cfbd_sync, every 15s) rather than
   // client-side polling here — client-side polling meant CFBD call volume
@@ -131,6 +107,7 @@ export default function Home() {
   // resulting changes live. See supabase/functions/live-cfbd-sync.
 
   const isGameday = layoutReady && liveGame !== null;
+  const isLive = liveGame?.status === 'live';
 
   // ── Measure right column height so the chat card matches it ──────────────
   const rightColumnRef = useRef<HTMLDivElement>(null);
@@ -150,13 +127,14 @@ export default function Home() {
     const observer = new ResizeObserver(() => measureRightColumn());
     observer.observe(el);
     return () => observer.disconnect();
-  }, [measureRightColumn, layoutReady, isGameday, pastKickoff]);
+  }, [measureRightColumn, layoutReady, isGameday, isLive]);
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* ── Layer 3: Discussion Board + Predictor Column ─────────────────────
-          The right column ALWAYS shows the predictor pair, regardless of
-          gameday state. At kickoff, the top/bottom swap per §9/§12/§13. */}
+          The right column always shows the Pregame Predictor until the admin
+          sets the game's status to "live" on the Admin page, at which point
+          it swaps to the Live Drive Predictor + Live Game Leaderboard. */}
       <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4 items-start">
         <DiscussionBoard
           roomCategory="main"
@@ -170,28 +148,16 @@ export default function Home() {
           <div ref={rightColumnRef} className="bg-vgd-card border border-white/[0.07] rounded-lg h-[200px] animate-pulse" />
         ) : (
           <div ref={rightColumnRef} className="flex flex-col gap-4">
-            {pastKickoff && liveGame ? (
+            {isLive && liveGame ? (
               <>
-                {/* At kickoff: Live Drive Predictor on top, Leaderboard on bottom */}
+                {/* Live mode: Live Drive Predictor on top, Leaderboard on bottom */}
                 <LiveDrivePrediction game={liveGame} />
                 <GameLeaderboard game={liveGame} />
               </>
-            ) : liveGame ? (
-              <>
-                {/* Before kickoff: Pregame Predictor on top, Live Drive Predictor dimmed on bottom */}
-                <PreGamePredictions game={liveGame} />
-                <div className="opacity-40 pointer-events-none">
-                  <LiveDrivePrediction game={liveGame} />
-                </div>
-              </>
             ) : (
-              <>
-                {/* Non-gameday: both predictors in waiting state */}
-                <PreGamePredictions game={null} />
-                <div className="opacity-40 pointer-events-none">
-                  <LiveDrivePrediction game={null} />
-                </div>
-              </>
+              /* Pregame / non-gameday: just the Pregame Predictor — the live
+                 drive window only appears once the admin sets the game live */
+              <PreGamePredictions game={liveGame} />
             )}
           </div>
         )}
