@@ -50,6 +50,25 @@ interface FormState {
   tnTurnoversForced: string;
 }
 
+// Weekly player/team prop bets an admin configures per game (Admin Dashboard
+// "Weekly Prop Bets") — separate from Spread/Total, which keep their own
+// CFBD-sourced line columns on live_games, but rendered in the same unified
+// Over/Under table since they're all the same "pick over or under a line"
+// shape.
+interface GameProp {
+  id: string;
+  description: string;
+  line: number;
+  points_value: number;
+}
+
+interface PropPick {
+  prop_id: string;
+  pick: 'over' | 'under';
+  correct: boolean | null;
+  points_earned: number;
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function lockTime(kickoffIso: string): number {
@@ -77,8 +96,12 @@ function ptColor(pts: number | null, max: number): string {
 
 // ─── Tooltip ─────────────────────────────────────────────────────────────────
 
-function ScoringTooltip({ open, onClose }: { open: boolean; onClose: () => void }) {
+function ScoringTooltip({ open, onClose, propCount }: { open: boolean; onClose: () => void; propCount: number }) {
   if (!open) return null;
+  // Base categories (Winner, Score, Yards, 3 TN stat guesses) = 1,300, fixed.
+  // Over/Unders = Spread + Total + this week's props, 100 pts each.
+  const ouCount = 2 + propCount;
+  const maxTotal = 1300 + ouCount * 100;
   return (
     <div className="absolute right-0 top-8 z-30 w-64 bg-vgd-bg border border-white/10 rounded-lg shadow-2xl p-3 text-xs text-white/80 space-y-1.5">
       <p className="font-bold text-vgd-orange text-[11px] uppercase tracking-wider mb-2">Scoring Rules</p>
@@ -88,15 +111,14 @@ function ScoringTooltip({ open, onClose }: { open: boolean; onClose: () => void 
         <div className="flex justify-between pl-3 text-white/50"><span>+50 bonus if exact</span><span>max 150</span></div>
         <div className="flex justify-between"><span>Yards (each side)</span><span className="text-vgd-orange font-bold">up to 200 pts</span></div>
         <div className="flex justify-between pl-3 text-white/50"><span>+100 bonus if exact</span><span>max 300</span></div>
-        <div className="flex justify-between"><span>Spread O/U</span><span className="text-vgd-orange font-bold">100 pts</span></div>
-        <div className="flex justify-between"><span>Total Points O/U</span><span className="text-vgd-orange font-bold">100 pts</span></div>
         <div className="flex justify-between"><span>TN Rushing TDs</span><span className="text-vgd-orange font-bold">100 pts</span></div>
         <div className="flex justify-between"><span>TN Receiving TDs</span><span className="text-vgd-orange font-bold">100 pts</span></div>
         <div className="flex justify-between"><span>TN Turnovers Forced</span><span className="text-vgd-orange font-bold">100 pts</span></div>
+        <div className="flex justify-between"><span>Over/Unders</span><span className="text-vgd-orange font-bold">100 pts each</span></div>
       </div>
       <div className="border-t border-white/10 pt-1.5 flex justify-between font-bold">
         <span>Maximum total</span>
-        <span className="text-vgd-orange">1,500 pts</span>
+        <span className="text-vgd-orange">{maxTotal.toLocaleString()} pts</span>
       </div>
       <button onClick={onClose} className="absolute top-1 right-1 text-vgd-muted hover:text-white p-1">
         <XCircle className="w-3.5 h-3.5" />
@@ -107,10 +129,12 @@ function ScoringTooltip({ open, onClose }: { open: boolean; onClose: () => void 
 
 // ─── Summary (post-game) ──────────────────────────────────────────────────────
 
-function PredictionSummary({ pred, game, tnIsHome }: {
+function PredictionSummary({ pred, game, tnIsHome, gameProps, propPicks }: {
   pred: PregamePrediction;
   game: LiveGame;
   tnIsHome: boolean;
+  gameProps: GameProp[];
+  propPicks: PropPick[];
 }) {
   const tnName = tnIsHome ? game.home_team : game.away_team;
   const oppName = tnIsHome ? game.away_team : game.home_team;
@@ -193,9 +217,20 @@ function PredictionSummary({ pred, game, tnIsHome }: {
       pts: pred.tn_turnovers_forced_points,
       max: 100,
     },
+    ...gameProps.map((gp) => {
+      const pick = propPicks.find((p) => p.prop_id === gp.id);
+      return {
+        label: gp.description,
+        predicted: pick ? pick.pick.toUpperCase() : '—',
+        actual: `line ${gp.line}`,
+        pts: pick ? pick.points_earned : null,
+        max: gp.points_value,
+      };
+    }),
   ];
 
   const total = pred.total_pregame_points ?? 0;
+  const maxTotal = 1300 + (2 + gameProps.length) * 100;
 
   return (
     <div className="p-3 space-y-2">
@@ -213,7 +248,7 @@ function PredictionSummary({ pred, game, tnIsHome }: {
       </div>
       <div className="flex items-center justify-between pt-1 border-t border-white/10">
         <span className="text-xs text-white/60">Total earned</span>
-        <span className="text-xl font-black text-vgd-orange">{total.toLocaleString()} <span className="text-xs font-normal text-vgd-muted">/ 1,500</span></span>
+        <span className="text-xl font-black text-vgd-orange">{total.toLocaleString()} <span className="text-xs font-normal text-vgd-muted">/ {maxTotal.toLocaleString()}</span></span>
       </div>
     </div>
   );
@@ -226,34 +261,9 @@ interface Props { game: LiveGame | null }
 export function PreGamePredictions({ game }: Props) {
   const { session, profile, openAuthModal } = useAuth();
 
-  // Non-gameday waiting state — no game scheduled today
-  if (!game) {
-    return (
-      <DashboardCard
-        title="PRE-GAME PREDICTIONS"
-        metadataTag={
-          <span className="text-[10px] text-white/30 font-bold uppercase tracking-wider">WAITING</span>
-        }
-        className="h-full"
-      >
-        <div className="flex flex-col items-center justify-center py-10 gap-3 text-center px-4">
-          <div className="w-10 h-10 rounded-full border-2 border-white/10 flex items-center justify-center">
-            <Lock className="w-5 h-5 text-vgd-muted" />
-          </div>
-          <p className="text-xs text-vgd-muted">No game scheduled today.</p>
-          <p className="text-[10px] text-white/30">Pregame predictions open when a game is scheduled.</p>
-        </div>
-      </DashboardCard>
-    );
-  }
-
   // "tn" naming throughout refers to whichever team is home — generalized
   // for the 2026-08-29 one-off live test (see live-cfbd-sync).
   const tnIsHome = true;
-  const tnName = game.home_team;
-  const oppName  = tnIsHome ? game.away_team : game.home_team;
-  const spreadAvailable = game.spread_line_tn != null;
-  const totalAvailable = game.total_points_line != null;
 
   const [existing, setExisting] = useState<PregamePrediction | null>(null);
   const [form, setForm] = useState<FormState>({
@@ -266,13 +276,31 @@ export function PreGamePredictions({ game }: Props) {
   const [submitError, setSubmitError] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [gameProps, setGameProps] = useState<GameProp[]>([]);
+  const [propPicks, setPropPicks] = useState<PropPick[]>([]);
+  const [propForm, setPropForm] = useState<Record<string, 'over' | 'under'>>({});
 
-  const isCalculated = game.status === 'calculated';
-  const lockAt = lockTime(game.kickoff_time);
+  // All hooks below run unconditionally (even with no game scheduled) so
+  // hook order never changes across renders — the "no game" waiting card
+  // renders after all hooks, once game is known to be non-null.
+  const isCalculated = game?.status === 'calculated';
+  const lockAt = game ? lockTime(game.kickoff_time) : 0;
+
+  // Load this week's admin-configured props for this game (Spread/Total
+  // keep their own dedicated line columns — see GameProp comment above).
+  useEffect(() => {
+    if (!game) return;
+    supabase
+      .from('game_props')
+      .select('id, description, line, points_value')
+      .eq('game_id', game.id)
+      .order('sort_order', { ascending: true })
+      .then(({ data }) => setGameProps((data as GameProp[]) ?? []));
+  }, [game?.id]);
 
   // Load existing prediction
   useEffect(() => {
-    if (!session) return;
+    if (!session || !game) return;
     supabase
       .from('pregame_predictions')
       .select('*')
@@ -305,11 +333,29 @@ export function PreGamePredictions({ game }: Props) {
           }));
         }
       });
-  }, [session, game.id, tnIsHome]);
+  }, [session, game?.id, tnIsHome]);
+
+  // Load the user's own prop picks (for pre-filling the form and, once
+  // calculated, showing correctness/points in the summary).
+  useEffect(() => {
+    if (!session || !game) return;
+    supabase
+      .from('pregame_prop_picks')
+      .select('prop_id, pick, correct, points_earned')
+      .eq('game_id', game.id)
+      .eq('user_id', session.user.id)
+      .then(({ data }) => {
+        const picks = (data as PropPick[]) ?? [];
+        setPropPicks(picks);
+        const prefill: Record<string, 'over' | 'under'> = {};
+        for (const p of picks) prefill[p.prop_id] = p.pick;
+        setPropForm(prefill);
+      });
+  }, [session, game?.id]);
 
   // Lock countdown
   useEffect(() => {
-    if (isCalculated) return;
+    if (!game || isCalculated) return;
     const tick = () => {
       const remaining = lockAt - Date.now();
       setTimeUntilLock(Math.max(0, remaining));
@@ -318,12 +364,38 @@ export function PreGamePredictions({ game }: Props) {
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [lockAt, isCalculated]);
+  }, [game, lockAt, isCalculated]);
 
   const setField = useCallback((field: keyof FormState, val: string) => {
     setForm(prev => ({ ...prev, [field]: val }));
     setSubmitError('');
   }, []);
+
+  // Non-gameday waiting state — no game scheduled today
+  if (!game) {
+    return (
+      <DashboardCard
+        title="PRE-GAME PREDICTIONS"
+        metadataTag={
+          <span className="text-[10px] text-white/30 font-bold uppercase tracking-wider">WAITING</span>
+        }
+        className="h-full"
+      >
+        <div className="flex flex-col items-center justify-center py-10 gap-3 text-center px-4">
+          <div className="w-10 h-10 rounded-full border-2 border-white/10 flex items-center justify-center">
+            <Lock className="w-5 h-5 text-vgd-muted" />
+          </div>
+          <p className="text-xs text-vgd-muted">No game scheduled today.</p>
+          <p className="text-[10px] text-white/30">Pregame predictions open when a game is scheduled.</p>
+        </div>
+      </DashboardCard>
+    );
+  }
+
+  const tnName = game.home_team;
+  const oppName  = tnIsHome ? game.away_team : game.home_team;
+  const spreadAvailable = game.spread_line_tn != null;
+  const totalAvailable = game.total_points_line != null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -348,6 +420,9 @@ export function PreGamePredictions({ game }: Props) {
     if (isNaN(tnRushingTds) || tnRushingTds < 0 || tnRushingTds > 10) return setSubmitError('TN rushing TDs: 0–10.');
     if (isNaN(tnReceivingTds) || tnReceivingTds < 0 || tnReceivingTds > 10) return setSubmitError('TN receiving TDs: 0–10.');
     if (isNaN(tnTurnoversForced) || tnTurnoversForced < 0 || tnTurnoversForced > 10) return setSubmitError('TN turnovers forced: 0–10.');
+    for (const gp of gameProps) {
+      if (!propForm[gp.id]) return setSubmitError(`Pick Over or Under for ${gp.description}.`);
+    }
 
     // Map UI winner to DB 'home'/'away'
     const predWinner = form.winner; // 'home' | 'away' — already in DB format
@@ -370,6 +445,7 @@ export function PreGamePredictions({ game }: Props) {
       p_tn_rushing_tds: tnRushingTds,
       p_tn_receiving_tds: tnReceivingTds,
       p_tn_turnovers_forced: tnTurnoversForced,
+      p_prop_picks: gameProps.map((gp) => ({ prop_id: gp.id, pick: propForm[gp.id] })),
     });
     setSubmitting(false);
 
@@ -377,10 +453,13 @@ export function PreGamePredictions({ game }: Props) {
       setSubmitError(error.message ?? 'Something went wrong.');
     } else {
       setSubmitted(true);
-      // Refresh existing prediction
+      // Refresh existing prediction + prop picks
       supabase.from('pregame_predictions').select('*')
         .eq('game_id', game.id).eq('user_id', session.user.id)
         .maybeSingle().then(({ data }) => data && setExisting(data as PregamePrediction));
+      supabase.from('pregame_prop_picks').select('prop_id, pick, correct, points_earned')
+        .eq('game_id', game.id).eq('user_id', session.user.id)
+        .then(({ data }) => setPropPicks((data as PropPick[]) ?? []));
     }
   };
 
@@ -389,6 +468,7 @@ export function PreGamePredictions({ game }: Props) {
   const winnerLabel = form.winner === (tnIsHome ? 'home' : 'away') ? tnName
     : form.winner === (tnIsHome ? 'away' : 'home') ? oppName
     : '';
+  const maxTotalPoints = 1300 + (2 + gameProps.length) * 100;
 
   const metaTag = isCalculated ? (
     <span className="text-[10px] text-white/50 font-bold uppercase tracking-wider">FINAL</span>
@@ -418,13 +498,13 @@ export function PreGamePredictions({ game }: Props) {
           <HelpCircle className="w-4 h-4" />
         </button>
         <div className="relative">
-          <ScoringTooltip open={showTooltip} onClose={() => setShowTooltip(false)} />
+          <ScoringTooltip open={showTooltip} onClose={() => setShowTooltip(false)} propCount={gameProps.length} />
         </div>
       </div>
 
       {/* Post-game summary */}
       {isCalculated && existing ? (
-        <PredictionSummary pred={existing} game={game} tnIsHome={tnIsHome} />
+        <PredictionSummary pred={existing} game={game} tnIsHome={tnIsHome} gameProps={gameProps} propPicks={propPicks} />
       ) : isCalculated && !existing ? (
         <div className="flex flex-col items-center justify-center py-8 gap-2 text-vgd-muted text-xs px-4 text-center">
           <p>You didn't submit predictions for this game.</p>
@@ -432,7 +512,7 @@ export function PreGamePredictions({ game }: Props) {
       ) : !session ? (
         // Logged-out state
         <div className="flex flex-col items-center justify-center py-8 gap-3 px-4 text-center">
-          <p className="text-xs text-vgd-muted">Sign in to submit pre-game picks and earn up to 1,500 pts.</p>
+          <p className="text-xs text-vgd-muted">Sign in to submit pre-game picks and earn up to {maxTotalPoints.toLocaleString()} pts.</p>
           <button onClick={() => openAuthModal('register')}
             className="text-xs text-vgd-orange hover:underline">
             Sign in / Register
@@ -492,6 +572,15 @@ export function PreGamePredictions({ game }: Props) {
                 <span>TN Turnovers Forced</span>
                 <span className="text-white font-semibold">{existing.predicted_tn_turnovers_forced}</span>
               </div>
+              {gameProps.map((gp) => {
+                const pick = propPicks.find((p) => p.prop_id === gp.id);
+                return pick ? (
+                  <div key={gp.id} className="flex justify-between">
+                    <span>{gp.description}</span>
+                    <span className="text-white font-semibold uppercase">{pick.pick}</span>
+                  </div>
+                ) : null;
+              })}
             </div>
           )}
         </div>
@@ -533,7 +622,7 @@ export function PreGamePredictions({ game }: Props) {
             <div className="grid grid-cols-[1fr_auto_1fr] gap-1.5 items-center">
               <div>
                 <p className="text-[9px] text-vgd-muted mb-0.5 truncate">{tnName}</p>
-                <input type="number" min="0" max="99" placeholder="35"
+                <input type="number" min="0" max="99"
                   value={form.tnScore} onChange={e => setField('tnScore', e.target.value)}
                   disabled={isLocked}
                   className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
@@ -541,7 +630,7 @@ export function PreGamePredictions({ game }: Props) {
               <span className="text-vgd-muted text-sm font-bold">–</span>
               <div>
                 <p className="text-[9px] text-vgd-muted mb-0.5 truncate">{oppName}</p>
-                <input type="number" min="0" max="99" placeholder="21"
+                <input type="number" min="0" max="99"
                   value={form.oppScore} onChange={e => setField('oppScore', e.target.value)}
                   disabled={isLocked}
                   className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
@@ -557,7 +646,7 @@ export function PreGamePredictions({ game }: Props) {
             <div className="grid grid-cols-[1fr_auto_1fr] gap-1.5 items-center">
               <div>
                 <p className="text-[9px] text-vgd-muted mb-0.5 truncate">{tnName}</p>
-                <input type="number" min="0" max="999" placeholder="420"
+                <input type="number" min="0" max="999"
                   value={form.tnYards} onChange={e => setField('tnYards', e.target.value)}
                   disabled={isLocked}
                   className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
@@ -565,65 +654,13 @@ export function PreGamePredictions({ game }: Props) {
               <span className="text-vgd-muted text-sm font-bold">–</span>
               <div>
                 <p className="text-[9px] text-vgd-muted mb-0.5 truncate">{oppName}</p>
-                <input type="number" min="0" max="999" placeholder="310"
+                <input type="number" min="0" max="999"
                   value={form.oppYards} onChange={e => setField('oppYards', e.target.value)}
                   disabled={isLocked}
                   className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
               </div>
             </div>
           </div>
-
-          {/* Spread O/U */}
-          {spreadAvailable && (
-            <div>
-              <label className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
-                Spread O/U <span className="text-white/30 normal-case">({tnName} {game.spread_line_tn! > 0 ? '+' : ''}{game.spread_line_tn})</span>
-              </label>
-              <div className="grid grid-cols-2 gap-1.5">
-                {(['over', 'under'] as const).map(opt => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setField('spreadPick', opt)}
-                    disabled={isLocked}
-                    className={`py-2 rounded-lg text-xs font-bold uppercase border transition-all ${
-                      form.spreadPick === opt
-                        ? 'bg-vgd-orange border-vgd-orange text-white shadow-lg shadow-vgd-orange/20'
-                        : 'border-white/10 text-white/60 hover:border-white/30 hover:text-white'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Total Points O/U */}
-          {totalAvailable && (
-            <div>
-              <label className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
-                Total Points O/U <span className="text-white/30 normal-case">({game.total_points_line})</span>
-              </label>
-              <div className="grid grid-cols-2 gap-1.5">
-                {(['over', 'under'] as const).map(opt => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setField('totalPick', opt)}
-                    disabled={isLocked}
-                    className={`py-2 rounded-lg text-xs font-bold uppercase border transition-all ${
-                      form.totalPick === opt
-                        ? 'bg-vgd-orange border-vgd-orange text-white shadow-lg shadow-vgd-orange/20'
-                        : 'border-white/10 text-white/60 hover:border-white/30 hover:text-white'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* TN Rushing / Receiving TDs / Turnovers Forced */}
           <div>
@@ -633,27 +670,91 @@ export function PreGamePredictions({ game }: Props) {
             <div className="grid grid-cols-3 gap-1.5">
               <div>
                 <p className="text-[9px] text-vgd-muted mb-0.5 truncate">Rush TDs</p>
-                <input type="number" min="0" max="10" placeholder="2"
+                <input type="number" min="0" max="10"
                   value={form.tnRushingTds} onChange={e => setField('tnRushingTds', e.target.value)}
                   disabled={isLocked}
                   className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
               </div>
               <div>
                 <p className="text-[9px] text-vgd-muted mb-0.5 truncate">Rec TDs</p>
-                <input type="number" min="0" max="10" placeholder="2"
+                <input type="number" min="0" max="10"
                   value={form.tnReceivingTds} onChange={e => setField('tnReceivingTds', e.target.value)}
                   disabled={isLocked}
                   className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
               </div>
               <div>
                 <p className="text-[9px] text-vgd-muted mb-0.5 truncate">Turnovers Forced</p>
-                <input type="number" min="0" max="10" placeholder="1"
+                <input type="number" min="0" max="10"
                   value={form.tnTurnoversForced} onChange={e => setField('tnTurnoversForced', e.target.value)}
                   disabled={isLocked}
                   className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
               </div>
             </div>
           </div>
+
+          {/* Unified Over/Under table: Spread, Total Points, and this
+              week's admin-configured props all in one Description | Under |
+              Line | Over list. */}
+          {(spreadAvailable || totalAvailable || gameProps.length > 0) && (
+            <div>
+              <label className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
+                Over / Under Picks
+              </label>
+              <div className="border border-white/10 rounded-lg overflow-hidden bg-white/[0.015]">
+                <div className="grid grid-cols-[1fr_44px_38px_44px] gap-1.5 items-center px-2.5 py-1.5 border-b border-white/[0.06]">
+                  <span />
+                  <span className="text-[8px] font-bold text-vgd-muted text-center tracking-wide">UNDER</span>
+                  <span className="text-[8px] font-bold text-vgd-muted text-center tracking-wide">LINE</span>
+                  <span className="text-[8px] font-bold text-vgd-muted text-center tracking-wide">OVER</span>
+                </div>
+
+                {spreadAvailable && (
+                  <div className="grid grid-cols-[1fr_44px_38px_44px] gap-1.5 items-center px-2.5 py-1.5 border-b border-white/[0.05]">
+                    <span className="text-[11px] font-bold text-white/85 truncate">Spread ({tnName})</span>
+                    <button type="button" onClick={() => setField('spreadPick', 'under')} disabled={isLocked}
+                      className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
+                        form.spreadPick === 'under' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
+                      }`}>Under</button>
+                    <span className="text-[11px] font-bold text-white/50 text-center">{game.spread_line_tn! > 0 ? '+' : ''}{game.spread_line_tn}</span>
+                    <button type="button" onClick={() => setField('spreadPick', 'over')} disabled={isLocked}
+                      className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
+                        form.spreadPick === 'over' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
+                      }`}>Over</button>
+                  </div>
+                )}
+
+                {totalAvailable && (
+                  <div className="grid grid-cols-[1fr_44px_38px_44px] gap-1.5 items-center px-2.5 py-1.5 border-b border-white/[0.05]">
+                    <span className="text-[11px] font-bold text-white/85 truncate">Total Points</span>
+                    <button type="button" onClick={() => setField('totalPick', 'under')} disabled={isLocked}
+                      className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
+                        form.totalPick === 'under' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
+                      }`}>Under</button>
+                    <span className="text-[11px] font-bold text-white/50 text-center">{game.total_points_line}</span>
+                    <button type="button" onClick={() => setField('totalPick', 'over')} disabled={isLocked}
+                      className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
+                        form.totalPick === 'over' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
+                      }`}>Over</button>
+                  </div>
+                )}
+
+                {gameProps.map((gp) => (
+                  <div key={gp.id} className="grid grid-cols-[1fr_44px_38px_44px] gap-1.5 items-center px-2.5 py-1.5 border-b border-white/[0.05] last:border-0">
+                    <span className="text-[11px] font-bold text-white/85 truncate">{gp.description}</span>
+                    <button type="button" onClick={() => setPropForm(prev => ({ ...prev, [gp.id]: 'under' }))} disabled={isLocked}
+                      className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
+                        propForm[gp.id] === 'under' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
+                      }`}>Under</button>
+                    <span className="text-[11px] font-bold text-white/50 text-center">{gp.line}</span>
+                    <button type="button" onClick={() => setPropForm(prev => ({ ...prev, [gp.id]: 'over' }))} disabled={isLocked}
+                      className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
+                        propForm[gp.id] === 'over' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
+                      }`}>Over</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {submitError && <p className="text-xs text-vgd-red">{submitError}</p>}
 

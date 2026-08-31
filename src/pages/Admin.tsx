@@ -630,6 +630,149 @@ function LiveDriveControlPanel({ games, onRefresh }: { games: LiveGame[]; onRefr
   );
 }
 
+// ─── Panel: Weekly Prop Bets ────────────────────────────────────────────────────
+//
+// Configures each week's player/team prop lines (e.g. "DeSean Bishop TDs
+// 2.5") that render in PreGamePredictions' unified Over/Under table
+// alongside Spread and Total Points. Also where the actual result gets
+// entered after the game — CFBD's box score doesn't cover most of these
+// (tackles, receptions), so grading is manual.
+
+interface GamePropRow {
+  id: string;
+  description: string;
+  line: number;
+  actual_value: number | null;
+  actual_result: string | null;
+}
+
+function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
+  const [gameId, setGameId] = useState('');
+  const [props, setProps] = useState<GamePropRow[]>([]);
+  const [newDescription, setNewDescription] = useState('');
+  const [newLine, setNewLine] = useState('');
+  const [gradeInputs, setGradeInputs] = useState<Record<string, string>>({});
+  const [status, setStatus] = useState<OpStatus>('idle');
+  const [msg, setMsg] = useState('');
+
+  const gameOptions = [{ value: '', label: 'Select game…' }, ...games.map(g => ({
+    value: g.id,
+    label: `${g.away_team} @ ${g.home_team} [${g.status}]`,
+  }))];
+
+  function fetchProps(id: string) {
+    supabase
+      .from('game_props')
+      .select('id, description, line, actual_value, actual_result')
+      .eq('game_id', id)
+      .order('sort_order', { ascending: true })
+      .then(({ data }) => setProps((data as GamePropRow[]) ?? []));
+  }
+
+  useEffect(() => {
+    if (!gameId) { setProps([]); return; }
+    fetchProps(gameId);
+  }, [gameId]);
+
+  async function addProp() {
+    if (!gameId || !newDescription.trim() || !newLine) return;
+    setStatus('loading');
+    const { error } = await supabase.rpc('admin_upsert_game_prop', {
+      p_game_id: gameId,
+      p_description: newDescription.trim(),
+      p_line: parseFloat(newLine),
+      p_sort_order: props.length,
+    });
+    if (error) { setStatus('error'); setMsg(error.message); }
+    else {
+      setStatus('idle');
+      setNewDescription('');
+      setNewLine('');
+      fetchProps(gameId);
+    }
+  }
+
+  async function deleteProp(id: string) {
+    setStatus('loading');
+    const { error } = await supabase.rpc('admin_delete_game_prop', { p_id: id });
+    if (error) { setStatus('error'); setMsg(error.message); }
+    else { setStatus('idle'); fetchProps(gameId); }
+  }
+
+  async function gradeProp(id: string) {
+    const val = gradeInputs[id];
+    if (!val) return;
+    setStatus('loading');
+    const { error } = await supabase.rpc('admin_grade_game_prop', {
+      p_id: id,
+      p_actual_value: parseFloat(val),
+    });
+    if (error) { setStatus('error'); setMsg(error.message); }
+    else { setStatus('idle'); fetchProps(gameId); }
+  }
+
+  return (
+    <DashboardCard title="Weekly Prop Bets" statusDotColor="#FF8200">
+      <div className="p-4 space-y-3">
+        <SelectInput label="Game" value={gameId} onChange={setGameId} options={gameOptions} />
+
+        {gameId && (
+          <>
+            {props.length > 0 && (
+              <div className="border border-white/10 rounded-lg overflow-hidden">
+                {props.map(p => (
+                  <div key={p.id} className="flex items-center justify-between gap-2 px-3 py-2 border-b border-white/[0.05] last:border-0">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-white/85 truncate">{p.description} <span className="text-white/40">(O/U {p.line})</span></p>
+                      {p.actual_result ? (
+                        <p className="text-[10px] text-vgd-orange mt-0.5">
+                          Graded: {p.actual_value} — {p.actual_result.toUpperCase()}
+                        </p>
+                      ) : (
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <input
+                            type="number" placeholder="Actual value" value={gradeInputs[p.id] ?? ''}
+                            onChange={e => setGradeInputs(prev => ({ ...prev, [p.id]: e.target.value }))}
+                            className="w-24 bg-vgd-bg border border-white/10 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-vgd-orange/50"
+                          />
+                          <button
+                            onClick={() => gradeProp(p.id)}
+                            disabled={!gradeInputs[p.id] || status === 'loading'}
+                            className="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-vgd-orange/20 text-vgd-orange hover:bg-vgd-orange/30 disabled:opacity-40"
+                          >
+                            Grade
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => deleteProp(p.id)}
+                      disabled={status === 'loading'}
+                      className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-white/30 hover:text-vgd-red disabled:opacity-40"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="grid grid-cols-[1fr_80px_auto] gap-2 items-end">
+              <LabelInput label="Description" value={newDescription} onChange={setNewDescription} placeholder="Player Stat" />
+              <LabelInput label="Line" value={newLine} onChange={setNewLine} type="number" placeholder="2.5" />
+              <ActionButton onClick={addProp} disabled={!newDescription.trim() || !newLine || status === 'loading'}>
+                <span className="flex items-center gap-1"><Plus className="w-3 h-3" /> Add</span>
+              </ActionButton>
+            </div>
+
+            <OpResult status={status} message={msg} />
+          </>
+        )}
+      </div>
+    </DashboardCard>
+  );
+}
+
 // ─── Panel: Finalized Game Stats ───────────────────────────────────────────────
 //
 // The one deliberate action that scores pregame predictions and credits real
@@ -1252,6 +1395,7 @@ export default function Admin() {
       </div>
 
       <LiveDriveControlPanel games={games} onRefresh={loadGames} />
+      <WeeklyPropBetsPanel games={games} />
       <FinalizedGameStatsPanel games={games} onRefresh={loadGames} />
 
       <ScrapedContentReview />
