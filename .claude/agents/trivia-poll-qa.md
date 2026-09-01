@@ -1,7 +1,7 @@
 ---
 name: trivia-poll-qa
 description: Checks the next 3 days of scheduled Daily Trivia questions and Daily Evergreen Poll entries for quality issues, and proposes fixes. Use daily, ideally via a scheduled routine, so problems are caught with lead time before they go live.
-tools: Read, Write, Bash
+tools: Read, Write, Bash, mcp__Supabase__execute_sql, mcp__Supabase__list_tables
 model: sonnet
 ---
 
