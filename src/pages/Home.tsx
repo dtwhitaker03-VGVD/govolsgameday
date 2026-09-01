@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { DiscussionBoard } from '../components/chat/DiscussionBoard';
 import { PreGamePredictions } from '../components/predictions/PreGamePredictions';
@@ -106,28 +106,13 @@ export default function Home() {
   // Realtime subscriptions elsewhere on this page still pick up the
   // resulting changes live. See supabase/functions/live-cfbd-sync.
 
-  const isGameday = layoutReady && liveGame !== null;
   const isLive = liveGame?.status === 'live';
 
-  // ── Measure right column height so the chat card matches it ──────────────
-  const rightColumnRef = useRef<HTMLDivElement>(null);
-  const [chatHeight, setChatHeight] = useState<number | null>(null);
-
-  const measureRightColumn = useCallback(() => {
-    const el = rightColumnRef.current;
-    if (el) setChatHeight(el.offsetHeight);
-  }, []);
-
-  useEffect(() => {
-    const el = rightColumnRef.current;
-    if (!el) return;
-
-    measureRightColumn();
-
-    const observer = new ResizeObserver(() => measureRightColumn());
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [measureRightColumn, layoutReady, isGameday, isLive]);
+  // Fixed height for the predictor column — matches the natural height of
+  // the Pregame Predictions panel (Winner/Score/Yards/TN Stat Guesses +
+  // the 7-row Over/Under table). The chat card matches it; live mode splits
+  // it between the Live Drive Predictor and Leaderboard.
+  const PREDICTOR_COLUMN_HEIGHT = 723;
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -140,19 +125,22 @@ export default function Home() {
           roomCategory="main"
           title="VOL DISCUSSION BOARD"
           qotdSportCategories={['football', 'basketball', 'baseball', 'lady-vols']}
-          className={chatHeight ? '' : 'h-[700px]'}
-          style={chatHeight ? { height: `${chatHeight}px` } : undefined}
+          style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }}
         />
 
         {!layoutReady ? (
-          <div ref={rightColumnRef} className="bg-vgd-card border border-white/[0.07] rounded-lg h-[200px] animate-pulse" />
+          <div className="bg-vgd-card border border-white/[0.07] rounded-lg animate-pulse" style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }} />
         ) : (
-          <div ref={rightColumnRef} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4" style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }}>
             {isLive && liveGame ? (
               <>
-                {/* Live mode: Live Drive Predictor on top, Leaderboard on bottom */}
-                <LiveDrivePrediction game={liveGame} />
-                <GameLeaderboard game={liveGame} />
+                {/* Live mode: Live Drive Predictor on top, Leaderboard on bottom — split evenly */}
+                <div className="flex-1 min-h-0">
+                  <LiveDrivePrediction game={liveGame} />
+                </div>
+                <div className="flex-1 min-h-0">
+                  <GameLeaderboard game={liveGame} />
+                </div>
               </>
             ) : (
               /* Pregame / non-gameday: just the Pregame Predictor — the live
