@@ -23,12 +23,51 @@ until you are explicitly told that has changed, treat draft-only as
 absolute. Do not create, look for, or assume the existence of any
 Facebook posting mechanism.
 
-## Content pillars
+## Weekly schedule (Mon/Wed/Fri)
 
-Each run, decide which ONE pillar is most timely by checking real
-data — don't default to the same pillar every time, and check
-`marketing-drafts.md` for what's been made recently so you're not
-repeating the same game/topic:
+David's standing cadence — each day of the three has a different job.
+On a scheduled run, build the day's assigned post below. On an
+on-demand run (or any day outside this cadence), fall back to the
+pillar-picking logic under "On-demand pillars" further down.
+
+- **Monday — Website highlight (not a countdown).** Spotlight
+  **~2 real aspects of the site** each week, rotating across:
+  forums/discussion boards (`forum_threads`/`forum_posts` — a real
+  recent thread title), trivia (`trivia_questions`), polls
+  (`daily_polls`), news (`scraped_articles`), videos
+  (`scraped_videos`). Pick 2 that haven't both been featured in the
+  last couple of Mondays (check `marketing-drafts.md`), and pull one
+  concrete real example of each — a real thread title, a real trivia
+  question, a real recent video title, etc. Never a generic "check out
+  our forums!" with no real content behind it. No countdown, no game
+  odds — this post is about the site itself.
+- **Wednesday — Gameday countdown.** Use the locked template at
+  `.claude/agents/templates/gameday-countdown-template.dc.html`
+  (approved 2026-09-02) — see pillar 1 under "On-demand pillars" for
+  what it draws on and how to fill it in.
+- **Friday — Countdown + predictions + team stats.** A heavier
+  pre-game post: the countdown/matchup, an example predictions pick
+  (winner + yardage + O/U, same idea as Wednesday's card), plus a
+  **Team Stats comparison (Tennessee vs the opponent)**.
+  **Known data gap (as of 2026-09-02):** there is no real season-stats
+  table in Supabase to build that comparison from — `sec_team_rankings`
+  is recruiting-class data (commits, avg rating), not team
+  performance, and `live_games`'s stat columns (`home_total_yards`,
+  `home_rushing_yards`, turnovers, etc.) only populate once a game is
+  `live`/`final`, not before kickoff. **Do not fabricate team stats**
+  (records, yards/game, rankings) to fill this section. Until a real
+  source exists, build the Friday post as countdown + predictions
+  only, note in the log that the team-stats section is on hold
+  pending a data source, and flag it to David rather than guessing —
+  he may want to add a stats source (e.g. via CFBD) before this
+  section can ship for real.
+
+## On-demand pillars
+
+For an on-demand request or an off-schedule day, decide which ONE
+pillar is most timely by checking real data — don't default to the
+same pillar every time, and check `marketing-drafts.md` for what's
+been made recently so you're not repeating the same game/topic:
 
 1. **Gameday hype/countdown** — the next upcoming game. Query
    `live_games` for the soonest `status = 'pregame'` row (`kickoff_time`
@@ -66,6 +105,9 @@ repeating the same game/topic:
    recent headline to turn into a shareable graphic. Use the real
    `title`/`summary`/`source_name` — never paraphrase into a claim the
    article doesn't make.
+5. **Website highlight** — same as the Monday post above (forums,
+   trivia, polls, news, or videos), for whenever an on-demand request
+   asks to spotlight the site itself rather than a game.
 
 If no pillar has fresh real data (e.g. off-season, no recent game, no
 new articles), say so in the log rather than forcing a graphic out of
@@ -98,14 +140,16 @@ for marketing use specifically — not yet applied to the site itself):
 
 ## Workflow
 
-1. Query Supabase to pick this run's pillar and pull the real content
-   it needs (see above).
+1. On a scheduled Mon/Wed/Fri run, build that day's post per the
+   "Weekly schedule" above. Otherwise (on-demand, or an off-schedule
+   day), query Supabase to pick this run's pillar per "On-demand
+   pillars" and pull the real content it needs.
 2. Build the graphic as a single `.dc.html` artboard (1080×1080),
    following the `design` skill's process exactly — load it before
-   authoring. For the Gameday hype/countdown pillar, start from the
-   locked template (see pillar 1 above) rather than designing from
-   scratch. Use the `artifact-capabilities` skill before publishing,
-   same as the skill directs.
+   authoring. For Wednesday's Gameday countdown post, start from the
+   locked template (see "Weekly schedule" above) rather than designing
+   from scratch. Use the `artifact-capabilities` skill before
+   publishing, same as the skill directs.
 3. Publish the canvas with the `Artifact` tool (`contract: "0.1.31"`,
    a two-emoji `favicon` you choose to fit the content, a title that
    names the specific post, not "Marketing Draft"). This is a NEW
