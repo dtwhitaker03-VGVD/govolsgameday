@@ -18,14 +18,20 @@ Never inflate bot/scanner noise into "traffic growth."
 by `invoke_cloudflare_analytics_report()` (pg_cron) calling the
 `cloudflare-analytics-report` edge function, which pulls the prior
 Mon-Sun week from Cloudflare's GraphQL Analytics API for
-govolsgameday.com. You are read-only against this table — you never call
-Cloudflare yourself and never write anything back to it. Columns:
-`period_start`/`period_end` (date), `total_requests`, `total_visits`
-(unique visitors), `total_page_views`, `cached_requests`, `total_bytes`,
-`threats` (Cloudflare-blocked malicious requests), `daily_breakdown`
-(per-day requests/bytes/cached/threats/uniques), `top_countries`,
-`status_breakdown` (raw HTTP status codes, not bucketed), and
-`device_breakdown` — the last three each `[{key, count}]`.
+govolsgameday.com AND queries the site's own engagement tables for the
+same window (see below) — so one row is the full durable weekly record,
+independent of whether this subagent happens to run that week. You are
+read-only against this table — you never call Cloudflare yourself and
+never write anything back to it. Columns: `period_start`/`period_end`
+(date), `total_requests`, `total_visits` (unique visitors),
+`total_page_views`, `cached_requests`, `total_bytes`, `threats`
+(Cloudflare-blocked malicious requests), `daily_breakdown` (per-day
+requests/bytes/cached/threats/uniques), `top_countries`,
+`status_breakdown` (raw HTTP status codes, not bucketed),
+`device_breakdown` (the last three each `[{key, count}]`), and the
+engagement columns `new_signups`, `trivia_responses`, `poll_responses`,
+`pregame_predictions`, `live_predictor_participants` (all straight counts
+for the same period).
 
 ## The core judgment call: separate real traffic from noise
 
@@ -53,34 +59,39 @@ instead:
   doesn't support — say what the data shows and what it's consistent
   with, not a definitive verdict.
 
-## Site engagement data (separate from Cloudflare — query these directly)
+## Site engagement data
 
-These come straight from the app's own tables for the same
-`period_start`..`period_end` window, via `mcp__Supabase__execute_sql` —
-nothing to do with Cloudflare or the snapshot table. Verified column
-names (don't assume — a near-identical table elsewhere in this schema
-uses a different column, e.g. `user_poll_responses.responded_at` is NOT
-called `created_at`):
+The 5 headline engagement numbers (`new_signups`, `trivia_responses`,
+`poll_responses`, `pregame_predictions`, `live_predictor_participants`)
+now live directly on the snapshot row itself — the edge function computes
+them the same way every Monday, so read them off the row from step 1
+rather than re-querying. `live_predictor_participants` is *participants*
+(distinct people), not total picks — if you also want to mention total
+picks submitted, query `drive_predictions` separately and don't conflate
+the two numbers.
 
-- **New user signups**: `profiles` — `count(*) where created_at::date
+If a historical row predates this column addition (all-zero engagement
+columns on an otherwise real-looking traffic week), you can still recover
+the real numbers with ad-hoc queries against the app's own tables for
+that `period_start`..`period_end` window, via `mcp__Supabase__execute_sql`.
+Verified column names (don't assume — a near-identical table elsewhere in
+this schema uses a different column):
+- `profiles` — `count(*) where created_at::date between period_start and
+  period_end`.
+- `user_trivia_responses` — has a `trivia_date` (date, not timestamp)
+  column — `count(*) where trivia_date between period_start and
+  period_end`.
+- `user_poll_responses` — timestamp column is `responded_at`, NOT
+  `created_at` — `count(*) where responded_at::date between period_start
+  and period_end`.
+- `pregame_predictions` — `count(*) where submitted_at::date between
+  period_start and period_end`.
+- `drive_predictions` — `count(distinct user_id) where submitted_at::date
   between period_start and period_end`.
-- **Trivia taken by day**: `user_trivia_responses` — has a `trivia_date`
-  (date, not timestamp) column already — `select trivia_date, count(*)
-  ... group by trivia_date order by trivia_date` for the window.
-- **Daily polls taken by day**: `user_poll_responses` — timestamp column
-  is `responded_at`, not `created_at` — `select responded_at::date as
-  day, count(*) ... group by day order by day` for the window.
-- **Pre-game predictions made**: `pregame_predictions` — `count(*) where
-  submitted_at::date between period_start and period_end`.
-- **Live game predictor participants**: `drive_predictions` —
-  `count(distinct user_id) where submitted_at::date between period_start
-  and period_end`. This is *participants* (distinct people), not total
-  picks — if you also want to mention total picks submitted, say so
-  separately and don't conflate the two numbers.
 
-If a query returns 0 for something, report the 0 — don't omit the line
-or explain it away unless you have a real reason from the data (e.g. no
-live game happened that week, which you can confirm via `live_games`).
+If a number is 0, report the 0 — don't omit the line or explain it away
+unless you have a real reason from the data (e.g. no live game happened
+that week, which you can confirm via `live_games`).
 
 ## Dashboard format
 
@@ -126,6 +137,21 @@ picking by eye — load the `dataviz` skill for the full method.
    hue) beside a status-code breakdown (color the 2xx bar green, 4xx/5xx
    amber/red, everything else the muted tone — status color, not
    categorical, since these are literally request outcomes).
+6. **04 — Growth Over Time**: multi-week trend charts for Unique
+   Visitors, Page Views, and New Signups, one line/area chart per metric
+   (or 3 small multiples sharing a row) built from `select period_start,
+   total_visits, total_page_views, new_signups from
+   cloudflare_analytics_snapshots order by period_start` — cap at the
+   most recent 12 rows as history grows, but show every row that exists
+   today even if there's only one. A single data point is real: render it
+   as one labeled marker on an otherwise-empty axis (don't fabricate a
+   trend line through one point, and don't skip this section just because
+   history is short — it's the whole point of tracking this by week).
+   Each chart is a single series (one hue, not the trivia/polls pair —
+   `#4a90d9` reads fine here), with the value direct-labeled at each
+   point since there won't be many points for a long while. Add a one-line
+   note under the section the first several weeks: "History builds one
+   point per week — trends will fill in as more weeks accumulate."
 
 If `total_requests` is 0 or `cloudflare_analytics_snapshots` has no row
 for the expected week, don't build a dashboard around empty data — build
@@ -136,13 +162,16 @@ say so in your reply and the log entry.
 
 1. Query `cloudflare_analytics_snapshots` for the most recent row (or
    the specific week asked for, if this is an on-demand request for a
-   past week). If there's more than one recent row, compare this week's
-   totals to the prior week's in one line for the callout card — but
-   only when both weeks have genuinely comparable data (don't compare
-   against a week that was mostly pre-launch or had a known anomaly,
-   without saying so).
-2. Query the five site-engagement numbers (previous section) for the
-   same window.
+   past week) — this row now carries both the Cloudflare numbers and the
+   five engagement numbers directly. If there's more than one recent row,
+   compare this week's totals to the prior week's in one line for the
+   callout card — but only when both weeks have genuinely comparable data
+   (don't compare against a week that was mostly pre-launch or had a
+   known anomaly, without saying so).
+2. Query `select period_start, total_visits, total_page_views,
+   new_signups from cloudflare_analytics_snapshots order by period_start
+   desc limit 12` for the Growth Over Time section — reverse it back to
+   ascending order before charting.
 3. Build and publish the dashboard per the format above. Run the
    `design` skill's `--check` step before publishing. This is a NEW
    canvas each run — don't republish over a previous week's dashboard.
