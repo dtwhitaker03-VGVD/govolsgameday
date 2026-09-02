@@ -129,6 +129,60 @@ function mergeCounts(acc: Map<string, number>, rows: { count: number; dim: Recor
   }
 }
 
+interface EngagementMetrics {
+  newSignups: number;
+  triviaResponses: number;
+  pollResponses: number;
+  pregamePredictions: number;
+  livePredictorParticipants: number;
+}
+
+/**
+ * Site engagement counts for the same period_start..period_end window,
+ * queried directly from the app's own tables (nothing to do with
+ * Cloudflare). Verified column names -- user_poll_responses uses
+ * responded_at, not created_at.
+ */
+async function fetchEngagementMetrics(supabase: Client, since: string, until: string): Promise<EngagementMetrics> {
+  const [signups, trivia, polls, pregame, drives] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", `${since}T00:00:00Z`)
+      .lt("created_at", `${until}T23:59:59.999Z`),
+    supabase
+      .from("user_trivia_responses")
+      .select("id", { count: "exact", head: true })
+      .gte("trivia_date", since)
+      .lte("trivia_date", until),
+    supabase
+      .from("user_poll_responses")
+      .select("id", { count: "exact", head: true })
+      .gte("responded_at", `${since}T00:00:00Z`)
+      .lt("responded_at", `${until}T23:59:59.999Z`),
+    supabase
+      .from("pregame_predictions")
+      .select("id", { count: "exact", head: true })
+      .gte("submitted_at", `${since}T00:00:00Z`)
+      .lt("submitted_at", `${until}T23:59:59.999Z`),
+    supabase
+      .from("drive_predictions")
+      .select("user_id")
+      .gte("submitted_at", `${since}T00:00:00Z`)
+      .lt("submitted_at", `${until}T23:59:59.999Z`),
+  ]);
+
+  const distinctDriveParticipants = new Set((drives.data ?? []).map((r: { user_id: string }) => r.user_id)).size;
+
+  return {
+    newSignups: signups.count ?? 0,
+    triviaResponses: trivia.count ?? 0,
+    pollResponses: polls.count ?? 0,
+    pregamePredictions: pregame.count ?? 0,
+    livePredictorParticipants: distinctDriveParticipants,
+  };
+}
+
 function topN(m: Map<string, number>, n: number): { key: string; count: number }[] {
   return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(([key, count]) => ({ key, count }));
 }
@@ -177,6 +231,7 @@ Deno.serve(async (_req: Request) => {
     const until = ymd(periodEnd);
 
     const { totals, uniques, daily } = await fetchWeeklyTotals(token as string, since, until);
+    const engagement = await fetchEngagementMetrics(supabase, since, until);
 
     const countryCounts = new Map<string, number>();
     const statusCounts = new Map<string, number>();
@@ -207,6 +262,11 @@ Deno.serve(async (_req: Request) => {
         top_countries: topN(countryCounts, 10),
         status_breakdown: topN(statusCounts, 20),
         device_breakdown: topN(deviceCounts, 10),
+        new_signups: engagement.newSignups,
+        trivia_responses: engagement.triviaResponses,
+        poll_responses: engagement.pollResponses,
+        pregame_predictions: engagement.pregamePredictions,
+        live_predictor_participants: engagement.livePredictorParticipants,
         fetched_at: new Date().toISOString(),
       },
       { onConflict: "period_start,period_end" }
