@@ -7,6 +7,6 @@ for the authority model — nothing here is ever posted automatically.
 
 ## 2026-09-02 — Gameday hype/countdown
 - Trigger: on-demand
-- Subject: 3-day countdown to Tennessee (home) vs Furman, kickoff Sat Sep 5, 2026, 3:30 PM ET at Neyland Stadium; DraftKings line TN -46.5, O/U 66.5 (captured 2026-09-02)
+- Subject: "Make Your Picks" CTA built around the 3-day countdown to Tennessee (home) vs Furman, kickoff Sat Sep 5, 2026, 3:30 PM ET at Neyland Stadium. Centerpiece is a Pre-Game Predictions card mockup (matching the real site UI) showing an illustrative example pick — Winner: Tennessee, Total Yards: 372–198 — with a "Lock In Picks" CTA and the real max points for this game (2,000, from `game_props`/scoring formula). Footer carries the real DraftKings line: TN -46.5, O/U 66.5 (captured 2026-09-02). Revised per David's feedback to lead with the picks mechanic rather than the countdown/odds alone.
 - Canvas: https://claude.ai/code/artifact/b04912d3-b3fd-4db0-b0f9-fbfa9d7f7680
 - Status: ⏳ pending review
