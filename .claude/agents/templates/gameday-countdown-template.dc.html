@@ -1,0 +1,230 @@
+<!--
+  GVGD "Gameday hype/countdown" template — approved by David 2026-09-02
+  after several rounds of revision on the Tennessee vs Furman draft.
+
+  This is the locked layout for the Gameday hype/countdown pillar
+  (marketing-agent.md, pillar 1). Reuse this structure as-is; only the
+  data noted in the `DATA:` comments should change between runs. Do
+  not redesign this layout without David asking for it — if a future
+  run wants a different look, treat that as a new direction to check
+  in on, not a default.
+
+  Section order (top to bottom), all real per-run data:
+    1. Header: GVGD logo lockup + "Gameday Countdown" pill
+    2. Countdown number + matchup + date/venue
+    3. Pre-Game Predictions card mockup — Winner + Total Yards example
+       pick, Over/Under Picks (spread + total, cited to their real
+       odds provider via the * footnote), "...and more!" teaser,
+       Lock In Picks CTA with the real max points for that game
+    4. Poll teaser — TODAY's real daily_polls question (not a future
+       date's), question + options only, no header line, no results
+    5. Footer — small CTA eyebrow + BIG GoVolsGameDay.com wordmark
+       closer + odds-source footnote
+
+  Every value below is real data from the 2026-09-02 TN vs Furman
+  run — replace each `DATA:`-flagged value with the real data queried
+  for the game/poll being promoted that run. Never invent a stat,
+  score, spread, yardage example, or poll question — pull them from
+  Supabase (live_games, game_props, daily_polls) same as this run did.
+-->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Anton&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #FF8200; }
+    a:hover { color: #ffb066; }
+    .gvgd-face { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .gvgd-display { font-family: 'Anton', 'Inter', system-ui, sans-serif; font-weight: 400; }
+  </style>
+</helmet>
+
+<div class="gvgd-face" style="position:relative; width:1080px; height:1080px; background:#0F172A; overflow:hidden; color:#FFFFFF;">
+
+  <!-- diagonal end-zone-stripe motif, full bleed, low opacity -->
+  <div style="position:absolute; inset:-100px; background-image:repeating-linear-gradient(135deg, rgba(255,130,0,0.07) 0px, rgba(255,130,0,0.07) 34px, rgba(255,130,0,0) 34px, rgba(255,130,0,0) 78px);"></div>
+
+  <!-- soft radial glow behind the countdown -->
+  <div style="position:absolute; left:50%; top:230px; width:820px; height:820px; transform:translate(-50%,-50%); background:radial-gradient(circle, rgba(255,130,0,0.26) 0%, rgba(255,130,0,0.11) 32%, rgba(255,130,0,0) 68%); pointer-events:none;"></div>
+
+  <!-- secondary red glow, lower right, subtle -->
+  <div style="position:absolute; right:-160px; bottom:-160px; width:560px; height:560px; background:radial-gradient(circle, rgba(209,25,25,0.16) 0%, rgba(209,25,25,0) 70%); pointer-events:none;"></div>
+
+  <!-- content column -->
+  <div style="position:relative; z-index:2; width:100%; height:100%; display:flex; flex-direction:column; padding:0 64px;">
+
+    <!-- header: logo lockup + eyebrow tag -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding-top:26px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:42px; height:42px; border-radius:10px; background:#FF8200; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 6px 18px rgba(255,130,0,0.35);">
+          <span style="color:#FFFFFF; font-weight:800; font-size:11px; letter-spacing:0.02em; line-height:1;">GVGD</span>
+        </div>
+        <div style="font-weight:700; font-size:19px; letter-spacing:-0.01em; color:#FFFFFF;">
+          Go<span style="color:#FFFFFF;">Vols</span><span style="color:#FF8200;">GameDay</span>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:7px; padding:6px 14px; border:1.5px solid rgba(255,130,0,0.55); border-radius:999px; background:rgba(255,130,0,0.08);">
+        <span style="width:6px; height:6px; border-radius:999px; background:#FF8200; display:inline-block;"></span>
+        <span style="font-weight:700; font-size:11px; letter-spacing:0.12em; color:#FF8200; text-transform:uppercase;">Gameday Countdown</span>
+      </div>
+    </div>
+
+    <!-- countdown + matchup -->
+    <div style="display:flex; flex-direction:column; align-items:center; padding-top:14px;">
+      <!-- DATA: days until kickoff (live_games.kickoff_time - today) -->
+      <div class="gvgd-display" style="font-size:156px; line-height:0.82; color:#FFFFFF; letter-spacing:-0.01em; text-shadow:0 0 50px rgba(255,130,0,0.45);">3</div>
+      <div class="gvgd-display" style="font-size:34px; line-height:1; color:#FF8200; letter-spacing:0.03em; margin-top:2px;">DAYS TO KICKOFF</div>
+
+      <!-- DATA: home_team / away_team (live_games) -->
+      <div style="display:flex; align-items:center; justify-content:center; gap:14px; margin-top:16px;">
+        <div class="gvgd-display" style="font-size:32px; color:#FFFFFF; letter-spacing:0.01em;">TENNESSEE</div>
+        <div style="width:28px; height:28px; border-radius:999px; background:#D11919; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <span class="gvgd-display" style="font-size:13px; color:#FFFFFF;">VS</span>
+        </div>
+        <div class="gvgd-display" style="font-size:32px; color:#FFFFFF; letter-spacing:0.01em; opacity:0.7;">FURMAN</div>
+      </div>
+
+      <!-- DATA: kickoff_time (date, time ET) + venue -->
+      <div style="display:flex; align-items:center; gap:9px; margin-top:10px;">
+        <span class="gvgd-face" style="font-weight:700; font-size:14px; color:#FFFFFF;">SAT, SEP 5</span>
+        <span style="width:3px; height:3px; border-radius:999px; background:#58595B; display:inline-block;"></span>
+        <span class="gvgd-face" style="font-weight:700; font-size:14px; color:#FF8200;">3:30 PM ET</span>
+        <span style="width:3px; height:3px; border-radius:999px; background:#58595B; display:inline-block;"></span>
+        <span class="gvgd-face" style="font-weight:600; font-size:14px; color:#58595B;">NEYLAND STADIUM</span>
+      </div>
+    </div>
+
+    <!-- picks card mockup, compact -->
+    <div style="margin-top:16px; border-radius:12px; background:#162038; border:1px solid rgba(255,255,255,0.07); overflow:hidden; box-shadow:0 18px 44px rgba(0,0,0,0.32);">
+
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 20px;">
+        <div style="display:flex; align-items:center; gap:9px;">
+          <span style="width:8px; height:8px; border-radius:999px; background:#FF8200; display:inline-block;"></span>
+          <span class="gvgd-face" style="font-size:12px; font-weight:700; letter-spacing:0.12em; color:rgba(255,255,255,0.9); text-transform:uppercase;">Pre-Game Predictions</span>
+        </div>
+        <!-- DATA: "Locks in N days" — same days-to-kickoff value as above -->
+        <span class="gvgd-face" style="font-size:11px; font-weight:700; letter-spacing:0.05em; color:#FF8200; text-transform:uppercase;">Locks in 3 days</span>
+      </div>
+      <div style="height:1px; background:rgba(255,255,255,0.07);"></div>
+
+      <div style="padding:16px 20px 18px 20px; display:flex; align-items:center; gap:16px;">
+
+        <!-- winner — illustrative EXAMPLE pick, home team selected -->
+        <div style="flex:1 1 0; min-width:0;">
+          <div class="gvgd-face" style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:7px;">Winner</div>
+          <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px;">
+            <!-- DATA: home_team, selected/orange -->
+            <div style="padding:10px 0; border-radius:8px; text-align:center; background:#FF8200; border:1.5px solid #FF8200;">
+              <span class="gvgd-face" style="font-size:14px; font-weight:800; color:#FFFFFF;">Tennessee</span>
+            </div>
+            <!-- DATA: away_team, unselected -->
+            <div style="padding:10px 0; border-radius:8px; text-align:center; border:1.5px solid rgba(255,255,255,0.12);">
+              <span class="gvgd-face" style="font-size:14px; font-weight:800; color:rgba(255,255,255,0.55);">Furman</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="width:1px; align-self:stretch; background:rgba(255,255,255,0.07);"></div>
+
+        <!-- yardage — illustrative EXAMPLE numbers, clearly framed as an example by the card's context (not a claimed real stat) -->
+        <div style="flex:1 1 0; min-width:0;">
+          <div class="gvgd-face" style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:7px;">Total Yards</div>
+          <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+            <div style="text-align:center;">
+              <div class="gvgd-face" style="font-size:10px; color:#58595B; margin-bottom:2px;">TN</div>
+              <div class="gvgd-display" style="font-size:24px; color:#FFFFFF;">372</div>
+            </div>
+            <span class="gvgd-face" style="font-size:16px; font-weight:700; color:#58595B;">&ndash;</span>
+            <div style="text-align:center;">
+              <div class="gvgd-face" style="font-size:10px; color:#58595B; margin-bottom:2px;">FUR</div>
+              <div class="gvgd-display" style="font-size:24px; color:#FFFFFF;">198</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:1px; background:rgba(255,255,255,0.07);"></div>
+
+      <!-- over/under picks — DATA: spread_line_tn / total_points_line (live_games), example Over/Under selections -->
+      <div style="padding:14px 20px 2px 20px;">
+        <div class="gvgd-face" style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:10px;">Over / Under Picks<span style="color:#FF8200;">*</span></div>
+        <div style="display:flex; flex-direction:column; gap:9px;">
+          <div style="display:grid; grid-template-columns:1fr 62px 58px 62px; gap:8px; align-items:center;">
+            <span class="gvgd-face" style="font-size:13px; font-weight:700; color:rgba(255,255,255,0.85);">Spread (Tennessee)</span>
+            <div style="padding:6px 0; border-radius:6px; border:1.5px solid rgba(255,255,255,0.12); text-align:center;">
+              <span class="gvgd-face" style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.5); text-transform:uppercase;">Under</span>
+            </div>
+            <span class="gvgd-display" style="font-size:16px; color:rgba(255,255,255,0.5); text-align:center;">&minus;46.5</span>
+            <div style="padding:6px 0; border-radius:6px; background:#FF8200; border:1.5px solid #FF8200; text-align:center;">
+              <span class="gvgd-face" style="font-size:10px; font-weight:700; color:#FFFFFF; text-transform:uppercase;">Over</span>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 62px 58px 62px; gap:8px; align-items:center;">
+            <span class="gvgd-face" style="font-size:13px; font-weight:700; color:rgba(255,255,255,0.85);">Total Points</span>
+            <div style="padding:6px 0; border-radius:6px; background:#FF8200; border:1.5px solid #FF8200; text-align:center;">
+              <span class="gvgd-face" style="font-size:10px; font-weight:700; color:#FFFFFF; text-transform:uppercase;">Under</span>
+            </div>
+            <span class="gvgd-display" style="font-size:16px; color:rgba(255,255,255,0.5); text-align:center;">66.5</span>
+            <div style="padding:6px 0; border-radius:6px; border:1.5px solid rgba(255,255,255,0.12); text-align:center;">
+              <span class="gvgd-face" style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.5); text-transform:uppercase;">Over</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:center; padding-top:10px;">
+        <span class="gvgd-face" style="font-size:12px; font-weight:800; letter-spacing:0.08em; color:#FF8200; text-transform:uppercase;">...and more!</span>
+      </div>
+
+      <!-- DATA: max points for this game — 1300 + (2 + game_props count) * 100, from the real scoring formula -->
+      <div style="margin:12px 20px 16px 20px; padding:13px 0; border-radius:9px; background:#FF8200; text-align:center;">
+        <span class="gvgd-face" style="font-size:14px; font-weight:800; letter-spacing:0.08em; color:#FFFFFF; text-transform:uppercase;">Lock In Picks &middot; up to 2,000 pts</span>
+      </div>
+    </div>
+
+    <!-- poll teaser — DATA: TODAY's real daily_polls row (question + option_a..d). No header line, no results, just the question. -->
+    <div style="margin-top:14px; border-radius:12px; background:#162038; border:1px solid rgba(255,255,255,0.07); overflow:hidden;">
+      <div style="padding:16px 20px 16px 20px;">
+        <div class="gvgd-face" style="font-size:18px; font-weight:700; color:#FFFFFF; margin-bottom:12px;">What single thing changed Tennessee basketball the most?</div>
+        <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px;">
+          <div style="padding:9px 12px; border-radius:8px; border:1.5px solid rgba(255,130,0,0.35); background:rgba(255,130,0,0.06);">
+            <span class="gvgd-face" style="font-size:13px; font-weight:600; color:#FFFFFF;">Hiring Rick Barnes</span>
+          </div>
+          <div style="padding:9px 12px; border-radius:8px; border:1.5px solid rgba(255,130,0,0.35); background:rgba(255,130,0,0.06);">
+            <span class="gvgd-face" style="font-size:13px; font-weight:600; color:#FFFFFF;">The NIL era</span>
+          </div>
+          <div style="padding:9px 12px; border-radius:8px; border:1.5px solid rgba(255,130,0,0.35); background:rgba(255,130,0,0.06);">
+            <span class="gvgd-face" style="font-size:13px; font-weight:600; color:#FFFFFF;">Building Thompson-Boling</span>
+          </div>
+          <div style="padding:9px 12px; border-radius:8px; border:1.5px solid rgba(255,130,0,0.35); background:rgba(255,130,0,0.06);">
+            <span class="gvgd-face" style="font-size:13px; font-weight:600; color:#FFFFFF;">The Bruce Pearl hire in 2005</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- footer: small CTA eyebrow + big GoVolsGameDay.com wordmark closer + odds-source footnote -->
+    <div style="display:flex; flex-direction:column; align-items:center; padding:18px 0 28px 0; margin-top:auto; gap:5px;">
+      <span class="gvgd-face" style="font-size:14px; font-weight:800; letter-spacing:0.1em; color:#FF8200; text-transform:uppercase;">Make Your Picks Before Kickoff!</span>
+      <div class="gvgd-display" style="font-size:58px; line-height:1; letter-spacing:0.005em; text-shadow:0 0 44px rgba(255,130,0,0.4);">
+        <span style="color:#FFFFFF;">GoVols</span><span style="color:#FF8200;">GameDay</span><span style="color:#FFFFFF;">.com</span>
+      </div>
+      <!-- DATA: odds source name, if the line came from a different provider -->
+      <span class="gvgd-face" style="font-size:12px; font-weight:500; color:#58595B; letter-spacing:0.02em; margin-top:4px;">*Odds via DraftKings</span>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

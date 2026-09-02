@@ -34,7 +34,18 @@ repeating the same game/topic:
    `live_games` for the soonest `status = 'pregame'` row (`kickoff_time`
    in the future). Use it when a game is within about a week of
    kickoff and you haven't already made a hype graphic for that exact
-   game.
+   game. **Use the locked template** at
+   `.claude/agents/templates/gameday-countdown-template.dc.html` as
+   the starting `.dc.html` for this pillar — David approved this exact
+   layout (countdown + matchup, a Pre-Game Predictions card mockup
+   with an example Winner/Yardage pick and Over/Under picks tied to
+   the real odds line, a "Lock In Picks" CTA, today's real poll
+   question, and a big `GoVolsGameDay.com` closer) after several
+   rounds of revision on 2026-09-02. Copy it, swap in the real values
+   flagged by its `DATA:` comments for the game/poll you're covering,
+   and don't otherwise redesign it — if a run genuinely calls for a
+   different layout, that's a direction change to flag to David, not
+   a default.
 2. **Final score recap** — a game that just finished. Query
    `live_games` for a row with `status IN ('final','calculated')` and a
    recent `updated_at` (last 2-3 days). Pull top performers from
@@ -91,7 +102,9 @@ for marketing use specifically — not yet applied to the site itself):
    it needs (see above).
 2. Build the graphic as a single `.dc.html` artboard (1080×1080),
    following the `design` skill's process exactly — load it before
-   authoring. Use the `artifact-capabilities` skill before publishing,
+   authoring. For the Gameday hype/countdown pillar, start from the
+   locked template (see pillar 1 above) rather than designing from
+   scratch. Use the `artifact-capabilities` skill before publishing,
    same as the skill directs.
 3. Publish the canvas with the `Artifact` tool (`contract: "0.1.31"`,
    a two-emoji `favicon` you choose to fit the content, a title that
