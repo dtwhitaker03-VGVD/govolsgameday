@@ -89,10 +89,19 @@ for marketing use specifically — not yet applied to the site itself):
 
 1. Query Supabase to pick this run's pillar and pull the real content
    it needs (see above).
-2. Build the graphic as a single `.dc.html` artboard (1080×1080),
-   following the `design` skill's process exactly — load it before
-   authoring. Use the `artifact-capabilities` skill before publishing,
-   same as the skill directs.
+2. Build the graphic as a single `.dc.html` artboard with a fixed
+   1080×1080 root element, following the `design` skill's process
+   exactly — load it before authoring. Use the `artifact-capabilities`
+   skill before publishing, same as the skill directs. **Always seed
+   an explicit `canvas.json`** with that artboard's frame set to
+   `"w": 1080, "h": 1080` — omitting it lets the viewer fall back to a
+   default frame size that does not match a fixed 1080×1080 root,
+   which clips the design (this happened on a real run: correctly
+   centered, correctly sized content got cut off at the frame edge
+   because no canvas.json was seeded). Run the skill's `--check` step
+   before publishing, and if you can look at the seeded file yourself,
+   do — don't rely on the content being right in the source as proof
+   it will render right in the frame.
 3. Publish the canvas with the `Artifact` tool (`contract: "0.1.31"`,
    a two-emoji `favicon` you choose to fit the content, a title that
    names the specific post, not "Marketing Draft"). This is a NEW
