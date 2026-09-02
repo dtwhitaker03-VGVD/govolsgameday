@@ -30,17 +30,29 @@ On a scheduled run, build the day's assigned post below. On an
 on-demand run (or any day outside this cadence), fall back to the
 pillar-picking logic under "On-demand pillars" further down.
 
-- **Monday — Website highlight (not a countdown).** Spotlight
-  **~2 real aspects of the site** each week, rotating across:
-  forums/discussion boards (`forum_threads`/`forum_posts` — a real
-  recent thread title), trivia (`trivia_questions`), polls
-  (`daily_polls`), news (`scraped_articles`), videos
-  (`scraped_videos`). Pick 2 that haven't both been featured in the
-  last couple of Mondays (check `marketing-drafts.md`), and pull one
-  concrete real example of each — a real thread title, a real trivia
-  question, a real recent video title, etc. Never a generic "check out
-  our forums!" with no real content behind it. No countdown, no game
-  odds — this post is about the site itself.
+- **Monday — Website highlight (not a countdown).** **Use the locked
+  template** at
+  `.claude/agents/templates/monday-website-highlight-template.dc.html`
+  (approved 2026-09-02, based on a reference David shared) — a
+  feature-capability grid under the GVGD wordmark, closing with a
+  real-game banner. Unlike Wednesday's template, this one is meant to
+  **vary every week**, in two specific ways the template's comments
+  spell out:
+  - **Which real functions are featured** — pick 2-4 from the full
+    roster (Live Game Predictor, Live Fan Chat, Recruiting Central,
+    Daily Trivia & Polls, Forum Discussions, News, Videos — see the
+    template for the real table backing each) and don't repeat the
+    same set from the last couple of Mondays (check
+    `marketing-drafts.md`). Describe each as a real CAPABILITY in
+    inviting marketing voice ("tell people what they can do") — this
+    is different from the on-demand pillars below, which cite one
+    specific real content instance (a real thread, a real headline).
+    A card can still name something concretely current (e.g. the
+    season opponent) as long as it's real.
+  - **The top graphic/accent band** — don't reuse the exact same
+    treatment every week; the template lists on-brand alternatives.
+  No countdown number, no betting odds — this post is about the site
+  itself, not a specific game.
 - **Wednesday — Gameday countdown.** Use the locked template at
   `.claude/agents/templates/gameday-countdown-template.dc.html`
   (approved 2026-09-02) — see pillar 1 under "On-demand pillars" for
@@ -105,9 +117,16 @@ been made recently so you're not repeating the same game/topic:
    recent headline to turn into a shareable graphic. Use the real
    `title`/`summary`/`source_name` — never paraphrase into a claim the
    article doesn't make.
-5. **Website highlight** — same as the Monday post above (forums,
-   trivia, polls, news, or videos), for whenever an on-demand request
-   asks to spotlight the site itself rather than a game.
+5. **Website highlight (on-demand)** — for whenever a request asks to
+   spotlight the site itself rather than a game. Two different modes,
+   pick based on what's asked: (a) the Monday feature-capability grid
+   (use its locked template, per "Weekly schedule" above), or (b) a
+   citation of one specific real content instance (a real forum
+   thread, trivia question, poll, headline, or video) if the request
+   wants something more concrete/timely than the evergreen capability
+   pitch — pull that from `forum_threads`/`forum_posts`,
+   `trivia_questions`, `daily_polls`, `scraped_articles`, or
+   `scraped_videos`.
 
 If no pillar has fresh real data (e.g. off-season, no recent game, no
 new articles), say so in the log rather than forcing a graphic out of
@@ -146,10 +165,12 @@ for marketing use specifically — not yet applied to the site itself):
    pillars" and pull the real content it needs.
 2. Build the graphic as a single `.dc.html` artboard (1080×1080),
    following the `design` skill's process exactly — load it before
-   authoring. For Wednesday's Gameday countdown post, start from the
-   locked template (see "Weekly schedule" above) rather than designing
-   from scratch. Use the `artifact-capabilities` skill before
-   publishing, same as the skill directs.
+   authoring. For Monday and Wednesday's posts, start from the
+   relevant locked template (see "Weekly schedule" above) rather than
+   designing from scratch — remembering Monday's template is meant to
+   vary (features shown, top graphic) while Wednesday's is reused
+   as-is. Use the `artifact-capabilities` skill before publishing,
+   same as the skill directs.
 3. Publish the canvas with the `Artifact` tool (`contract: "0.1.31"`,
    a two-emoji `favicon` you choose to fit the content, a title that
    names the specific post, not "Marketing Draft"). This is a NEW

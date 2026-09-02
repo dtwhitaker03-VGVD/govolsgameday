@@ -1,0 +1,169 @@
+<!--
+  GVGD "Monday website highlight" template — approved by David 2026-09-02,
+  after he shared a reference screenshot of this feature-grid style and
+  confirmed: "each Monday should be a variation of this. Maybe change
+  the top graphic, change the highlighted website functions."
+
+  Unlike the Wednesday countdown template, this one is NOT meant to be
+  reused verbatim every week — two things should vary run to run:
+
+  1. VARY: the top graphic/accent band (see "TOP GRAPHIC" below).
+  2. VARY: which real site functions are featured in the grid (see
+     "FEATURE GRID" below) — pick 2-4 each week from the roster,
+     rotating so the same set isn't repeated in consecutive Mondays
+     (check marketing-drafts.md).
+
+  Everything else — wordmark, dark/orange GVGD palette, card layout
+  language, bottom banner treatment — stays consistent as the brand
+  backbone across variations.
+
+  FULL FEATURE ROSTER to rotate through (all real, all backed by a
+  real table — never invent a feature or its description):
+    - Live Game Predictor  → pregame_predictions / drive_predictions /
+      game_leaderboard (the site's core predictions + scoring loop)
+    - Live Fan Chat        → chat_messages (real-time chat during
+      games)
+    - Recruiting Central   → recruiting_class_rankings,
+      scraped_articles (recruiting category)
+    - Daily Trivia & Polls → trivia_questions, daily_polls
+    - Forum Discussions    → forum_threads, forum_posts
+    - News                 → scraped_articles (general/news category)
+    - Videos               → scraped_videos
+
+  Each card's description should describe the real CAPABILITY in
+  inviting, marketing voice ("tell people what they can do," not "here's
+  a specific post") — this is capability marketing, not a citation of
+  one specific real content instance (that's what the on-demand
+  "Website highlight" pillar / Trivia-Poll-News pillars are for). A
+  card CAN reference something concretely current if it strengthens the
+  pitch (e.g. naming the season opponent in the predictor card during
+  game week) as long as it's real.
+
+  TOP GRAPHIC: the example below uses a diagonal orange/white
+  candy-stripe band (end-zone-pylon style) across the very top. Vary
+  this week to week so Mondays don't all look identical — other
+  on-brand options: a solid orange band, the diagonal end-zone-stripe
+  texture used in the Wed/Fri templates but bolder, a radial glow
+  burst behind the wordmark with no band at all, etc. Keep it a thin
+  accent element (roughly the top 30-50px) — it should not compete
+  with the wordmark or the grid.
+
+  FEATURE GRID: below uses a 2x2 grid (4 cards) as in David's
+  reference. For 2 features, use a single row of 2 wider cards
+  (grid-template-columns:1fr 1fr, one row, drop the middle divider
+  logic accordingly). For 3, a 3-column single row works, or a 2-top/
+  1-bottom-centered layout — whatever keeps the cards visually even.
+  Icons are simple orange stroke-based SVGs (24x24 viewBox, ~36px
+  render size) — draw a new one to match each feature's real
+  functionality, never emoji.
+
+  BOTTOM BANNER: solid orange bar, left side an eyebrow label + a real
+  current hook (the next real game, e.g. "SEASON KICKOFF · SEPT 5 VS
+  FURMAN" from live_games, or another real timely hook if there's no
+  upcoming game), right side a dark GoVolsGameDay.com chip. Pull the
+  matchup/date from live_games same as the Wednesday template does —
+  never invent it.
+-->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Anton&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #FF8200; }
+    a:hover { color: #ffb066; }
+    .gvgd-face { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .gvgd-display { font-family: 'Anton', 'Inter', system-ui, sans-serif; font-weight: 400; }
+  </style>
+</helmet>
+
+<div class="gvgd-face" style="position:relative; width:1080px; height:1080px; background:#0F172A; overflow:hidden; color:#FFFFFF; display:flex; flex-direction:column;">
+
+  <!-- TOP GRAPHIC — vary this week to week, see comment above -->
+  <div style="flex-shrink:0; height:34px; width:100%; background-image:repeating-linear-gradient(135deg, #FF8200 0px, #FF8200 42px, #FFFFFF 42px, #FFFFFF 84px);"></div>
+
+  <div style="position:relative; flex:1 1 auto; display:flex; flex-direction:column;">
+
+    <!-- soft radial glow behind wordmark -->
+    <div style="position:absolute; left:50%; top:190px; width:900px; height:900px; transform:translate(-50%,-50%); background:radial-gradient(circle, rgba(255,130,0,0.2) 0%, rgba(255,130,0,0.08) 32%, rgba(255,130,0,0) 68%); pointer-events:none;"></div>
+
+    <!-- content -->
+    <div style="position:relative; z-index:2; flex:1 1 auto; display:flex; flex-direction:column; padding:0 64px;">
+
+      <!-- wordmark + tagline -->
+      <div style="display:flex; flex-direction:column; align-items:center; padding-top:56px;">
+        <div class="gvgd-display" style="font-size:76px; line-height:1; letter-spacing:0.005em; text-shadow:0 0 44px rgba(255,130,0,0.4);">
+          <span style="color:#FFFFFF;">GOVOLS</span><span style="color:#FF8200;">GAMEDAY</span>
+        </div>
+        <!-- DATA: tagline — keep evergreen and inviting; vary the wording if it goes stale, but keep the "what you can do here" voice -->
+        <div class="gvgd-face" style="font-size:20px; font-weight:500; color:rgba(255,255,255,0.6); margin-top:14px; text-align:center;">
+          The second screen every Vol fan needs on gameday.
+        </div>
+      </div>
+
+      <!-- FEATURE GRID — DATA: which 2-4 real features, rotated weekly (see roster above) -->
+      <div style="margin-top:44px; border:1px solid rgba(255,255,255,0.12); border-radius:4px; display:grid; grid-template-columns:1fr 1fr; overflow:hidden;">
+
+        <!-- Live Game Predictor -->
+        <div style="padding:34px 36px; border-right:1px solid rgba(255,255,255,0.12); border-bottom:1px solid rgba(255,255,255,0.12);">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FF8200" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.8" fill="#FF8200"/>
+          </svg>
+          <div class="gvgd-face" style="font-size:23px; font-weight:800; color:#FFFFFF; margin-top:16px; margin-bottom:10px;">Live Game Predictor</div>
+          <div class="gvgd-face" style="font-size:15px; font-weight:500; color:rgba(255,255,255,0.55); line-height:1.45;">Call the next play drive by drive, rack up points, and climb the leaderboard in real time.</div>
+        </div>
+
+        <!-- Live Fan Chat -->
+        <div style="padding:34px 36px; border-bottom:1px solid rgba(255,255,255,0.12);">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FF8200" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <div class="gvgd-face" style="font-size:23px; font-weight:800; color:#FFFFFF; margin-top:16px; margin-bottom:10px;">Live Fan Chat</div>
+          <div class="gvgd-face" style="font-size:15px; font-weight:500; color:rgba(255,255,255,0.55); line-height:1.45;">Cheer, groan, and talk trash in real time with Vol Nation from kickoff to the final whistle.</div>
+        </div>
+
+        <!-- Recruiting Central -->
+        <div style="padding:34px 36px; border-right:1px solid rgba(255,255,255,0.12);">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FF8200" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.6l1.4-6.8-5.1-4.7 6.9-.8z"/>
+          </svg>
+          <div class="gvgd-face" style="font-size:23px; font-weight:800; color:#FFFFFF; margin-top:16px; margin-bottom:10px;">Recruiting Central</div>
+          <div class="gvgd-face" style="font-size:15px; font-weight:500; color:rgba(255,255,255,0.55); line-height:1.45;">Follow commits and signees as the next great Tennessee class comes together.</div>
+        </div>
+
+        <!-- Daily Trivia & Polls -->
+        <div style="padding:34px 36px;">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FF8200" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.5 2.5 0 1 1 3.6 2.25c-.85.45-1.1.9-1.1 1.55"/><circle cx="12" cy="16.3" r="0.6" fill="#FF8200" stroke="none"/>
+          </svg>
+          <div class="gvgd-face" style="font-size:23px; font-weight:800; color:#FFFFFF; margin-top:16px; margin-bottom:10px;">Daily Trivia &amp; Polls</div>
+          <div class="gvgd-face" style="font-size:15px; font-weight:500; color:rgba(255,255,255,0.55); line-height:1.45;">Test your Vols knowledge every day and sound off in polls with the rest of the fan base.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM BANNER — DATA: real next-game hook from live_games (or another real timely hook if none) -->
+  <div style="flex-shrink:0; background:#FF8200; padding:24px 64px; display:flex; align-items:center; justify-content:space-between;">
+    <div>
+      <div class="gvgd-face" style="font-size:13px; font-weight:700; letter-spacing:0.1em; color:rgba(15,23,42,0.65); text-transform:uppercase;">Season Kickoff</div>
+      <div class="gvgd-display" style="font-size:34px; color:#0F172A; letter-spacing:0.005em; margin-top:2px;">SEPT 5 VS FURMAN</div>
+    </div>
+    <div style="background:#0F172A; border-radius:8px; padding:14px 24px;">
+      <span class="gvgd-face" style="font-size:19px; font-weight:800; color:#FFFFFF;">GoVolsGameDay<span style="color:#FF8200;">.com</span></span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

@@ -11,3 +11,10 @@ for the authority model — nothing here is ever posted automatically.
 - Canvas: https://claude.ai/code/artifact/b04912d3-b3fd-4db0-b0f9-fbfa9d7f7680
 - Status: ⏳ pending review
 - **Template locked 2026-09-02**: David approved this layout as the standard for future Gameday hype/countdown posts. Saved at `.claude/agents/templates/gameday-countdown-template.dc.html`; `marketing-agent.md` now points future runs at it instead of designing from scratch.
+
+## 2026-09-02 — Website highlight (Monday)
+- Trigger: on-demand (example request — "show me an example of a Monday post")
+- Subject: Feature-capability grid based on a reference David shared: GVGD wordmark + tagline, a bordered feature grid with real site capabilities (Live Game Predictor, Live Fan Chat, Recruiting Central, Daily Trivia & Polls — all backed by real tables: `pregame_predictions`/`drive_predictions`/`game_leaderboard`, `chat_messages`, `recruiting_class_rankings`/`scraped_articles`, `trivia_questions`/`daily_polls`), closing with a real season-kickoff banner (Sept 5 vs Furman, from `live_games`). Went through one revision (initial draft cited a specific real forum thread + video with a "what's happening" framing; David redirected toward capability marketing — "tell people what they can do," not "show what we have" — landing on this feature-grid format).
+- Canvas: https://claude.ai/code/artifact/2eeb1147-a117-4ae1-a03f-4e04224e7bfd
+- Status: example only — not a real week's draft, no PR
+- **Template locked 2026-09-02**: David confirmed each real Monday post should be a variation of this — rotating which 2-4 real features are shown and varying the top graphic/accent band. Saved at `.claude/agents/templates/monday-website-highlight-template.dc.html`; `marketing-agent.md`'s Monday entry now points at it.
