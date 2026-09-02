@@ -51,6 +51,35 @@ instead:
   doesn't support — say what the data shows and what it's consistent
   with, not a definitive verdict.
 
+## Site engagement data (separate from Cloudflare — query these directly)
+
+These come straight from the app's own tables for the same
+`period_start`..`period_end` window, via `mcp__Supabase__execute_sql` —
+nothing to do with Cloudflare or the snapshot table. Verified column
+names (don't assume — a near-identical table elsewhere in this schema
+uses a different column, e.g. `user_poll_responses.responded_at` is NOT
+called `created_at`):
+
+- **New user signups**: `profiles` — `count(*) where created_at::date
+  between period_start and period_end`.
+- **Trivia taken by day**: `user_trivia_responses` — has a `trivia_date`
+  (date, not timestamp) column already — `select trivia_date, count(*)
+  ... group by trivia_date order by trivia_date` for the window.
+- **Daily polls taken by day**: `user_poll_responses` — timestamp column
+  is `responded_at`, not `created_at` — `select responded_at::date as
+  day, count(*) ... group by day order by day` for the window.
+- **Pre-game predictions made**: `pregame_predictions` — `count(*) where
+  submitted_at::date between period_start and period_end`.
+- **Live game predictor participants**: `drive_predictions` —
+  `count(distinct user_id) where submitted_at::date between period_start
+  and period_end`. This is *participants* (distinct people), not total
+  picks — if you also want to mention total picks submitted, say so
+  separately and don't conflate the two numbers.
+
+If a query returns 0 for something, report the 0 — don't omit the line
+or explain it away unless you have a real reason from the data (e.g. no
+live game happened that week, which you can confirm via `live_games`).
+
 ## Report format
 
 Append to `analytics-reports.md` (create if missing):
@@ -69,6 +98,13 @@ Append to `analytics-reports.md` (create if missing):
   bot-driven, with the specific numbers that led you there}
 - Status codes: {brief, e.g. "mostly 200s, N 4xx, N 5xx" -- flag if 4xx/5xx
   looks elevated}
+
+**Site engagement**
+- New user signups: N
+- Trivia taken by day: {Mon N, Tue N, ...} — total N
+- Daily polls taken by day: {Mon N, Tue N, ...} — total N
+- Pre-game predictions made: N
+- Live game predictor participants: N
 ```
 
 Keep it to that shape — this is a report a person reads in under a
@@ -85,20 +121,21 @@ say that plainly instead of writing a report around empty data.
    week") — but only when both weeks have genuinely comparable data
    (don't compare against a week that was mostly pre-launch or had a
    known anomaly, without saying so).
-2. Write the report per the format above.
-3. Commit `analytics-reports.md` on a new branch (e.g.
+2. Query the five site-engagement numbers above for the same window.
+3. Write the report per the format above.
+4. Commit `analytics-reports.md` on a new branch (e.g.
    `analytics/YYYY-MM-DD`), push, and open a PR to `main` titled
    "Analytics report — {period_start} to {period_end}". Do NOT merge it
    yourself — leave it open for David. Direct pushes to `main` are
    blocked in this repo, so always go through a branch + PR.
-4. Reply with a short summary: the headline numbers and your traffic-
+5. Reply with a short summary: the headline numbers and your traffic-
    quality read, not the full report text.
 
 ## Guardrails
 
-- Every number in the report must come directly from the snapshot row —
-  never estimate or round for effect, and never fabricate a comparison
-  week that doesn't exist in the table.
+- Every number in the report must come directly from the snapshot row or
+  a real query against the tables listed above — never estimate or round
+  for effect, and never fabricate a comparison week that doesn't exist.
 - Don't editorialize beyond what `total_page_views`, `status_breakdown`,
   and `daily_breakdown` actually support — "consistent with bot traffic"
   is a defensible read; "this was an attack" is not, unless `threats` is
