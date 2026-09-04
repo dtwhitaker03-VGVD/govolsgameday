@@ -253,24 +253,36 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
   }
 
   // Fetch existing drive_windows for this game so we know what's already
-  // open/resolved and don't clobber resolved history.
+  // open/resolved and don't clobber resolved history. Matched by
+  // cfbd_drive_id, NOT by drive_number/array position — drive_number is
+  // just a locally-assigned sequence number (UNIQUE per game), and the
+  // Admin Dashboard's manual-control panel assigns its own drive_number
+  // sequence (starting at 1, with cfbd_drive_id left NULL) independent of
+  // CFBD's real drives. If this matched by position instead, flipping
+  // manual_control off after any manual drives had been stepped through
+  // would collide with those leftover rows — the real drive 1/2/3 from
+  // CFBD would find drive_number 1/2/3 already taken and 'resolved' from
+  // manual testing, and silently never get opened or settled.
   const { data: existingWindows } = await supabase
     .from("drive_windows")
-    .select("drive_number, status, actual_outcome")
+    .select("drive_number, cfbd_drive_id, status, actual_outcome")
     .eq("game_id", game.id);
 
-  const windowByNumber = new Map(
-    (existingWindows ?? []).map((w) => [w.drive_number, w])
+  const windowByCfbdId = new Map(
+    (existingWindows ?? [])
+      .filter((w) => w.cfbd_drive_id)
+      .map((w) => [w.cfbd_drive_id as string, w])
   );
+  let nextDriveNumber =
+    Math.max(0, ...(existingWindows ?? []).map((w) => w.drive_number)) + 1;
 
   let opened = 0;
   let settled = 0;
   const settleErrors: string[] = [];
 
-  for (let i = 0; i < live.drives.length; i++) {
-    const drive = live.drives[i];
-    const driveNumber = i + 1; // stable 1-based index into CFBD's append-only drives array
-    const existing = windowByNumber.get(driveNumber);
+  for (const drive of live.drives) {
+    const existing = windowByCfbdId.get(drive.id);
+    const driveNumber = existing ? existing.drive_number : nextDriveNumber;
     const hasResult = !!drive.result;
     const lastPlay = drive.plays[drive.plays.length - 1];
 
@@ -300,6 +312,7 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
         p_cfbd_drive_id: drive.id,
       });
       if (!error) opened++;
+      if (!existing) nextDriveNumber = driveNumber + 1;
     } else if (!existing || existing.status !== "resolved") {
       // Drive already ended by the time we saw it (possible if a poll is
       // missed) — open its window with the drive's starting situation
@@ -316,6 +329,7 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
           p_distance: 10,
           p_cfbd_drive_id: drive.id,
         });
+        nextDriveNumber = driveNumber + 1;
       }
 
       const outcome = mapDriveResult(drive.result);
