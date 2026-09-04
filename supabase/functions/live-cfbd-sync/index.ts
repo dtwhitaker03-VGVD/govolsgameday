@@ -111,10 +111,10 @@ interface LiveGame {
   drives: LiveGameDrive[];
 }
 
-// Rushing/passing yards come straight from each play's rushPass classification
-// (verified live: CFBD tags sacks as "pass" and turnover-return plays as
-// "rush" regardless of the original play type — a known CFBD quirk, not
-// something this function tries to correct). Turnovers count drives whose
+// Rushing/passing yards come from each play's rushPass classification, with
+// one override: CFBD tags sacks (playType "Sack") as rushPass "pass", but
+// ESPN's convention (matched here) charges sack yardage to rushing since the
+// play never leaves the backfield as a throw. Turnovers count drives whose
 // result mentions a fumble or interception, charged to that drive's
 // offense. Timeouts remaining resets each half (periods 1-2 vs 3-4+) since
 // NCAA timeouts don't carry over — OT periods are lumped into "half 2" as a
@@ -140,7 +140,8 @@ function computeTeamStats(live: LiveGame, teamName: string): TeamStats {
   for (const drive of live.drives) {
     for (const play of drive.plays) {
       if (play.team !== teamName) continue;
-      if (play.rushPass === "rush") rushingYards += play.yardsGained ?? 0;
+      if (play.playType === "Sack") rushingYards += play.yardsGained ?? 0;
+      else if (play.rushPass === "rush") rushingYards += play.yardsGained ?? 0;
       else if (play.rushPass === "pass") passingYards += play.yardsGained ?? 0;
       if (play.playType === "Timeout" && halfOf(play.period) === currentHalf) {
         timeoutsUsedThisHalf++;
