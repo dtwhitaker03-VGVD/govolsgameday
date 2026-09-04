@@ -12,6 +12,15 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // Reuses the existing open_drive_window/settle_drive_outcome RPCs so the
 // odds math and scoring pipeline are untouched — this only replaces the
 // manual admin data entry with real CFBD data.
+//
+// manual_control only gates the DRIVE predictor (open_drive_window /
+// settle_drive_outcome) — an admin driving drives by hand from the Admin
+// Dashboard needs this poller to back off so the two never race each
+// other for the same drive. The scoreboard fields on live_games (score,
+// quarter, clock, possession, down/distance, yards, turnovers, timeouts)
+// are a different concern with no such conflict, so they sync from CFBD
+// unconditionally, manual_control or not — an admin test game still gets
+// a real, live-updating scoreboard.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -161,12 +170,6 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
   if (game.status === "final" || game.status === "calculated") {
     return { game_id: game.id, ok: true, skipped: `status is ${game.status}` };
   }
-  if (game.manual_control) {
-    // An admin is manually driving this game's drive windows from the Admin
-    // Dashboard — back off entirely so this poller never races open_drive_window
-    // / settle_drive_outcome against a manual call for the same drive.
-    return { game_id: game.id, ok: true, skipped: "manual control active" };
-  }
 
   const res = await fetch(
     `https://api.collegefootballdata.com/live/plays?gameId=${game.cfbd_game_id}`,
@@ -203,6 +206,9 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
   const homeStats = computeTeamStats(live, homeTeam?.team ?? "");
   const awayStats = computeTeamStats(live, awayTeam?.team ?? "");
 
+  // Scoreboard sync — always runs, manual_control or not. This is the real
+  // live scoreboard (Live Game Stats on the main page); it has no overlap
+  // with the drive predictor's manual controls below.
   await supabase
     .from("live_games")
     .update({
@@ -228,6 +234,22 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
       updated_at: new Date().toISOString(),
     })
     .eq("id", game.id);
+
+  if (game.manual_control) {
+    // An admin is manually driving this game's drive windows from the
+    // Admin Dashboard — back off the drive predictor entirely so this
+    // poller never races open_drive_window / settle_drive_outcome
+    // against a manual call for the same drive. The scoreboard sync
+    // above already ran regardless.
+    return {
+      game_id: game.id,
+      ok: true,
+      status: newStatus,
+      homeScore,
+      awayScore,
+      driveSyncSkipped: "manual control active",
+    };
+  }
 
   // Fetch existing drive_windows for this game so we know what's already
   // open/resolved and don't clobber resolved history.
