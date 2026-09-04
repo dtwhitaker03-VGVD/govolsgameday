@@ -40,6 +40,14 @@ interface SourceDef {
   maxPerSection?: number;
 }
 
+// All For Tennessee (6 sections), Rocky Top Talk (4 sections), and the
+// general label-tagged "On3 Tennessee" feed were dropped here — each cost a
+// Firecrawl list-page scrape every run for essentially no yield (3, 13, and
+// 4 articles ever ingested, respectively, per scraped_articles). Cutting
+// them removes 11 of the 22 section/feed scrapes per run without losing any
+// source that was actually contributing. On3's football-recruiting-specific
+// feed (below) is unrelated to the general On3 source and stays — it's a
+// real contributor.
 const SOURCES: SourceDef[] = [
   // ── VolsWire — per-sport URLs ──────────────────────────────────────────────
   {
@@ -67,21 +75,6 @@ const SOURCES: SourceDef[] = [
     maxPerSection: 3,
   },
 
-  // ── AllForTennessee — per-sport URLs including recruiting sub-pages ──────────
-  {
-    source_name: "All For Tennessee",
-    tag_method: "url",
-    sections: [
-      { url: "https://allfortennessee.com/vols-football/",                            sport_category: "football" },
-      { url: "https://allfortennessee.com/vols-basketball/",                           sport_category: "basketball" },
-      { url: "https://allfortennessee.com/vols-basketball/vols-womens-basketball/",    sport_category: "lv-basketball" },
-      { url: "https://allfortennessee.com/vols-baseball/",                             sport_category: "baseball" },
-      { url: "https://allfortennessee.com/vols-football/vols-football-recruiting/",    sport_category: "football-recruiting" },
-      { url: "https://allfortennessee.com/vols-basketball/vols-basketball-recruiting/", sport_category: "basketball-recruiting" },
-    ],
-    maxPerSection: 3,
-  },
-
   // ── Rocky Top Insider — /category/[sport]/ URLs ──────────────────────────────
   // football, basketball, baseball confirmed. lady-vols category page exists but
   // returned empty content, so we skip it and rely on other sources for lady-vols.
@@ -96,42 +89,7 @@ const SOURCES: SourceDef[] = [
     maxPerSection: 3,
   },
 
-  // ── Rocky Top Talk — per-sport URLs (verified patterns) ──────────────────────
-  {
-    source_name: "Rocky Top Talk",
-    tag_method: "url",
-    sections: [
-      { url: "https://www.rockytoptalk.com/tennessee_volunteer_football",  sport_category: "football" },
-      { url: "https://www.rockytoptalk.com/basketball",                     sport_category: "basketball" },
-      { url: "https://www.rockytoptalk.com/tennessee-volunteers-baseball",  sport_category: "baseball" },
-      { url: "https://www.rockytoptalk.com/lady_vols_basketball",           sport_category: "lv-basketball" },
-    ],
-    maxPerSection: 3,
-  },
-
-  // ── On3 Tennessee — single feed, label-based tagging ─────────────────────────
-  // Each article has a visible label like "Volquest Basketball" or "Volquest Football"
-  {
-    source_name: "On3 Tennessee",
-    tag_method: "label",
-    feed_url: "https://on3.com/teams/tennessee-volunteers/news/",
-    maxPerSection: 5,
-    labelToSport: (label: string): SportCategory | null => {
-      const lower = label.toLowerCase();
-      if (lower.includes("football")) return "football";
-      if (lower.includes("baseball")) return "baseball";
-      if (lower.includes("basketball") || lower.includes("wbb") || lower.includes("womens basketball")) return "basketball";
-      if (lower.includes("softball")) return "lv-softball";
-      // On3 doesn't clearly separate Lady Vols basketball from men's in labels,
-      // so "basketball" defaults to men's. Only return if we got a match.
-      return null;
-    },
-  },
-
   // ── On3 Tennessee Football Recruiting — dedicated category page ─────────────
-  // On3's own football-recruiting category feed, separate from the general
-  // "On3 Tennessee" label-tagged source above (which only catches articles
-  // whose visible label happens to say "football"/"recruiting" explicitly).
   {
     source_name: "On3 Tennessee Recruiting",
     tag_method: "url",
@@ -172,9 +130,11 @@ function normalizeUrl(url: string): string {
 
 // ─── Firecrawl helpers ────────────────────────────────────────────────────────
 
-// Firecrawl free plan: ~20 req/min. We track requests and throttle to stay under the limit.
+// Firecrawl free plan: 10 req/min (confirmed live — a run at 18/min hit real
+// 429s: "Consumed (req/min): 13, Remaining (req/min): 0"). We track requests
+// and throttle to stay safely under the real limit.
 let firecrawlRequestCount = 0;
-const FIRECRAWL_RATE_LIMIT = 18; // leave headroom under 20
+const FIRECRAWL_RATE_LIMIT = 8; // leave headroom under the confirmed 10/min cap
 const FIRECRAWL_RATE_WINDOW_MS = 60_000;
 const requestTimestamps: number[] = [];
 
