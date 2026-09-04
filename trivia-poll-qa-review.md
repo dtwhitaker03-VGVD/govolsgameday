@@ -115,3 +115,56 @@
 
 None of the above changes any of the 15 pending fixes from the run above — they're still outstanding and unapplied. No new issues were found in this pass. Sources checked: Baseball America, UTSports.com, Wikipedia (Tennessee women's swimming and diving; 2022 Tennessee Volunteers baseball team), MLB.com/press release on the 2024 draft, ESPN/Forbes on Catchings' retirement stats, and 247Sports on Neyland Stadium attendance.
 **Status:** ⏳ pending review — all outstanding items above remain unresolved pending David's action
+
+## 2026-09-03 — run summary
+- Checked: trivia 2026-09-03 to 2026-09-06 (20 rows, 5 slots × 4 days), polls 2026-09-03 to 2026-09-06 (3 rows found — 09-04 still has no poll scheduled)
+- Issues found: 4 new
+- Also logged: 6 items resolved by David's own direct edits since the last run (all on 2026-09-03), and 4 previously-logged items on 2026-09-04 confirmed still open/unresolved (untouched by David)
+- Note: David reviewed/edited 2026-09-03 directly in conversation (not via this subagent) since the 2026-09-01 log — slot 1's old True/False content was fully replaced, slots shifted (old slot 2→1, old slot 3→2, old slot 4→3 with difficulty bumped to medium, old slot 5→4), a brand-new slot 5 question was added (Tennessee's football record vs. Florida, hard), and the poll's content changed. See "Resolved" section below for how each previously-flagged row now reads.
+
+### Resolved since 2026-09-01 log (David's direct edits, all on 2026-09-03)
+- **trivia `c3440429-4c63-4822-9a1b-3862f99a6b99`** (now slot 1, easy, Vol Baseball History) — previously the broken True/False "fans banned from home games" question. Content fully replaced with a clean, well-formed question about Tony Vitello's 2017 hiring (correct answer C "Tony Vitello"; distractors are real Tennessee-connected coaches — Rick Barnes, Josh Heupel, and Vitello's own predecessor Dave Serrano). **Resolved.**
+- **trivia `08ef515f-a19d-4f15-8649-f4e91a2fd7f7`** (now slot 2, medium, SEC Knowledge) — previously had a meta-commentary parenthetical on option B ("Texas (only joined in 2024)") and a "Not applicable" distractor. Both removed; now 4 clean SEC team names (Florida/Texas/Auburn/Vanderbilt), correct answer A "Florida." **Resolved** (minor residual note: "most prominent modern rival" is a defensible-but-subjective call, not a hard fact — not re-flagging, same caveat noted for this row previously).
+- **trivia `eb401166-d09e-4b28-ba38-50f1638ef6e8`** (now slot 3, difficulty bumped to medium, Lady Vols History) — previously had the absurd distractor "Over 20,000" career WNBA points. Replaced with "Around 3,000," a plausible-range number; other options (Under 500 / Exactly 1,000) also read as a reasonable numeric spread. Correct answer "Over 7,000" independently re-confirmed accurate (Catchings retired in 2016 with 7,380 career WNBA points). **Resolved.**
+- **trivia `c96fb2b7-71a2-495e-82d7-974fae105077`** (now slot 4, hard, Vol Football History) — previously had wildly implausible distractors ("Exactly capacity every game with no exceptions," "Below 30,000"). Replaced with closer, more plausible figures ("Above 100,000 every season without exception," "Below 50,000 during the program's low point"). **Substantially resolved** — not re-flagging, but option A ("...every season without exception," against a ~101,915 stadium capacity) is still on the extreme side; worth a further tighten in a future pass, low priority.
+- **trivia `0b2025d6-3a47-40a3-a97d-6d114c551d61`** (new row, slot 5, hard, Vol Football History) — "What's Tennessee's overall record vs. Florida in football?" correct answer B "23-32." **Independently verified** via web search (ESPN game recap, Winsipedia): after Tennessee's 31-11 win on Nov 22, 2025, Florida leads the all-time series 32-23 — i.e., Tennessee's record is 23-32. Confirmed accurate; matches the orchestrating session's prior verification.
+- **daily_polls `6bf49882-bfbd-4833-83b5-7ad766b0a293`** (2026-09-03) — previously "best nickname" poll with 3 overlapping synonyms (Volunteers/Vols/Big Orange) plus one non-parallel boast option. Replaced entirely with "What's the best Tennessee football gameday tradition?" (Running through the T / The Vol Navy / The Rocky Top singalong / The Vol Walk) — four genuinely distinct, non-overlapping, unbiased options. **Resolved.**
+
+### trivia_questions.0d245c5d-d1d2-45c6-8f0b-db69836e9033 — 2026-09-05 / slot 2 — meta-commentary in option text (giveaway)
+**Current:** Q: "Which Tennessee coach's teams were especially known for elite defensive rankings nationally during his tenure?" A "Bruce Pearl, known more for offense and energy", B "Don DeVoe", C "Ray Mears", D "Rick Barnes" (correct)
+**Suggested fix:** Remove the parenthetical/descriptive clause from option A — it should just read "Bruce Pearl" with no editorial aside explaining why it's wrong.
+**Reason:** §32 prohibits meta-commentary bleeding into question/option text. Option A currently tells the test-taker why it's the wrong answer, which is a giveaway — same defect previously flagged in `f422496d` (2026-09-02) and the old `08ef515f` (2026-09-03, now fixed).
+**Status:** ⏳ pending review
+
+### trivia_questions.c0dc66dd-0241-4fec-b597-eba580e35f36 — 2026-09-05 / slot 3 — factual accuracy: presents a debunked myth as established fact
+**Current:** "Tennessee's checkerboard end zone design was inspired by the clock tower atop which campus building?" A "The Hill", B "Estabrook Hall", C "Ayres Hall" (correct), D "Circle Park"
+**Suggested fix:** Replace this question with a different, verified Tennessee-tradition fact, or at minimum reframe it as "According to a popular (but disputed) legend..." rather than stating the Ayres Hall connection as settled fact. Not proposing a specific replacement fact myself this run, per guardrails — recommend the content team source one.
+**Reason:** Verified via search: the University of Tennessee's own Volopedia project has an entry titled "Myth—Checkerboard end zones were adopted to mirror the checkerboard design on Ayres Hall," citing a 2007 ESPN.com interview in which coach Doug Dickey stated he got the checkerboard idea from a magazine ad, not from Ayres Hall's tower. This is a widely repeated but debunked legend, not a confirmed fact. Secondary, lower-priority note: 2 of 4 options ("The Hill", "Circle Park") aren't campus buildings at all, which is mildly self-eliminating.
+**Status:** ⏳ pending review — factual defect confirmed via search (UT Volopedia + ESPN.com Dickey quote); flagged as uncertain only on the best replacement question
+
+### trivia_questions.ee9c3e59-33da-4d60-b692-1c56001a34e7 — 2026-09-05 / slot 4 — factual accuracy: wrong seed number in question premise
+**Current:** "To reach the 2010 Elite Eight, Tennessee upset which #1 seed in the Sweet 16, winning 76-73?" A "Ohio State" (correct), B "Kansas", C "Duke", D "North Carolina"
+**Suggested fix:** Change "#1 seed" to "#2 seed" in the question text. Option A "Ohio State" and the 76-73 score are both accurate — only the seed number claim is wrong.
+**Reason:** Verified via search: #6-seeded Tennessee beat #2-seeded Ohio State 76-73 in the 2010 Sweet 16. That year's #1 overall seed, Kansas, was eliminated two rounds earlier (round of 32) by #9 Northern Iowa and never reached the Sweet 16 — so as written, the question's own premise is factually wrong even though the named team and score are correct.
+**Status:** ⏳ pending review
+
+### trivia_questions.024a94ee-08c9-41a8-848a-a78b853ffd05 — 2026-09-06 / slot 4 — distractors aren't real answers to the question asked
+**Current:** "Which Tennessee player's breakout sophomore season, in 2018-19, coincided with the program's first #1 ranking?" A "Sophomores are ineligible", B "No sophomore has ever started for Tennessee", C "Grant Williams' sophomore breakout coincided with the team's rise to #1" (correct), D "Only seniors play meaningful minutes"
+**Suggested fix:** Replace A/B/D with real Tennessee player names from that 2018-19 roster (e.g. "Admiral Schofield", "Jordan Bone", "Lamonte Turner") so all four options are answers of the same type as the correct answer.
+**Reason:** Same defect previously flagged in `4979dbc9` (2026-09-01 slot 1) and `46c0072f` (2026-09-04 slot 4, still open): three of four options are absurd meta-claims about eligibility/rules rather than player names, so they can be eliminated on format alone with zero basketball knowledge — §32 "distractors aren't self-eliminating." Underlying fact (Grant Williams, 2018-19, Tennessee's first #1 ranking) checks out and is not in question.
+**Status:** ⏳ pending review
+
+### General note — minor thematic/difficulty observations (informational only, no fix proposed)
+- 2026-09-03 slots 4 & 5 are both categorized "Vol Football History" on the same day — different facts (attendance vs. Florida series record), not a duplicate; just a same-day category repeat.
+- 2026-09-06 slots 2 & 4 both center on the 2018-19 Grant Williams-era team (a specific game result vs. a season narrative) — distinct facts, not a duplicate, consistent with how this pattern was judged in the 2026-09-01 log for the two 1998-season questions.
+- 2026-09-06 slot 2 (`95da837e`, Purdue OT loss / Grant Williams team-high): independently verified accurate — Grant Williams scored a team-high 21 points, Purdue won 99-94 in overtime.
+- 2026-09-06 slot 5 (`9d6f33a0`, Todd Helton jersey numbers): independently verified accurate — Colorado retired Helton's #17 on Aug 17, 2014; Tennessee retired his #3 on Jan 30, 2008.
+- 2026-09-05 slot 5 (SEC Championship Game location = Atlanta) is common knowledge for a "hard" slot; consider swapping for a more obscure hard-tier fact in a future pass. Low priority.
+**Status:** informational only, no fix required
+
+### Still open from prior run — 2026-09-04 (untouched by David since 2026-09-01 log)
+- **trivia `4bc04229-6623-49ac-b38e-e59e02e42f35`** (slot 3) — broken True/False structure. Still open, unresolved.
+- **trivia `46c0072f-5a1e-4e13-ba19-43b2107b3887`** (slot 4) — vague yes/no non-question, not a real trivia question; recommended full replacement. Still open, unresolved.
+- **trivia `cd05c1e9-d39b-40c6-ae80-da2df2e7db5e`** (slot 5) — weak "Not applicable" distractor, low priority. Still open, unresolved.
+- **daily_polls** — no row scheduled for `active_date = '2026-09-04'`. Scheduling gap still open, unresolved.
+**Status:** ⏳ pending review — carried forward unchanged from the 2026-09-01 log, re-confirmed present in this run's query results
