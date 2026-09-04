@@ -811,6 +811,7 @@ interface GamePropRow {
   id: string;
   description: string;
   line: number;
+  sort_order: number;
   actual_value: number | null;
   actual_result: string | null;
 }
@@ -821,6 +822,9 @@ function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
   const [newDescription, setNewDescription] = useState('');
   const [newLine, setNewLine] = useState('');
   const [gradeInputs, setGradeInputs] = useState<Record<string, string>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDescription, setEditDescription] = useState('');
+  const [editLine, setEditLine] = useState('');
   const [status, setStatus] = useState<OpStatus>('idle');
   const [msg, setMsg] = useState('');
 
@@ -832,7 +836,7 @@ function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
   function fetchProps(id: string) {
     supabase
       .from('game_props')
-      .select('id, description, line, actual_value, actual_result')
+      .select('id, description, line, sort_order, actual_value, actual_result')
       .eq('game_id', id)
       .order('sort_order', { ascending: true })
       .then(({ data }) => setProps((data as GamePropRow[]) ?? []));
@@ -868,6 +872,31 @@ function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
     else { setStatus('idle'); fetchProps(gameId); }
   }
 
+  function startEdit(p: GamePropRow) {
+    setEditingId(p.id);
+    setEditDescription(p.description);
+    setEditLine(String(p.line));
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditDescription('');
+    setEditLine('');
+  }
+
+  async function saveEdit(p: GamePropRow) {
+    if (!editDescription.trim() || !editLine) return;
+    setStatus('loading');
+    const { error } = await supabase.rpc('admin_upsert_game_prop', {
+      p_id: p.id,
+      p_description: editDescription.trim(),
+      p_line: parseFloat(editLine),
+      p_sort_order: p.sort_order,
+    });
+    if (error) { setStatus('error'); setMsg(error.message); }
+    else { setStatus('idle'); cancelEdit(); fetchProps(gameId); }
+  }
+
   async function gradeProp(id: string) {
     const val = gradeInputs[id];
     if (!val) return;
@@ -891,36 +920,76 @@ function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
               <div className="border border-white/10 rounded-lg overflow-hidden">
                 {props.map(p => (
                   <div key={p.id} className="flex items-center justify-between gap-2 px-3 py-2 border-b border-white/[0.05] last:border-0">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-white/85 truncate">{p.description} <span className="text-white/40">(O/U {p.line})</span></p>
-                      {p.actual_result ? (
-                        <p className="text-[10px] text-vgd-orange mt-0.5">
-                          Graded: {p.actual_value} — {p.actual_result.toUpperCase()}
-                        </p>
-                      ) : (
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <input
-                            type="number" placeholder="Actual value" value={gradeInputs[p.id] ?? ''}
-                            onChange={e => setGradeInputs(prev => ({ ...prev, [p.id]: e.target.value }))}
-                            className="w-24 bg-vgd-bg border border-white/10 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-vgd-orange/50"
-                          />
-                          <button
-                            onClick={() => gradeProp(p.id)}
-                            disabled={!gradeInputs[p.id] || status === 'loading'}
-                            className="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-vgd-orange/20 text-vgd-orange hover:bg-vgd-orange/30 disabled:opacity-40"
-                          >
-                            Grade
-                          </button>
+                    {editingId === p.id ? (
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        <input
+                          type="text" value={editDescription}
+                          onChange={e => setEditDescription(e.target.value)}
+                          placeholder="Description"
+                          className="flex-1 min-w-0 bg-vgd-bg border border-white/10 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-vgd-orange/50"
+                        />
+                        <input
+                          type="number" value={editLine}
+                          onChange={e => setEditLine(e.target.value)}
+                          placeholder="Line"
+                          className="w-16 flex-shrink-0 bg-vgd-bg border border-white/10 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-vgd-orange/50"
+                        />
+                        <button
+                          onClick={() => saveEdit(p)}
+                          disabled={!editDescription.trim() || !editLine || status === 'loading'}
+                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-green-400 hover:bg-green-400/10 disabled:opacity-40"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          disabled={status === 'loading'}
+                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-white/30 hover:text-white/60 disabled:opacity-40"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-white/85 truncate">{p.description} <span className="text-white/40">(O/U {p.line})</span></p>
+                          {p.actual_result ? (
+                            <p className="text-[10px] text-vgd-orange mt-0.5">
+                              Graded: {p.actual_value} — {p.actual_result.toUpperCase()}
+                            </p>
+                          ) : (
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <input
+                                type="number" placeholder="Actual value" value={gradeInputs[p.id] ?? ''}
+                                onChange={e => setGradeInputs(prev => ({ ...prev, [p.id]: e.target.value }))}
+                                className="w-24 bg-vgd-bg border border-white/10 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-vgd-orange/50"
+                              />
+                              <button
+                                onClick={() => gradeProp(p.id)}
+                                disabled={!gradeInputs[p.id] || status === 'loading'}
+                                className="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-vgd-orange/20 text-vgd-orange hover:bg-vgd-orange/30 disabled:opacity-40"
+                              >
+                                Grade
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => deleteProp(p.id)}
-                      disabled={status === 'loading'}
-                      className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-white/30 hover:text-vgd-red disabled:opacity-40"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                        <button
+                          onClick={() => startEdit(p)}
+                          disabled={status === 'loading'}
+                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-white/30 hover:text-vgd-orange disabled:opacity-40"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => deleteProp(p.id)}
+                          disabled={status === 'loading'}
+                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-white/30 hover:text-vgd-red disabled:opacity-40"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
