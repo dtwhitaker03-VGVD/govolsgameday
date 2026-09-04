@@ -151,14 +151,14 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
 
   return (
     <DashboardCard title="LIVE GAME STATS" metadataTag={metaTag} className="w-full h-[220px] lg:h-[320px]">
-      <div className="px-3 py-1.5 flex-1 flex flex-col min-h-0 gap-1">
+      <div className="px-3 py-1.5 lg:px-4 lg:py-2 flex-1 flex flex-col min-h-0 gap-1 lg:gap-1.5">
         {/* Scoreboard strip */}
-        <div className="bg-vgd-bg rounded-lg px-2.5 py-1 flex-shrink-0">
-          <div className="flex items-center justify-between gap-2">
+        <div className="bg-vgd-bg rounded-lg px-2.5 py-1 lg:px-4 lg:py-1.5 flex-shrink-0">
+          <div className="flex items-center justify-between gap-2 lg:gap-3">
             {/* Home team */}
             <div className="flex flex-col items-center gap-0 flex-1 min-w-0">
-              <span className="text-white font-black text-xl leading-none">{tnScore}</span>
-              <span className="text-[9px] text-white/60 truncate max-w-full">{game.home_team}</span>
+              <span className="text-white font-black text-xl lg:text-4xl leading-none">{tnScore}</span>
+              <span className="text-[9px] lg:text-sm text-white/60 truncate max-w-full">{game.home_team}</span>
             </div>
 
             {/* Quarter / clock / down-distance — quarter and clock are
@@ -166,21 +166,21 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
                 they read as two distinct facts, not one run-on string.
                 Possession is folded into the down-distance line instead
                 of its own row, to keep this column to two lines. */}
-            <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
-              <div className="flex items-center gap-1">
+            <div className="flex flex-col items-center gap-0.5 lg:gap-1 flex-shrink-0">
+              <div className="flex items-center gap-1 lg:gap-1.5">
                 {isLive ? (
                   <>
-                    <span className="px-1.5 py-[1px] rounded bg-vgd-orange/15 text-vgd-orange text-[9px] font-black uppercase tracking-wide">
+                    <span className="px-1.5 py-[1px] lg:px-2 lg:py-0.5 rounded bg-vgd-orange/15 text-vgd-orange text-[9px] lg:text-sm font-black uppercase tracking-wide">
                       {quarterLabel(game.current_quarter)}
                     </span>
-                    <span className="text-white font-bold text-xs tabular-nums">{game.game_clock}</span>
+                    <span className="text-white font-bold text-xs lg:text-2xl tabular-nums">{game.game_clock}</span>
                   </>
                 ) : (
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-vgd-muted">{statusLabel}</span>
+                  <span className="text-[10px] lg:text-sm font-bold uppercase tracking-wider text-vgd-muted">{statusLabel}</span>
                 )}
               </div>
               {(downDistanceStr || (isLive && game.possession)) && (
-                <span className="text-[9px] text-white/50 font-semibold whitespace-nowrap">
+                <span className="text-[9px] lg:text-xs text-white/50 font-semibold whitespace-nowrap">
                   {isLive && game.possession && (game.possession === game.home_team ? '◀ ' : '▶ ')}
                   {downDistanceStr}
                 </span>
@@ -189,34 +189,34 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
 
             {/* Opponent */}
             <div className="flex flex-col items-center gap-0 flex-1 min-w-0">
-              <span className="text-white font-black text-xl leading-none">{oppScore}</span>
-              <span className="text-[9px] text-white/60 truncate max-w-full">{oppName}</span>
+              <span className="text-white font-black text-xl lg:text-4xl leading-none">{oppScore}</span>
+              <span className="text-[9px] lg:text-sm text-white/60 truncate max-w-full">{oppName}</span>
             </div>
           </div>
         </div>
 
         {/* Team stat rows */}
-        <div className="flex-1 min-h-0 flex flex-col">
-          <div className="grid grid-cols-[1fr_auto_1fr] text-[9px] text-vgd-muted uppercase tracking-wider pb-0.5 border-b border-white/[0.06] flex-shrink-0">
+        <div className="flex-1 min-h-0 flex flex-col lg:justify-center">
+          <div className="grid grid-cols-[1fr_auto_1fr] text-[9px] lg:text-xs text-vgd-muted uppercase tracking-wider pb-0.5 lg:pb-1 border-b border-white/[0.06] flex-shrink-0">
             <span className="text-right">{game.home_team.split(' ')[0]}</span>
-            <span className="text-center w-24">Stat</span>
+            <span className="text-center w-24 lg:w-32">Stat</span>
             <span className="text-left">{oppName.split(' ')[0]}</span>
           </div>
           {statRows.map((row) => (
             <div
               key={row.label}
-              className="grid grid-cols-[1fr_auto_1fr] items-center leading-tight py-[3px] border-b border-white/[0.04] last:border-0"
+              className="grid grid-cols-[1fr_auto_1fr] items-center leading-tight py-[3px] lg:py-1 border-b border-white/[0.04] last:border-0"
             >
               <span
-                className={`text-[11px] font-semibold text-right ${
+                className={`text-[11px] lg:text-base font-semibold text-right ${
                   row.danger && Number(row.homeVal) > 0 ? 'text-vgd-red' : 'text-white'
                 }`}
               >
                 {row.homeVal}
               </span>
-              <span className="text-[9px] text-vgd-muted w-24 text-center">{row.label}</span>
+              <span className="text-[9px] lg:text-xs text-vgd-muted w-24 lg:w-32 text-center">{row.label}</span>
               <span
-                className={`text-[11px] font-semibold text-left ${
+                className={`text-[11px] lg:text-base font-semibold text-left ${
                   row.danger && Number(row.awayVal) > 0 ? 'text-vgd-red' : 'text-white'
                 }`}
               >
