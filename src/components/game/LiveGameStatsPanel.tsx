@@ -61,10 +61,14 @@ function ordinal(n: number | null): string {
   return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
 }
 
-function yardlineStr(yardline: number | null, possession: string | null, homeTeam: string): string {
-  if (!yardline || !possession) return '';
-  const side = possession === homeTeam ? 'own' : 'opp';
-  return `${side} ${yardline}`;
+// yardline is stored as 0-100 "progress toward the opponent's goal line"
+// (see live-cfbd-sync / open_drive_window), so own-vs-opp is purely a
+// function of which half of the field it's on — not of who has the ball
+// or which team is home. <=50 is still the offense's own side; >50 is
+// past midfield, described as yards from the opponent's goal line.
+function yardlineStr(yardline: number | null): string {
+  if (yardline === null) return '';
+  return yardline <= 50 ? `own ${yardline}` : `opp ${100 - yardline}`;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -123,7 +127,7 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
 
   const downDistanceStr =
     game.down && game.distance
-      ? `${ordinal(game.down)} & ${game.distance} — ${yardlineStr(game.yardline, game.possession, game.home_team)}`
+      ? `${ordinal(game.down)} & ${game.distance} — ${yardlineStr(game.yardline)}`
       : null;
 
   const statRows: TeamStatRow[] = [
