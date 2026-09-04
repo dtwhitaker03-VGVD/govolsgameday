@@ -18,6 +18,22 @@ interface LiveGame {
   home_score: number;
   away_score: number;
   manual_control: boolean;
+  current_quarter: number | null;
+  game_clock: string | null;
+  possession: string | null;
+  down: number | null;
+  distance: number | null;
+  yardline: number | null;
+  home_total_yards: number | null;
+  away_total_yards: number | null;
+  home_rushing_yards: number | null;
+  away_rushing_yards: number | null;
+  home_passing_yards: number | null;
+  away_passing_yards: number | null;
+  home_turnovers: number | null;
+  away_turnovers: number | null;
+  home_timeouts_remaining: number | null;
+  away_timeouts_remaining: number | null;
 }
 
 type OpStatus = 'idle' | 'loading' | 'ok' | 'error';
@@ -189,6 +205,20 @@ function LiveDriveControlPanel({ games, onRefresh }: { games: LiveGame[]; onRefr
   const [opMsg, setOpMsg] = useState('');
   const [manualStatus, setManualStatus] = useState<OpStatus>('idle');
 
+  // Manual live-stats entry — the only way to populate LiveGameStatsPanel
+  // for a manual_control game, since live-cfbd-sync skips those entirely.
+  const [statsForm, setStatsForm] = useState({
+    homeScore: '0', awayScore: '0', statQuarter: '1', clock: '', possession: 'home',
+    down: '', distance: '', yardline: '',
+    homeTotalYards: '', awayTotalYards: '',
+    homeRushYards: '', awayRushYards: '',
+    homePassYards: '', awayPassYards: '',
+    homeTurnovers: '0', awayTurnovers: '0',
+    homeTimeouts: '3', awayTimeouts: '3',
+  });
+  const [statsStatus, setStatsStatus] = useState<OpStatus>('idle');
+  const [statsMsg, setStatsMsg] = useState('');
+
   const gameOptions = [{ value: '', label: 'Select game…' }, ...games.map(g => ({
     value: g.id,
     label: `${g.away_team} @ ${g.home_team} [${g.status}]`,
@@ -242,6 +272,66 @@ function LiveDriveControlPanel({ games, onRefresh }: { games: LiveGame[]; onRefr
     setLowClock(false);
     setSelectedOutcome(null);
   }, [gameId, currentDriveNumber]);
+
+  // Pre-fill the live-stats form from whatever's currently on the game row
+  // whenever a different game is selected, so editing starts from reality.
+  useEffect(() => {
+    if (!selectedGame) return;
+    setStatsForm({
+      homeScore: String(selectedGame.home_score ?? 0),
+      awayScore: String(selectedGame.away_score ?? 0),
+      statQuarter: String(selectedGame.current_quarter ?? 1),
+      clock: selectedGame.game_clock ?? '',
+      possession: selectedGame.possession === selectedGame.away_team ? 'away' : 'home',
+      down: selectedGame.down != null ? String(selectedGame.down) : '',
+      distance: selectedGame.distance != null ? String(selectedGame.distance) : '',
+      yardline: selectedGame.yardline != null ? String(selectedGame.yardline) : '',
+      homeTotalYards: selectedGame.home_total_yards != null ? String(selectedGame.home_total_yards) : '',
+      awayTotalYards: selectedGame.away_total_yards != null ? String(selectedGame.away_total_yards) : '',
+      homeRushYards: selectedGame.home_rushing_yards != null ? String(selectedGame.home_rushing_yards) : '',
+      awayRushYards: selectedGame.away_rushing_yards != null ? String(selectedGame.away_rushing_yards) : '',
+      homePassYards: selectedGame.home_passing_yards != null ? String(selectedGame.home_passing_yards) : '',
+      awayPassYards: selectedGame.away_passing_yards != null ? String(selectedGame.away_passing_yards) : '',
+      homeTurnovers: String(selectedGame.home_turnovers ?? 0),
+      awayTurnovers: String(selectedGame.away_turnovers ?? 0),
+      homeTimeouts: String(selectedGame.home_timeouts_remaining ?? 3),
+      awayTimeouts: String(selectedGame.away_timeouts_remaining ?? 3),
+    });
+  }, [selectedGame?.id]);
+
+  function setStatField(field: keyof typeof statsForm, val: string) {
+    setStatsForm(prev => ({ ...prev, [field]: val }));
+  }
+
+  async function submitLiveStats() {
+    if (!selectedGame) return;
+    setStatsStatus('loading');
+    const n = (v: string) => (v === '' ? null : parseInt(v, 10));
+    const { error } = await supabase.rpc('admin_update_game', {
+      p_game_id: selectedGame.id,
+      p_status: selectedGame.status,
+      p_home_score: n(statsForm.homeScore) ?? 0,
+      p_away_score: n(statsForm.awayScore) ?? 0,
+      p_current_quarter: n(statsForm.statQuarter),
+      p_game_clock: statsForm.clock || null,
+      p_possession: statsForm.possession === 'away' ? selectedGame.away_team : selectedGame.home_team,
+      p_down: n(statsForm.down),
+      p_distance: n(statsForm.distance),
+      p_yardline: n(statsForm.yardline),
+      p_home_total_yards: n(statsForm.homeTotalYards),
+      p_away_total_yards: n(statsForm.awayTotalYards),
+      p_home_rushing_yards: n(statsForm.homeRushYards),
+      p_away_rushing_yards: n(statsForm.awayRushYards),
+      p_home_passing_yards: n(statsForm.homePassYards),
+      p_away_passing_yards: n(statsForm.awayPassYards),
+      p_home_turnovers: n(statsForm.homeTurnovers),
+      p_away_turnovers: n(statsForm.awayTurnovers),
+      p_home_timeouts_remaining: n(statsForm.homeTimeouts),
+      p_away_timeouts_remaining: n(statsForm.awayTimeouts),
+    });
+    if (error) { setStatsStatus('error'); setStatsMsg(error.message); }
+    else { setStatsStatus('ok'); setStatsMsg('Live stats updated.'); onRefresh(); }
+  }
 
   const windowLockedAtMs = currentRow ? new Date(currentRow.window_locked_at).getTime() : 0;
   const windowStatus: 'pending' | 'active' | 'closed' = !currentRow ? 'pending' : (windowLockedAtMs > now ? 'active' : 'closed');
@@ -459,6 +549,61 @@ function LiveDriveControlPanel({ games, onRefresh }: { games: LiveGame[]; onRefr
             >
               Turn Off
             </button>
+          </div>
+        )}
+
+        {selectedGame && manualControlOn && (
+          <div className="rounded border border-white/10 p-3 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-vgd-muted">
+                Live Stats — feeds LIVE GAME STATS on the main page
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <LabelInput label={`${selectedGame.home_team} Score`} value={statsForm.homeScore} onChange={v => setStatField('homeScore', v)} type="number" />
+              <LabelInput label={`${selectedGame.away_team} Score`} value={statsForm.awayScore} onChange={v => setStatField('awayScore', v)} type="number" />
+              <LabelInput label="Quarter" value={statsForm.statQuarter} onChange={v => setStatField('statQuarter', v)} type="number" />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <LabelInput label="Clock" value={statsForm.clock} onChange={v => setStatField('clock', v)} placeholder="7:48" />
+              <SelectInput
+                label="Possession"
+                value={statsForm.possession}
+                onChange={v => setStatField('possession', v)}
+                options={[
+                  { value: 'home', label: selectedGame.home_team },
+                  { value: 'away', label: selectedGame.away_team },
+                ]}
+              />
+              <LabelInput label="Down" value={statsForm.down} onChange={v => setStatField('down', v)} type="number" />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <LabelInput label="Distance" value={statsForm.distance} onChange={v => setStatField('distance', v)} type="number" />
+              <LabelInput label="Yardline (0-100)" value={statsForm.yardline} onChange={v => setStatField('yardline', v)} type="number" placeholder="60" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/[0.06]">
+              <LabelInput label={`${selectedGame.home_team} Total Yds`} value={statsForm.homeTotalYards} onChange={v => setStatField('homeTotalYards', v)} type="number" />
+              <LabelInput label={`${selectedGame.away_team} Total Yds`} value={statsForm.awayTotalYards} onChange={v => setStatField('awayTotalYards', v)} type="number" />
+              <LabelInput label="Rush Yds" value={statsForm.homeRushYards} onChange={v => setStatField('homeRushYards', v)} type="number" />
+              <LabelInput label="Rush Yds" value={statsForm.awayRushYards} onChange={v => setStatField('awayRushYards', v)} type="number" />
+              <LabelInput label="Pass Yds" value={statsForm.homePassYards} onChange={v => setStatField('homePassYards', v)} type="number" />
+              <LabelInput label="Pass Yds" value={statsForm.awayPassYards} onChange={v => setStatField('awayPassYards', v)} type="number" />
+              <LabelInput label="Turnovers" value={statsForm.homeTurnovers} onChange={v => setStatField('homeTurnovers', v)} type="number" />
+              <LabelInput label="Turnovers" value={statsForm.awayTurnovers} onChange={v => setStatField('awayTurnovers', v)} type="number" />
+              <LabelInput label="Timeouts Left" value={statsForm.homeTimeouts} onChange={v => setStatField('homeTimeouts', v)} type="number" />
+              <LabelInput label="Timeouts Left" value={statsForm.awayTimeouts} onChange={v => setStatField('awayTimeouts', v)} type="number" />
+            </div>
+
+            <button
+              onClick={submitLiveStats}
+              disabled={statsStatus === 'loading'}
+              className="w-full py-1.5 rounded text-[10px] font-bold uppercase tracking-wider bg-vgd-orange text-white hover:bg-orange-500 transition-colors disabled:opacity-50"
+            >
+              Update Live Stats
+            </button>
+            <OpResult status={statsStatus} message={statsMsg} />
           </div>
         )}
 
@@ -1399,10 +1544,16 @@ export default function Admin() {
   async function loadGames() {
     const { data } = await supabase
       .from('live_games')
-      .select('id, cfbd_game_id, home_team, away_team, kickoff_time, status, home_score, away_score, manual_control')
+      .select(
+        'id, cfbd_game_id, home_team, away_team, kickoff_time, status, home_score, away_score, manual_control, ' +
+        'current_quarter, game_clock, possession, down, distance, yardline, ' +
+        'home_total_yards, away_total_yards, home_rushing_yards, away_rushing_yards, ' +
+        'home_passing_yards, away_passing_yards, home_turnovers, away_turnovers, ' +
+        'home_timeouts_remaining, away_timeouts_remaining'
+      )
       .order('kickoff_time', { ascending: false })
       .limit(20);
-    setGames((data ?? []) as LiveGame[]);
+    setGames((data ?? []) as unknown as LiveGame[]);
   }
 
   useEffect(() => {
