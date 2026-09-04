@@ -672,6 +672,7 @@ async function processUrlSection(
   source: SourceDef,
   section: SourceSection,
   errors: string[],
+  knownUrls: Set<string>,
 ): Promise<IngestedArticle[]> {
   const articles: IngestedArticle[] = [];
   const maxArts = source.maxPerSection ?? 10;
@@ -705,8 +706,13 @@ async function processUrlSection(
     }
   }
 
-  // Step 2: Scrape individual articles sequentially (rate-limit safe)
+  // Step 2: Scrape individual articles sequentially (rate-limit safe).
+  // Skip URLs we've already ingested on a prior run — re-scraping the same
+  // top 3-5 articles every 12 hours when only ~1 of them is genuinely new
+  // was the single biggest source of wasted Firecrawl calls (list-page
+  // scrapes still run every time, so new articles are still discovered).
   for (const cand of candidates) {
+    if (knownUrls.has(normalizeUrl(cand.url))) continue;
     try {
       const articleResult = await scrapeArticle(cand.url);
       if (!articleResult) {
@@ -751,7 +757,7 @@ async function processUrlSection(
   return articles;
 }
 
-async function processLabelSource(source: SourceDef): Promise<IngestedArticle[]> {
+async function processLabelSource(source: SourceDef, knownUrls: Set<string>): Promise<IngestedArticle[]> {
   if (!source.feed_url || !source.labelToSport) return [];
   const articles: IngestedArticle[] = [];
   const maxArts = source.maxPerSection ?? 20;
@@ -763,6 +769,7 @@ async function processLabelSource(source: SourceDef): Promise<IngestedArticle[]>
   if (candidates.length === 0) return articles;
 
   for (const cand of candidates) {
+    if (knownUrls.has(normalizeUrl(cand.url))) continue;
     try {
       const sport = source.labelToSport!(cand.title || "");
       if (!sport) continue;
@@ -798,7 +805,7 @@ async function processLabelSource(source: SourceDef): Promise<IngestedArticle[]>
   return articles;
 }
 
-async function processColumnSource(source: SourceDef): Promise<IngestedArticle[]> {
+async function processColumnSource(source: SourceDef, knownUrls: Set<string>): Promise<IngestedArticle[]> {
   if (!source.feed_url) return [];
   const articles: IngestedArticle[] = [];
   const maxArts = source.maxPerSection ?? 25;
@@ -810,6 +817,7 @@ async function processColumnSource(source: SourceDef): Promise<IngestedArticle[]
   if (candidates.length === 0) return articles;
 
   for (const cand of candidates) {
+    if (knownUrls.has(normalizeUrl(cand.url))) continue;
     try {
       if (!cand.sportBadge) continue;
       const sport = utsportsBadgeToCategory(cand.sportBadge);
@@ -862,6 +870,16 @@ Deno.serve(async (req: Request) => {
     .eq("content_type", "article");
   const blocklist = new Set((blocklistRows ?? []).map((r: { external_id: string }) => r.external_id));
 
+  // ── Load already-ingested URLs so we never spend a Firecrawl call
+  // re-scraping an article we already have. List pages still get scraped
+  // every run (that's how new articles are discovered at all), but of the
+  // 3-5 candidate articles per section, usually only ~1 is actually new —
+  // this was the dominant source of Firecrawl usage.
+  const { data: knownRows } = await supabase
+    .from("scraped_articles")
+    .select("source_url");
+  const knownUrls = new Set((knownRows ?? []).map((r: { source_url: string }) => r.source_url));
+
   const errors: string[] = [];
   let totalUpserted = 0;
 
@@ -880,7 +898,7 @@ Deno.serve(async (req: Request) => {
         // Process each per-sport section URL
         for (const section of source.sections) {
           try {
-            const sectionArts = await processUrlSection(source, section, errors);
+            const sectionArts = await processUrlSection(source, section, errors, knownUrls);
             articles.push(...sectionArts);
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
@@ -888,9 +906,9 @@ Deno.serve(async (req: Request) => {
           }
         }
       } else if (source.tag_method === "label") {
-        articles = await processLabelSource(source);
+        articles = await processLabelSource(source, knownUrls);
       } else if (source.tag_method === "column") {
-        articles = await processColumnSource(source);
+        articles = await processColumnSource(source, knownUrls);
       }
 
       if (articles.length === 0) {
