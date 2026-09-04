@@ -141,6 +141,8 @@ export function LiveDrivePrediction({ game }: Props) {
     outcome: DriveOutcome;
     correct: boolean;
     pts: number;
+    base: number;
+    multiplier: number;
   } | null>(null);
   const [driveStats, setDriveStats] = useState<DrivePickStat[] | null>(null);
   const [showMyPicks, setShowMyPicks] = useState(false);
@@ -195,7 +197,7 @@ export function LiveDrivePrediction({ game }: Props) {
             if (session) {
               supabase
                 .from('drive_predictions')
-                .select('prediction, points_earned')
+                .select('prediction, points_earned, points_possible, multiplier')
                 .eq('game_id', game.id)
                 .eq('drive_number', updated.drive_number)
                 .eq('user_id', session.user.id)
@@ -207,6 +209,8 @@ export function LiveDrivePrediction({ game }: Props) {
                       outcome: updated.actual_outcome!,
                       correct,
                       pts: data.points_earned ?? 0,
+                      base: data.points_possible ?? 0,
+                      multiplier: data.multiplier ?? 1,
                     });
                   }
                 });
@@ -372,7 +376,12 @@ export function LiveDrivePrediction({ game }: Props) {
               </span>
             </span>
             {recentResult.correct && recentResult.pts > 0 && (
-              <span className="font-black">+{recentResult.pts} pts</span>
+              <span className="text-right leading-tight">
+                <span className="block font-normal text-[9px] text-green-400/70">
+                  {recentResult.base} × {recentResult.multiplier.toFixed(2)}x
+                </span>
+                <span className="font-black">{recentResult.pts} pts</span>
+              </span>
             )}
           </div>
         )}
