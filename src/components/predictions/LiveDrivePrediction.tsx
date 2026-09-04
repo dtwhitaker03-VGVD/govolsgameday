@@ -79,19 +79,6 @@ function formatCountdown(ms: number): string {
   return `${m}:${String(s % 60).padStart(2, '0')}`;
 }
 
-function ordinal(n: number): string {
-  const s = ['th', 'st', 'nd', 'rd'];
-  const v = n % 100;
-  return n + (s[(v - 20) % 10] ?? s[v] ?? s[0]);
-}
-
-function yardlineStr(yl: number | null): string {
-  if (yl === null) return '';
-  if (yl === 50) return 'Own 50';
-  if (yl > 50) return `Opp ${100 - yl}`;
-  return `Own ${yl}`;
-}
-
 // ─── Outcome result badge ─────────────────────────────────────────────────────
 
 function OutcomeTag({ outcome, correct }: { outcome: DriveOutcome; correct: boolean | null }) {
@@ -379,25 +366,6 @@ export function LiveDrivePrediction({ game }: Props) {
           </div>
         ) : (
           <>
-            {/* Drive context bar */}
-            {(window_.quarter || window_.yardline !== null || window_.down) && (
-              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-white/50 font-medium px-1">
-                {window_.quarter && <span>Q{window_.quarter}</span>}
-                {window_.game_clock && <span>{window_.game_clock}</span>}
-                {window_.down && window_.distance && (
-                  <span>{ordinal(window_.down)} &amp; {window_.distance}</span>
-                )}
-                {window_.yardline !== null && <span>{yardlineStr(window_.yardline)}</span>}
-                {window_.score_differential !== null && (
-                  <span>{window_.score_differential > 0
-                    ? `Offense +${window_.score_differential}`
-                    : window_.score_differential < 0
-                    ? `Offense ${window_.score_differential}`
-                    : 'Tied'}</span>
-                )}
-              </div>
-            )}
-
             {/* Drive prediction prompt */}
             <p className="text-[11px] text-white/60 font-semibold uppercase tracking-wider px-1">
               Drive {window_.drive_number} — What happens?
