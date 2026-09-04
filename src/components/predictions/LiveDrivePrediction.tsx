@@ -45,6 +45,11 @@ interface MyPick {
   points_earned: number | null;
 }
 
+interface DrivePickStat {
+  prediction: DriveOutcome;
+  pick_count: number;
+}
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const OUTCOME_BUTTONS: { outcome: DriveOutcome; label: string; ptKey: keyof DriveWindow }[] = [
@@ -129,12 +134,15 @@ export function LiveDrivePrediction({ game }: Props) {
   const [secsLeft, setSecsLeft] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  // Persists until the next drive's window actually goes active (cleared
+  // alongside driveStats below, not on a timer) so it stays visible through
+  // the whole gap between drives.
   const [recentResult, setRecentResult] = useState<{
     outcome: DriveOutcome;
     correct: boolean;
     pts: number;
   } | null>(null);
-  const resultTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [driveStats, setDriveStats] = useState<DrivePickStat[] | null>(null);
   const [showMyPicks, setShowMyPicks] = useState(false);
 
   // Tracks the currently-displayed window's id outside React's render cycle
@@ -181,7 +189,9 @@ export function LiveDrivePrediction({ game }: Props) {
               }
               return prev;
             });
-            // Fetch user's pick result for this drive, then show it
+            // Fetch user's pick result for this drive, then show it —
+            // stays up until the next drive's window goes active (cleared
+            // below, not on a timer).
             if (session) {
               supabase
                 .from('drive_predictions')
@@ -193,16 +203,25 @@ export function LiveDrivePrediction({ game }: Props) {
                 .then(({ data }) => {
                   if (data) {
                     const correct = data.prediction === updated.actual_outcome;
-                    if (resultTimerRef.current) clearTimeout(resultTimerRef.current);
                     setRecentResult({
                       outcome: updated.actual_outcome!,
                       correct,
                       pts: data.points_earned ?? 0,
                     });
-                    resultTimerRef.current = setTimeout(() => setRecentResult(null), 8000);
                   }
                 });
             }
+            // Aggregate pick counts across everyone for this drive — a
+            // SECURITY DEFINER RPC, since drive_predictions' RLS only
+            // exposes each user their own rows while the game is live.
+            supabase
+              .rpc('get_drive_pick_stats', {
+                p_game_id: game.id,
+                p_drive_number: updated.drive_number,
+              })
+              .then(({ data }) => {
+                setDriveStats((data as DrivePickStat[] | null) ?? []);
+              });
             // After a short delay, try to fetch the next open window
             setTimeout(fetchLatest, 500);
             return;
@@ -211,10 +230,13 @@ export function LiveDrivePrediction({ game }: Props) {
           // Only clear the user's pick/error when this is actually a new
           // drive's window — a redundant update to the same still-open
           // window (e.g. a re-run open call) must not wipe an already
-          // submitted pick out from under the user.
+          // submitted pick out from under the user. The previous drive's
+          // result banner and pick stats stay up until exactly this point.
           if (updated.id !== windowIdRef.current) {
             setMyPick(null);
             setSubmitError('');
+            setRecentResult(null);
+            setDriveStats(null);
           }
         }
       )
@@ -222,7 +244,6 @@ export function LiveDrivePrediction({ game }: Props) {
 
     return () => {
       supabase.removeChannel(channel);
-      if (resultTimerRef.current) clearTimeout(resultTimerRef.current);
     };
   }, [game.id, session]);
 
@@ -355,6 +376,47 @@ export function LiveDrivePrediction({ game }: Props) {
             )}
           </div>
         )}
+
+        {/* Pick stats for the drive recentResult belongs to — how everyone
+            picked, aggregated server-side (RLS hides individual picks
+            while the game is live). */}
+        {recentResult && driveStats && (() => {
+          const totalPicks = driveStats.reduce((sum, s) => sum + s.pick_count, 0);
+          const correctCount = driveStats.find(s => s.prediction === recentResult.outcome)?.pick_count ?? 0;
+          const correctPct = totalPicks > 0 ? Math.round((correctCount / totalPicks) * 100) : 0;
+          const sorted = [...driveStats].sort((a, b) => b.pick_count - a.pick_count);
+          return totalPicks > 0 ? (
+            <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 space-y-1.5">
+              <p className="text-[10px] text-white/50 font-semibold uppercase tracking-wider">
+                {correctCount} of {totalPicks} correct ({correctPct}%)
+              </p>
+              <div className="space-y-1">
+                {sorted.map(s => {
+                  const pct = totalPicks > 0 ? Math.round((s.pick_count / totalPicks) * 100) : 0;
+                  const isCorrect = s.prediction === recentResult.outcome;
+                  return (
+                    <div key={s.prediction} className="flex items-center gap-2">
+                      <span className={`text-[10px] w-28 truncate ${isCorrect ? 'text-green-400 font-semibold' : 'text-white/60'}`}>
+                        {OUTCOME_BUTTONS.find(b => b.outcome === s.prediction)?.label ?? s.prediction}
+                      </span>
+                      <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${isCorrect ? 'bg-green-400' : 'bg-white/25'}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <span className={`text-[10px] w-8 text-right ${isCorrect ? 'text-green-400 font-semibold' : 'text-white/40'}`}>
+                        {pct}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <p className="text-[10px] text-white/30 text-center">No picks were made for this drive.</p>
+          );
+        })()}
 
         {/* No active window */}
         {!window_ ? (
