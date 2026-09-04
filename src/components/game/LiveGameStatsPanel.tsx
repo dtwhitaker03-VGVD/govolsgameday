@@ -151,77 +151,72 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
 
   return (
     <DashboardCard title="LIVE GAME STATS" metadataTag={metaTag} className="w-full h-[220px] lg:h-[320px]">
-      <div className="px-4 py-4 space-y-4">
+      <div className="px-3 py-1.5 flex-1 flex flex-col min-h-0 gap-1">
         {/* Scoreboard strip */}
-        <div className="bg-vgd-bg rounded-lg p-3">
+        <div className="bg-vgd-bg rounded-lg px-2.5 py-1 flex-shrink-0">
           <div className="flex items-center justify-between gap-2">
             {/* Home team */}
-            <div className="flex flex-col items-center gap-0.5 flex-1">
-              <div className="w-9 h-9 rounded-full bg-vgd-orange/20 flex items-center justify-center">
-                <span className="text-vgd-orange font-black text-xs">{game.home_team.slice(0, 2).toUpperCase()}</span>
-              </div>
-              <span className="text-white font-black text-3xl leading-none">{tnScore}</span>
-              <span className="text-xs text-white/60">{game.home_team}</span>
+            <div className="flex flex-col items-center gap-0 flex-1 min-w-0">
+              <span className="text-white font-black text-xl leading-none">{tnScore}</span>
+              <span className="text-[9px] text-white/60 truncate max-w-full">{game.home_team}</span>
             </div>
 
-            {/* Clock / status */}
-            <div className="flex flex-col items-center gap-1">
-              <span
-                className={`text-xs font-bold uppercase tracking-wider ${
-                  isLive ? 'text-vgd-orange' : 'text-vgd-muted'
-                }`}
-              >
-                {statusLabel}
-              </span>
-              {isLive && game.possession && (
-                <span className="text-[10px] text-white/40">
-                  {game.possession === game.home_team ? '◀' : '▶'} Possession
+            {/* Quarter / clock / down-distance — quarter and clock are
+                deliberately styled differently (chip vs. plain digits) so
+                they read as two distinct facts, not one run-on string.
+                Possession is folded into the down-distance line instead
+                of its own row, to keep this column to two lines. */}
+            <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+              <div className="flex items-center gap-1">
+                {isLive ? (
+                  <>
+                    <span className="px-1.5 py-[1px] rounded bg-vgd-orange/15 text-vgd-orange text-[9px] font-black uppercase tracking-wide">
+                      {quarterLabel(game.current_quarter)}
+                    </span>
+                    <span className="text-white font-bold text-xs tabular-nums">{game.game_clock}</span>
+                  </>
+                ) : (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-vgd-muted">{statusLabel}</span>
+                )}
+              </div>
+              {(downDistanceStr || (isLive && game.possession)) && (
+                <span className="text-[9px] text-white/50 font-semibold whitespace-nowrap">
+                  {isLive && game.possession && (game.possession === game.home_team ? '◀ ' : '▶ ')}
+                  {downDistanceStr}
                 </span>
               )}
             </div>
 
             {/* Opponent */}
-            <div className="flex flex-col items-center gap-0.5 flex-1">
-              <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
-                <span className="text-white/70 font-black text-xs">
-                  {oppName.slice(0, 2).toUpperCase()}
-                </span>
-              </div>
-              <span className="text-white font-black text-3xl leading-none">{oppScore}</span>
-              <span className="text-xs text-white/60">{oppName}</span>
+            <div className="flex flex-col items-center gap-0 flex-1 min-w-0">
+              <span className="text-white font-black text-xl leading-none">{oppScore}</span>
+              <span className="text-[9px] text-white/60 truncate max-w-full">{oppName}</span>
             </div>
           </div>
         </div>
 
-        {/* Down / distance */}
-        {downDistanceStr && (
-          <p className="text-center text-xs text-white/70 font-semibold">
-            {downDistanceStr}
-          </p>
-        )}
-
         {/* Team stat rows */}
-        <div className="space-y-0">
-          <div className="grid grid-cols-[1fr_auto_1fr] text-[10px] text-vgd-muted uppercase tracking-wider pb-1 border-b border-white/[0.06]">
+        <div className="flex-1 min-h-0 flex flex-col">
+          <div className="grid grid-cols-[1fr_auto_1fr] text-[9px] text-vgd-muted uppercase tracking-wider pb-0.5 border-b border-white/[0.06] flex-shrink-0">
             <span className="text-right">{game.home_team.split(' ')[0]}</span>
-            <span className="text-center w-28">Stat</span>
+            <span className="text-center w-24">Stat</span>
             <span className="text-left">{oppName.split(' ')[0]}</span>
           </div>
           {statRows.map((row) => (
             <div
               key={row.label}
-              className="grid grid-cols-[1fr_auto_1fr] items-center py-1.5 border-b border-white/[0.04] last:border-0"
+              className="grid grid-cols-[1fr_auto_1fr] items-center leading-tight py-[3px] border-b border-white/[0.04] last:border-0"
             >
               <span
-                className={`text-sm font-semibold text-right ${
+                className={`text-[11px] font-semibold text-right ${
                   row.danger && Number(row.homeVal) > 0 ? 'text-vgd-red' : 'text-white'
                 }`}
               >
                 {row.homeVal}
               </span>
-              <span className="text-[10px] text-vgd-muted w-28 text-center">{row.label}</span>
+              <span className="text-[9px] text-vgd-muted w-24 text-center">{row.label}</span>
               <span
-                className={`text-sm font-semibold text-left ${
+                className={`text-[11px] font-semibold text-left ${
                   row.danger && Number(row.awayVal) > 0 ? 'text-vgd-red' : 'text-white'
                 }`}
               >
@@ -230,10 +225,6 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
             </div>
           ))}
         </div>
-
-        <p className="text-center text-[10px] text-vgd-muted/50">
-          Full game stats • play-by-play coming in next build
-        </p>
       </div>
     </DashboardCard>
   );
