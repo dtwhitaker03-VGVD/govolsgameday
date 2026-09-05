@@ -122,6 +122,7 @@ export default function Home() {
   // resulting changes live. See supabase/functions/live-cfbd-sync.
 
   const isLive = liveGame?.status === 'live';
+  const isFinal = liveGame?.status === 'final' || liveGame?.status === 'calculated';
 
   // Fixed height for the predictor column — matches the natural height of
   // the Pregame Predictions panel (Winner/Score/Yards/TN Stat Guesses +
@@ -132,9 +133,13 @@ export default function Home() {
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* ── Layer 3: Discussion Board + Predictor Column ─────────────────────
-          The right column always shows the Pregame Predictor until the admin
-          sets the game's status to "live" on the Admin page, at which point
-          it swaps to the Live Drive Predictor + Live Game Leaderboard. */}
+          The right column shows the Pregame Predictor until the admin sets
+          the game's status to "live", at which point it swaps to the Live
+          Drive Predictor + Leaderboard. Once the game ends (final/
+          calculated), it keeps the Leaderboard up alongside the Pregame
+          Predictor's own post-game summary — a user's pregame results and
+          the game's overall (pregame + live-drive) leaderboard stay visible
+          together instead of reverting to a bare picks form. */}
       <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4 items-start">
         <DiscussionBoard
           roomCategory="main"
@@ -152,6 +157,19 @@ export default function Home() {
                 {/* Live mode: Live Drive Predictor on top, Leaderboard on bottom — split evenly */}
                 <div className="flex-1 min-h-0">
                   <LiveDrivePrediction game={liveGame} />
+                </div>
+                <div className="flex-1 min-h-0">
+                  <GameLeaderboard game={liveGame} />
+                </div>
+              </>
+            ) : isFinal && liveGame ? (
+              <>
+                {/* Final mode: this user's pregame results on top (drive-by-
+                    drive picks have no separate summary view — their total
+                    is folded into the leaderboard's PG/LG breakdown below),
+                    overall leaderboard on bottom — split evenly. */}
+                <div className="flex-1 min-h-0">
+                  <PreGamePredictions game={liveGame} />
                 </div>
                 <div className="flex-1 min-h-0">
                   <GameLeaderboard game={liveGame} />
