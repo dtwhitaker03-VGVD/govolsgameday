@@ -155,8 +155,20 @@ export function LiveDrivePrediction({ game }: Props) {
   const windowIdRef = useRef<string | null>(null);
   useEffect(() => { windowIdRef.current = window_?.id ?? null; }, [window_?.id]);
 
+  // Tracks the highest drive_number whose 'resolved' result is currently
+  // being shown, so an admin correcting an OLDER, already-superseded drive
+  // (e.g. via correct_drive_outcome) doesn't clobber the on-screen result
+  // for a later drive the user has already moved past — that correction's
+  // own drive_windows/drive_predictions update still lands in the DB, it
+  // just shouldn't re-flash on screen as if it were the newest thing that
+  // happened. A correction to the CURRENT latest drive still refreshes the
+  // display, since that one really is the most recent result.
+  const lastResolvedDriveNumberRef = useRef<number | null>(null);
+
   // ── Subscribe to latest open/locked drive window for this game ──────────────
   useEffect(() => {
+    lastResolvedDriveNumberRef.current = null;
+
     async function fetchLatest() {
       const { data } = await supabase
         .from('drive_windows')
@@ -184,6 +196,16 @@ export function LiveDrivePrediction({ game }: Props) {
         (payload) => {
           const updated = payload.new as DriveWindow;
           if (updated.status === 'resolved') {
+            // A correction to a drive OLDER than the latest one already
+            // shown must not clobber that later, still-current result —
+            // see lastResolvedDriveNumberRef above.
+            if (
+              lastResolvedDriveNumberRef.current !== null &&
+              updated.drive_number < lastResolvedDriveNumberRef.current
+            ) {
+              return;
+            }
+            lastResolvedDriveNumberRef.current = updated.drive_number;
             // Show result briefly if user had a pick, then clear
             setWindow(prev => {
               if (prev?.id === updated.id) {
