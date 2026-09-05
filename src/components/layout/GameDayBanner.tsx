@@ -14,6 +14,19 @@ function daysAgoInET(dateStr: string): number {
   return Math.round((dateOnly(new Date()) - dateOnly(new Date(dateStr))) / 86400000);
 }
 
+// How long a 'pregame' game still counts as "current" after its own kickoff
+// time passes — covers the real gap between actual kickoff and live-cfbd-sync
+// detecting the game as live via CFBD (which only starts polling every 15s in
+// the hour before kickoff, and needs CFBD's /live/plays feed to actually
+// report data). Without this, a game sitting in 'pregame' for even a couple
+// minutes past its own kickoff drops out of the "upcoming" filter (kickoff no
+// longer >= now) while not yet qualifying as 'live' either, so the picker
+// falls through to the NEXT scheduled game — the banner appears to skip the
+// game that's actually about to start. Long enough to cover a full game plus
+// startup delay margin; a game still stuck in 'pregame' after that is a
+// system_health issue, not something to keep showing as "current" forever.
+const KICKOFF_PASSED_GRACE_MS = 4 * 60 * 60 * 1000;
+
 /**
  * Picks the game the banner should show: live first, else the soonest
  * upcoming game, else a game that finished today or yesterday (ET) — so a
@@ -26,7 +39,11 @@ function pickBannerGame(games: LiveGame[]): LiveGame | null {
 
   const now = Date.now();
   const upcoming = games
-    .filter((g) => g.status === 'pregame' && new Date(g.kickoff_time).getTime() >= now)
+    .filter((g) => {
+      if (g.status !== 'pregame') return false;
+      const kickoffMs = new Date(g.kickoff_time).getTime();
+      return kickoffMs >= now || now - kickoffMs <= KICKOFF_PASSED_GRACE_MS;
+    })
     .sort((a, b) => new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime())[0];
   if (upcoming) return upcoming;
 
