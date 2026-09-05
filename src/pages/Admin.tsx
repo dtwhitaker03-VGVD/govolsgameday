@@ -244,7 +244,15 @@ function LiveDriveControlPanel({ games, onRefresh }: { games: LiveGame[]; onRefr
         { event: '*', schema: 'public', table: 'drive_windows', filter: `game_id=eq.${gameId}` },
         () => fetchWindows(gameId)
       )
-      .subscribe();
+      // Re-sync on every (re)subscribe, not just the first one — over a
+      // multi-hour game this tab can lose its WebSocket silently (laptop
+      // sleep, a long-backgrounded tab) and reconnect later having missed
+      // deltas in between. Supabase re-fires 'SUBSCRIBED' after such a
+      // reconnect, so this catches the panel back up instead of leaving it
+      // frozen on whichever drive was current when the connection dropped.
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') fetchWindows(gameId);
+      });
     return () => { supabase.removeChannel(channel); };
   }, [gameId]);
 
@@ -358,7 +366,17 @@ function LiveDriveControlPanel({ games, onRefresh }: { games: LiveGame[]; onRefr
       p_manual_control: !selectedGame.manual_control,
     });
     if (error) { setManualStatus('error'); setOpMsg(error.message); }
-    else { setManualStatus('idle'); onRefresh(); }
+    else {
+      setManualStatus('idle');
+      onRefresh();
+      // Force a fresh read of drive_windows right when control changes hands
+      // — this is the one moment a stale/dropped Realtime subscription (a
+      // multi-hour game left open is exactly the kind of tab that can lose
+      // its WebSocket silently, e.g. laptop sleep or a long background tab)
+      // would otherwise show whatever drive was current the last time an
+      // update actually made it through, not where the game really is.
+      fetchWindows(selectedGame.id);
+    }
   }
 
   // Advances pregame -> live -> final. A manually-controlled game's status
