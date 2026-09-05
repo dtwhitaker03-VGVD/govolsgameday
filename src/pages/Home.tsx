@@ -37,6 +37,17 @@ function daysAgoInET(dateStr: string): number {
 // enough that the next game's pregame predictor still takes over same-day.
 const JUST_FINISHED_GRACE_MS = 3 * 60 * 60 * 1000;
 
+// How long a 'pregame' game still counts as "current" after its own kickoff
+// time passes — covers the real gap between actual kickoff and live-cfbd-sync
+// detecting the game as live via CFBD (which only starts polling every 15s in
+// the hour before kickoff, and needs CFBD's /live/plays feed to actually
+// report data). Without this, a game sitting in 'pregame' for even a couple
+// minutes past its own kickoff drops out of the "upcoming" filter (kickoff no
+// longer >= now) while not yet qualifying as 'live' either, so the picker
+// falls through to the NEXT scheduled game instead — the predictor column
+// appears to skip the game that's actually about to start.
+const KICKOFF_PASSED_GRACE_MS = 4 * 60 * 60 * 1000;
+
 function pickActiveGame(games: LiveGame[]): LiveGame | null {
   const live = games.find((g) => g.status === 'live');
   if (live) return live;
@@ -50,7 +61,11 @@ function pickActiveGame(games: LiveGame[]): LiveGame | null {
   if (justFinished) return justFinished;
 
   const upcoming = games
-    .filter((g) => g.status === 'pregame' && new Date(g.kickoff_time).getTime() >= now)
+    .filter((g) => {
+      if (g.status !== 'pregame') return false;
+      const kickoffMs = new Date(g.kickoff_time).getTime();
+      return kickoffMs >= now || now - kickoffMs <= KICKOFF_PASSED_GRACE_MS;
+    })
     .sort((a, b) => new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime())[0];
   if (upcoming) return upcoming;
 
