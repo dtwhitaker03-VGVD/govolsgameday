@@ -156,6 +156,70 @@ function computeTeamStats(live: LiveGame, teamName: string): TeamStats {
   return { rushingYards, passingYards, turnovers, timeoutsUsedThisHalf };
 }
 
+interface OfficialTeamStats {
+  team: string;
+  stats: { category: string; stat: string }[];
+}
+
+// /live/plays is CFBD's raw play-by-play feed, and it isn't always complete —
+// confirmed live on the 2026-09-05 TN/Furman game, where it was missing
+// several of Furman's rushing plays: computeTeamStats summed the feed to 144
+// rushing yards while CFBD's own /games/teams box-score endpoint (the same
+// one finalize-game uses) reported the authoritative 178. /games/teams
+// aggregates server-side from CFBD's full data pipeline rather than this
+// feed, so treat it as the source of truth whenever it's available and only
+// fall back to the play-by-play sum (e.g. very early in a game, before
+// CFBD's box-score aggregation has anything to report) when it isn't.
+async function fetchOfficialTeamStats(
+  apiKey: string,
+  cfbdGameId: number,
+  season: number,
+  queryTeam: string
+): Promise<OfficialTeamStats[] | null> {
+  try {
+    const res = await fetch(
+      `https://api.collegefootballdata.com/games/teams?year=${season}&team=${encodeURIComponent(queryTeam)}&gameId=${cfbdGameId}`,
+      { headers: { Authorization: `Bearer ${apiKey}` } }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    const teams = data?.[0]?.teams;
+    return Array.isArray(teams) ? (teams as OfficialTeamStats[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+function findOfficialStat(
+  teams: OfficialTeamStats[],
+  teamName: string,
+  category: string
+): number | null {
+  const team = teams.find((t) => t.team === teamName);
+  const entry = team?.stats.find((s) => s.category === category);
+  if (!entry) return null;
+  const n = parseFloat(entry.stat);
+  return Number.isFinite(n) ? n : null;
+}
+
+function resolveTeamStats(
+  pbpStats: TeamStats,
+  officialTeams: OfficialTeamStats[] | null,
+  teamName: string
+): TeamStats {
+  if (!officialTeams) return pbpStats;
+  const rushingYards = findOfficialStat(officialTeams, teamName, "rushingYards");
+  const passingYards = findOfficialStat(officialTeams, teamName, "netPassingYards");
+  const turnovers = findOfficialStat(officialTeams, teamName, "turnovers");
+  return {
+    rushingYards: rushingYards ?? pbpStats.rushingYards,
+    passingYards: passingYards ?? pbpStats.passingYards,
+    turnovers: turnovers ?? pbpStats.turnovers,
+    // Not present in the box-score stats — timeouts stay play-by-play derived.
+    timeoutsUsedThisHalf: pbpStats.timeoutsUsedThisHalf,
+  };
+}
+
 type SupabaseClient = ReturnType<typeof getSupabaseClient>;
 
 interface GameRow {
@@ -165,6 +229,7 @@ interface GameRow {
   away_team: string;
   status: string;
   manual_control: boolean;
+  kickoff_time: string;
 }
 
 async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow) {
@@ -204,8 +269,32 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
   const isFinal = statusLower.includes("final") || statusLower.includes("complete");
   const newStatus = isFinal ? "final" : "live";
 
-  const homeStats = computeTeamStats(live, homeTeam?.team ?? "");
-  const awayStats = computeTeamStats(live, awayTeam?.team ?? "");
+  const season = new Date(game.kickoff_time).getUTCFullYear();
+  const officialTeams = await fetchOfficialTeamStats(
+    apiKey,
+    game.cfbd_game_id,
+    season,
+    game.home_team
+  );
+  supabase
+    .from("cfbd_request_log")
+    .insert({
+      endpoint: "/games/teams",
+      status_code: officialTeams ? 200 : 0,
+      source: "live-cfbd-sync",
+    })
+    .then(() => {});
+
+  const homeStats = resolveTeamStats(
+    computeTeamStats(live, homeTeam?.team ?? ""),
+    officialTeams,
+    homeTeam?.team ?? ""
+  );
+  const awayStats = resolveTeamStats(
+    computeTeamStats(live, awayTeam?.team ?? ""),
+    officialTeams,
+    awayTeam?.team ?? ""
+  );
 
   // Scoreboard sync — always runs, manual_control or not. This is the real
   // live scoreboard (Live Game Stats on the main page); it has no overlap
@@ -400,7 +489,7 @@ Deno.serve(async (req: Request) => {
     // Single-game mode — used for manual/debug calls.
     const { data: game, error: gameErr } = await supabase
       .from("live_games")
-      .select("id, cfbd_game_id, home_team, away_team, status, manual_control")
+      .select("id, cfbd_game_id, home_team, away_team, status, manual_control, kickoff_time")
       .eq("id", body.game_id)
       .maybeSingle();
 
