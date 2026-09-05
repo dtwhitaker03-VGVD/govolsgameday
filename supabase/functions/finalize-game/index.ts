@@ -23,11 +23,10 @@ function getServiceClient() {
   );
 }
 
-// ─── CFBD box-score shapes (see the "verify CFBD field shapes" step in the
-// plan — the exact category/type strings below are the CFBD OpenAPI spec's
-// documented names; parsing is defensive against reasonable case/spacing
-// variants since this session had no live API key to confirm a real
-// response against) ────────────────────────────────────────────────────────
+// ─── CFBD box-score shapes — confirmed against a real /games/teams and
+// /games/players response (TCU @ North Carolina, gameId 401856766, 2026
+// season) on 2026-09-05. Parsing stays case/spacing-defensive via
+// normalize() regardless. ───────────────────────────────────────────────────
 
 interface TeamStatEntry { category: string; stat: string }
 interface GameTeamStatsTeam { team: string; homeAway: "home" | "away"; points: number | null; stats: TeamStatEntry[] }
@@ -59,9 +58,6 @@ async function cfbdGet(path: string, apiKey: string): Promise<{ ok: true; data: 
 // live_games.manual_control) still ends up with real values instead of
 // whatever was last typed in by hand, and so a normal game's numbers get
 // reconciled against CFBD's final tally rather than trusting live tracking.
-// "totalYards" matches CFBD's documented category vocabulary but, like
-// findTurnoversForced below, hasn't been confirmed against a live response
-// in this codebase — normalize() guards against reasonable case variants.
 function findTeamPointsAndYards(entries: GameTeamStatsEntry[]): {
   homePoints: number | null;
   awayPoints: number | null;
@@ -118,6 +114,126 @@ function sumCategoryTds(entries: GamePlayerStatsEntry[], categoryName: string): 
   return total;
 }
 
+// ─── Weekly prop bet auto-grading ───────────────────────────────────────────
+// Reuses the same /games/teams and /games/players responses already fetched
+// above for the TD/turnover/yards lookups — no extra CFBD calls. A prop only
+// gets auto-graded if it has stat_scope/stat_category (and, for player
+// scope, stat_type + player_name) set; anything else (including every prop
+// created before this feature existed) is left for admin_grade_game_prop as
+// before. A miss (player not found, category/type not present, value isn't
+// a plain number) is reported as a warning and left ungraded rather than
+// guessed — a wrong auto-grade would corrupt real scoring.
+
+interface GamePropRow {
+  id: string;
+  description: string;
+  stat_scope: "player" | "team" | null;
+  stat_category: string | null;
+  stat_type: string | null;
+  player_name: string | null;
+  team_side: "home" | "away" | null;
+}
+
+function findTeamStatByCategory(
+  entries: GameTeamStatsEntry[],
+  teamName: string,
+  category: string
+): number | null {
+  const game = entries[0];
+  if (!game?.teams) return null;
+  const team = game.teams.find((t) => normalize(t.team) === normalize(teamName));
+  const stat = team?.stats.find((s) => normalize(s.category) === normalize(category));
+  if (!stat) return null;
+  const n = parseFloat(stat.stat);
+  return Number.isFinite(n) ? n : null;
+}
+
+function findPlayerStatByName(
+  entries: GamePlayerStatsEntry[],
+  category: string,
+  statType: string,
+  playerName: string
+): number | null {
+  const game = entries[0];
+  if (!game?.teams) return null;
+  for (const team of game.teams) {
+    const cat = team.categories?.find((c) => normalize(c.name) === normalize(category));
+    const type = cat?.types.find((t) => normalize(t.name) === normalize(statType));
+    const athlete = type?.athletes.find((a) => normalize(a.name) === normalize(playerName));
+    if (athlete) {
+      const n = parseFloat(athlete.stat);
+      return Number.isFinite(n) ? n : null;
+    }
+  }
+  return null;
+}
+
+async function autoGradeProps(
+  service: ReturnType<typeof getServiceClient>,
+  gameId: string,
+  homeTeam: string,
+  awayTeam: string,
+  teamsData: GameTeamStatsEntry[] | null,
+  playersData: GamePlayerStatsEntry[] | null,
+  warnings: string[]
+): Promise<number> {
+  const { data: props } = await service
+    .from("game_props")
+    .select("id, description, stat_scope, stat_category, stat_type, player_name, team_side")
+    .eq("game_id", gameId)
+    .is("actual_result", null);
+
+  let graded = 0;
+  for (const prop of (props ?? []) as GamePropRow[]) {
+    if (!prop.stat_scope || !prop.stat_category) continue;
+
+    let actualValue: number | null = null;
+
+    if (prop.stat_scope === "team") {
+      if (!teamsData) {
+        warnings.push(`Prop "${prop.description}": no CFBD team stats available to auto-grade.`);
+        continue;
+      }
+      if (!prop.team_side) {
+        warnings.push(`Prop "${prop.description}": team scope but no team_side set — skipped.`);
+        continue;
+      }
+      const teamName = prop.team_side === "home" ? homeTeam : awayTeam;
+      actualValue = findTeamStatByCategory(teamsData, teamName, prop.stat_category);
+      if (actualValue === null) {
+        warnings.push(`Prop "${prop.description}": could not find team stat "${prop.stat_category}" for ${teamName} in CFBD data.`);
+        continue;
+      }
+    } else {
+      if (!playersData) {
+        warnings.push(`Prop "${prop.description}": no CFBD player stats available to auto-grade.`);
+        continue;
+      }
+      if (!prop.stat_type || !prop.player_name) {
+        warnings.push(`Prop "${prop.description}": player scope but missing stat_type/player_name — skipped.`);
+        continue;
+      }
+      actualValue = findPlayerStatByName(playersData, prop.stat_category, prop.stat_type, prop.player_name);
+      if (actualValue === null) {
+        warnings.push(`Prop "${prop.description}": could not find "${prop.player_name}" in CFBD's ${prop.stat_category}/${prop.stat_type} data — left for manual grading.`);
+        continue;
+      }
+    }
+
+    const { error } = await service.rpc("admin_grade_game_prop", {
+      p_id: prop.id,
+      p_actual_value: actualValue,
+    });
+    if (error) {
+      warnings.push(`Prop "${prop.description}": auto-grade failed: ${error.message}`);
+    } else {
+      graded++;
+    }
+  }
+
+  return graded;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -168,7 +284,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: game, error: gameErr } = await service
     .from("live_games")
-    .select("id, cfbd_game_id")
+    .select("id, cfbd_game_id, home_team, away_team, kickoff_time")
     .eq("id", gameId)
     .maybeSingle();
   if (gameErr || !game) {
@@ -184,17 +300,26 @@ Deno.serve(async (req: Request) => {
   let awayPoints: number | null = null;
   let homeYards: number | null = null;
   let awayYards: number | null = null;
+  let teamsData: GameTeamStatsEntry[] | null = null;
+  let playersData: GamePlayerStatsEntry[] | null = null;
 
   if (!apiKey) {
     warnings.push("CFBD API key not configured — final score/yards and rushing/receiving TDs/turnovers-forced won't be updated from CFBD.");
   } else {
+    // CFBD requires `year` on both endpoints, plus one of week/team/conference
+    // — confirmed live 2026-09-05 (both previously 400'd with "year parameter
+    // is required" on every call, meaning these lookups had never actually
+    // succeeded). `team` uses the game's own home team so this works for any
+    // game, not just a Tennessee one (e.g. an admin test game).
+    const season = new Date(game.kickoff_time).getUTCFullYear();
+    const teamParam = encodeURIComponent(game.home_team);
     const [teamsResult, playersResult] = await Promise.all([
-      cfbdGet(`/games/teams?gameId=${game.cfbd_game_id}`, apiKey),
-      cfbdGet(`/games/players?gameId=${game.cfbd_game_id}`, apiKey),
+      cfbdGet(`/games/teams?gameId=${game.cfbd_game_id}&year=${season}&team=${teamParam}`, apiKey),
+      cfbdGet(`/games/players?gameId=${game.cfbd_game_id}&year=${season}&team=${teamParam}`, apiKey),
     ]);
 
     if (teamsResult.ok) {
-      const teamsData = teamsResult.data as GameTeamStatsEntry[];
+      teamsData = teamsResult.data as GameTeamStatsEntry[];
       tnTurnoversForced = findTurnoversForced(teamsData);
       if (tnTurnoversForced === null) warnings.push("Could not find opponent turnovers stat in CFBD /games/teams response.");
 
@@ -210,8 +335,9 @@ Deno.serve(async (req: Request) => {
     }
 
     if (playersResult.ok) {
-      tnRushingTds = sumCategoryTds(playersResult.data as GamePlayerStatsEntry[], "rushing");
-      tnReceivingTds = sumCategoryTds(playersResult.data as GamePlayerStatsEntry[], "receiving");
+      playersData = playersResult.data as GamePlayerStatsEntry[];
+      tnRushingTds = sumCategoryTds(playersData, "rushing");
+      tnReceivingTds = sumCategoryTds(playersData, "receiving");
       if (tnRushingTds === null) warnings.push("Could not find TN rushing TDs in CFBD /games/players response.");
       if (tnReceivingTds === null) warnings.push("Could not find TN receiving TDs in CFBD /games/players response.");
     } else {
@@ -244,6 +370,13 @@ Deno.serve(async (req: Request) => {
     warnings.push(`Failed to write actual stats to live_games: ${updateErr.message}`);
   }
 
+  // Grade any auto-gradeable weekly prop bets BEFORE finalize_game, since
+  // finalize_game runs calculate_pregame_points internally, which sums
+  // pregame_prop_picks.points_earned off whatever game_props.actual_result
+  // already is at that moment — a prop graded after finalize_game would
+  // never get credited without a second run.
+  const propsGraded = await autoGradeProps(service, gameId, game.home_team, game.away_team, teamsData, playersData, warnings);
+
   const { error: finalizeErr } = await service.rpc("finalize_game", { p_game_id: gameId });
   if (finalizeErr) {
     return json({ error: finalizeErr.message, warnings }, 500);
@@ -256,6 +389,7 @@ Deno.serve(async (req: Request) => {
       home_total_yards: homeYards, away_total_yards: awayYards,
       tn_rushing_tds: tnRushingTds, tn_receiving_tds: tnReceivingTds, tn_turnovers_forced: tnTurnoversForced,
     },
+    props_auto_graded: propsGraded,
     warnings,
   });
 });
