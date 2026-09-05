@@ -450,7 +450,7 @@ function LiveDriveControlPanel({ games, onRefresh }: { games: LiveGame[]; onRefr
   async function correctHistoryOutcome(driveNumber: number, key: string) {
     if (!gameId) return;
     setOpStatus('loading');
-    const { error } = await supabase.rpc('settle_drive_outcome', {
+    const { error } = await supabase.rpc('correct_drive_outcome', {
       p_game_id: gameId,
       p_drive_number: driveNumber,
       p_actual_outcome: key,
@@ -458,7 +458,7 @@ function LiveDriveControlPanel({ games, onRefresh }: { games: LiveGame[]; onRefr
     if (error) { setOpStatus('error'); setOpMsg(error.message); }
     else {
       setOpStatus('ok');
-      setOpMsg(`Drive ${driveNumber} outcome corrected to ${outcomeLabel(key)} — already-awarded points/streaks are unchanged.`);
+      setOpMsg(`Drive ${driveNumber} outcome corrected to ${outcomeLabel(key)} — points and leaderboard totals adjusted. Streaks/badges from this drive onward are not recalculated.`);
       setEditingHistoryDrive(null);
       fetchWindows(gameId);
     }
