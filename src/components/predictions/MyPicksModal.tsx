@@ -34,6 +34,19 @@ interface PregamePrediction {
   total_pregame_points: number | null;
 }
 
+interface PropPick {
+  pick: 'over' | 'under';
+  correct: boolean | null;
+  points_earned: number | null;
+  game_props: {
+    description: string;
+    line: number;
+    points_value: number;
+    actual_value: number | null;
+    actual_result: string | null;
+  } | null;
+}
+
 interface Props {
   game: LiveGame;
   open: boolean;
@@ -43,6 +56,7 @@ interface Props {
 export function MyPicksModal({ game, open, onClose }: Props) {
   const { session } = useAuth();
   const [pred, setPred] = useState<PregamePrediction | null>(null);
+  const [propPicks, setPropPicks] = useState<PropPick[]>([]);
   const [loading, setLoading] = useState(true);
 
   const tnIsHome = game.home_team === 'Tennessee';
@@ -52,16 +66,23 @@ export function MyPicksModal({ game, open, onClose }: Props) {
   useEffect(() => {
     if (!open || !session) return;
     setLoading(true);
-    supabase
-      .from('pregame_predictions')
-      .select('*')
-      .eq('game_id', game.id)
-      .eq('user_id', session.user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        setPred(data as PregamePrediction | null);
-        setLoading(false);
-      });
+    Promise.all([
+      supabase
+        .from('pregame_predictions')
+        .select('*')
+        .eq('game_id', game.id)
+        .eq('user_id', session.user.id)
+        .maybeSingle(),
+      supabase
+        .from('pregame_prop_picks')
+        .select('pick, correct, points_earned, game_props(description, line, points_value, actual_value, actual_result)')
+        .eq('game_id', game.id)
+        .eq('user_id', session.user.id),
+    ]).then(([predRes, propRes]) => {
+      setPred(predRes.data as PregamePrediction | null);
+      setPropPicks((propRes.data as unknown as PropPick[] | null) ?? []);
+      setLoading(false);
+    });
   }, [open, session, game.id]);
 
   if (!open) return null;
@@ -142,6 +163,27 @@ export function MyPicksModal({ game, open, onClose }: Props) {
     },
   ] : [];
 
+  // Weekly prop bets — a separate table (pregame_prop_picks/game_props) from
+  // the fixed pregame_predictions columns above, so they need their own rows
+  // rather than showing up for free in `rows`.
+  const propRows = propPicks
+    .filter((p): p is PropPick & { game_props: NonNullable<PropPick['game_props']> } => !!p.game_props)
+    .map((p) => ({
+      label: `${p.game_props.description} (O/U ${p.game_props.line})`,
+      predicted: p.pick.toUpperCase(),
+      actual: isFinal ? (p.game_props.actual_result ? p.game_props.actual_result.toUpperCase() : 'N/A') : null,
+      correct: isFinal ? p.correct : null,
+      pts: isFinal ? p.points_earned : null,
+    }));
+
+  const allRows = [...rows, ...propRows];
+
+  // Base fields max out at 1,500 (100 winner + 150 each score + 300 each
+  // yards + 100 each spread/total/rushing-TD/receiving-TD/turnovers) —
+  // props add their own points_value on top, only for the ones this user
+  // actually picked.
+  const maxPoints = 1500 + propPicks.reduce((sum, p) => sum + (p.game_props?.points_value ?? 0), 0);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
@@ -183,7 +225,7 @@ export function MyPicksModal({ game, open, onClose }: Props) {
 
               {/* Picks table */}
               <div className="space-y-1.5">
-                {rows.map((r, i) => (
+                {allRows.map((r, i) => (
                   <div
                     key={i}
                     className="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 items-center text-xs py-2 px-3 rounded-lg bg-white/[0.03] border border-white/[0.05]"
@@ -216,7 +258,7 @@ export function MyPicksModal({ game, open, onClose }: Props) {
                   <span className="text-xs text-white/60 font-semibold">Total Pregame Points</span>
                   <span className="text-lg font-black text-vgd-orange">
                     {pred.total_pregame_points ?? 0}
-                    <span className="text-xs font-normal text-vgd-muted"> / 1,500</span>
+                    <span className="text-xs font-normal text-vgd-muted"> / {maxPoints.toLocaleString()}</span>
                   </span>
                 </div>
               )}
