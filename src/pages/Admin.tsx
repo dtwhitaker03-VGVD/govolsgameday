@@ -814,6 +814,162 @@ interface GamePropRow {
   sort_order: number;
   actual_value: number | null;
   actual_result: string | null;
+  stat_scope: 'player' | 'team' | null;
+  stat_category: string | null;
+  stat_type: string | null;
+  player_name: string | null;
+  team_side: 'home' | 'away' | null;
+}
+
+// CFBD /games/players category -> type vocabulary, confirmed against a real
+// response (TCU @ North Carolina, gameId 401856766, 2026 season) on
+// 2026-09-05 — see finalize-game's autoGradeProps. Deliberately excludes
+// fraction-formatted types (C/ATT, FG, PCT) since parseFloat("20/32")
+// silently returns 20 instead of failing, which would corrupt scoring
+// rather than falling back to manual grading.
+const PLAYER_STAT_CATEGORIES: { value: string; label: string; types: { value: string; label: string }[] }[] = [
+  { value: 'rushing', label: 'Rushing', types: [
+    { value: 'CAR', label: 'Carries' }, { value: 'YDS', label: 'Yards' },
+    { value: 'TD', label: 'TDs' }, { value: 'LONG', label: 'Long' },
+  ] },
+  { value: 'receiving', label: 'Receiving', types: [
+    { value: 'REC', label: 'Receptions' }, { value: 'YDS', label: 'Yards' },
+    { value: 'TD', label: 'TDs' }, { value: 'LONG', label: 'Long' },
+  ] },
+  { value: 'passing', label: 'Passing', types: [
+    { value: 'YDS', label: 'Yards' }, { value: 'TD', label: 'TDs' }, { value: 'INT', label: 'Interceptions' },
+  ] },
+  { value: 'defensive', label: 'Defensive', types: [
+    { value: 'TOT', label: 'Total Tackles' }, { value: 'SOLO', label: 'Solo Tackles' },
+    { value: 'SACKS', label: 'Sacks' }, { value: 'TFL', label: 'Tackles for Loss' },
+    { value: 'PD', label: 'Passes Defended' }, { value: 'QB HUR', label: 'QB Hurries' }, { value: 'TD', label: 'Defensive TDs' },
+  ] },
+  { value: 'fumbles', label: 'Fumbles', types: [
+    { value: 'FUM', label: 'Fumbles' }, { value: 'LOST', label: 'Fumbles Lost' }, { value: 'REC', label: 'Fumbles Recovered' },
+  ] },
+  { value: 'punting', label: 'Punting', types: [
+    { value: 'NO', label: 'Punts' }, { value: 'YDS', label: 'Yards' }, { value: 'LONG', label: 'Long' },
+  ] },
+  { value: 'kickReturns', label: 'Kick Returns', types: [
+    { value: 'NO', label: 'Returns' }, { value: 'YDS', label: 'Yards' }, { value: 'TD', label: 'TDs' },
+  ] },
+  { value: 'puntReturns', label: 'Punt Returns', types: [
+    { value: 'NO', label: 'Returns' }, { value: 'YDS', label: 'Yards' }, { value: 'TD', label: 'TDs' },
+  ] },
+];
+
+// CFBD /games/teams flat stat keys, same live-confirmed source and same
+// fraction-format exclusions (completionAttempts, thirdDownEff, etc.).
+const TEAM_STAT_CATEGORIES: { value: string; label: string }[] = [
+  { value: 'sacks', label: 'Sacks' },
+  { value: 'tackles', label: 'Tackles' },
+  { value: 'tacklesForLoss', label: 'Tackles for Loss' },
+  { value: 'interceptions', label: 'Interceptions' },
+  { value: 'turnovers', label: 'Turnovers' },
+  { value: 'fumblesRecovered', label: 'Fumbles Recovered' },
+  { value: 'fumblesLost', label: 'Fumbles Lost' },
+  { value: 'totalFumbles', label: 'Total Fumbles' },
+  { value: 'qbHurries', label: 'QB Hurries' },
+  { value: 'passesDeflected', label: 'Passes Deflected' },
+  { value: 'defensiveTDs', label: 'Defensive TDs' },
+  { value: 'rushingTDs', label: 'Rushing TDs' },
+  { value: 'passingTDs', label: 'Passing TDs' },
+  { value: 'rushingYards', label: 'Rushing Yards' },
+  { value: 'netPassingYards', label: 'Passing Yards' },
+  { value: 'totalYards', label: 'Total Yards' },
+  { value: 'firstDowns', label: 'First Downs' },
+  { value: 'kickReturnYards', label: 'Kick Return Yards' },
+  { value: 'puntReturnYards', label: 'Punt Return Yards' },
+];
+
+type PropScope = 'manual' | 'team' | 'player';
+
+interface PropAutoGradeFields {
+  scope: PropScope;
+  statCategory: string;
+  statType: string;
+  playerName: string;
+  teamSide: 'home' | 'away' | '';
+}
+
+const EMPTY_AUTO_GRADE: PropAutoGradeFields = { scope: 'manual', statCategory: '', statType: '', playerName: '', teamSide: '' };
+
+function autoGradeRpcParams(f: PropAutoGradeFields) {
+  if (f.scope === 'team') {
+    return { p_stat_scope: 'team', p_stat_category: f.statCategory || null, p_team_side: f.teamSide || null, p_stat_type: null, p_player_name: null };
+  }
+  if (f.scope === 'player') {
+    return { p_stat_scope: 'player', p_stat_category: f.statCategory || null, p_stat_type: f.statType || null, p_player_name: f.playerName.trim() || null, p_team_side: null };
+  }
+  return { p_stat_scope: null, p_stat_category: null, p_stat_type: null, p_player_name: null, p_team_side: null };
+}
+
+// Compact form for the scope/category/type/player fields, shared by the add
+// and edit rows below.
+function AutoGradeFields({
+  fields, onChange, homeTeam, awayTeam,
+}: {
+  fields: PropAutoGradeFields;
+  onChange: (f: PropAutoGradeFields) => void;
+  homeTeam: string;
+  awayTeam: string;
+}) {
+  const categoryTypes = PLAYER_STAT_CATEGORIES.find(c => c.value === fields.statCategory)?.types ?? [];
+  return (
+    <div className="space-y-1.5 rounded border border-white/10 p-2 bg-vgd-bg/50">
+      <div className="flex rounded overflow-hidden border border-white/10 w-fit">
+        {(['manual', 'team', 'player'] as PropScope[]).map(scope => (
+          <button
+            key={scope}
+            type="button"
+            onClick={() => onChange({ ...EMPTY_AUTO_GRADE, scope })}
+            className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors ${
+              fields.scope === scope ? 'bg-vgd-orange text-white' : 'text-white/50 hover:text-white/80'
+            }`}
+          >
+            {scope === 'manual' ? 'Manual only' : scope === 'team' ? 'Team stat' : 'Player stat'}
+          </button>
+        ))}
+      </div>
+
+      {fields.scope === 'team' && (
+        <div className="grid grid-cols-2 gap-1.5">
+          <SelectInput
+            label="Team"
+            value={fields.teamSide}
+            onChange={v => onChange({ ...fields, teamSide: v as 'home' | 'away' })}
+            options={[{ value: '', label: 'Select…' }, { value: 'home', label: homeTeam }, { value: 'away', label: awayTeam }]}
+          />
+          <SelectInput
+            label="Stat"
+            value={fields.statCategory}
+            onChange={v => onChange({ ...fields, statCategory: v })}
+            options={[{ value: '', label: 'Select…' }, ...TEAM_STAT_CATEGORIES]}
+          />
+        </div>
+      )}
+
+      {fields.scope === 'player' && (
+        <div className="space-y-1.5">
+          <LabelInput label="Player Name" value={fields.playerName} onChange={v => onChange({ ...fields, playerName: v })} placeholder="Edwin Spillman" />
+          <div className="grid grid-cols-2 gap-1.5">
+            <SelectInput
+              label="Category"
+              value={fields.statCategory}
+              onChange={v => onChange({ ...fields, statCategory: v, statType: '' })}
+              options={[{ value: '', label: 'Select…' }, ...PLAYER_STAT_CATEGORIES.map(c => ({ value: c.value, label: c.label }))]}
+            />
+            <SelectInput
+              label="Stat"
+              value={fields.statType}
+              onChange={v => onChange({ ...fields, statType: v })}
+              options={[{ value: '', label: 'Select…' }, ...categoryTypes]}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
@@ -821,12 +977,16 @@ function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
   const [props, setProps] = useState<GamePropRow[]>([]);
   const [newDescription, setNewDescription] = useState('');
   const [newLine, setNewLine] = useState('');
+  const [newAutoGrade, setNewAutoGrade] = useState<PropAutoGradeFields>(EMPTY_AUTO_GRADE);
   const [gradeInputs, setGradeInputs] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDescription, setEditDescription] = useState('');
   const [editLine, setEditLine] = useState('');
+  const [editAutoGrade, setEditAutoGrade] = useState<PropAutoGradeFields>(EMPTY_AUTO_GRADE);
   const [status, setStatus] = useState<OpStatus>('idle');
   const [msg, setMsg] = useState('');
+
+  const selectedGame = games.find(g => g.id === gameId);
 
   const gameOptions = [{ value: '', label: 'Select game…' }, ...games.map(g => ({
     value: g.id,
@@ -836,7 +996,7 @@ function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
   function fetchProps(id: string) {
     supabase
       .from('game_props')
-      .select('id, description, line, sort_order, actual_value, actual_result')
+      .select('id, description, line, sort_order, actual_value, actual_result, stat_scope, stat_category, stat_type, player_name, team_side')
       .eq('game_id', id)
       .order('sort_order', { ascending: true })
       .then(({ data }) => setProps((data as GamePropRow[]) ?? []));
@@ -855,12 +1015,14 @@ function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
       p_description: newDescription.trim(),
       p_line: parseFloat(newLine),
       p_sort_order: props.length,
+      ...autoGradeRpcParams(newAutoGrade),
     });
     if (error) { setStatus('error'); setMsg(error.message); }
     else {
       setStatus('idle');
       setNewDescription('');
       setNewLine('');
+      setNewAutoGrade(EMPTY_AUTO_GRADE);
       fetchProps(gameId);
     }
   }
@@ -876,12 +1038,20 @@ function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
     setEditingId(p.id);
     setEditDescription(p.description);
     setEditLine(String(p.line));
+    setEditAutoGrade({
+      scope: p.stat_scope ?? 'manual',
+      statCategory: p.stat_category ?? '',
+      statType: p.stat_type ?? '',
+      playerName: p.player_name ?? '',
+      teamSide: p.team_side ?? '',
+    });
   }
 
   function cancelEdit() {
     setEditingId(null);
     setEditDescription('');
     setEditLine('');
+    setEditAutoGrade(EMPTY_AUTO_GRADE);
   }
 
   async function saveEdit(p: GamePropRow) {
@@ -892,6 +1062,7 @@ function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
       p_description: editDescription.trim(),
       p_line: parseFloat(editLine),
       p_sort_order: p.sort_order,
+      ...autoGradeRpcParams(editAutoGrade),
     });
     if (error) { setStatus('error'); setMsg(error.message); }
     else { setStatus('idle'); cancelEdit(); fetchProps(gameId); }
@@ -921,38 +1092,53 @@ function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
                 {props.map(p => (
                   <div key={p.id} className="flex items-center justify-between gap-2 px-3 py-2 border-b border-white/[0.05] last:border-0">
                     {editingId === p.id ? (
-                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                        <input
-                          type="text" value={editDescription}
-                          onChange={e => setEditDescription(e.target.value)}
-                          placeholder="Description"
-                          className="flex-1 min-w-0 bg-vgd-bg border border-white/10 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-vgd-orange/50"
+                      <div className="flex-1 min-w-0 space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="text" value={editDescription}
+                            onChange={e => setEditDescription(e.target.value)}
+                            placeholder="Description"
+                            className="flex-1 min-w-0 bg-vgd-bg border border-white/10 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-vgd-orange/50"
+                          />
+                          <input
+                            type="number" value={editLine}
+                            onChange={e => setEditLine(e.target.value)}
+                            placeholder="Line"
+                            className="w-16 flex-shrink-0 bg-vgd-bg border border-white/10 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-vgd-orange/50"
+                          />
+                          <button
+                            onClick={() => saveEdit(p)}
+                            disabled={!editDescription.trim() || !editLine || status === 'loading'}
+                            className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-green-400 hover:bg-green-400/10 disabled:opacity-40"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            disabled={status === 'loading'}
+                            className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-white/30 hover:text-white/60 disabled:opacity-40"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <AutoGradeFields
+                          fields={editAutoGrade}
+                          onChange={setEditAutoGrade}
+                          homeTeam={selectedGame?.home_team ?? 'Home'}
+                          awayTeam={selectedGame?.away_team ?? 'Away'}
                         />
-                        <input
-                          type="number" value={editLine}
-                          onChange={e => setEditLine(e.target.value)}
-                          placeholder="Line"
-                          className="w-16 flex-shrink-0 bg-vgd-bg border border-white/10 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-vgd-orange/50"
-                        />
-                        <button
-                          onClick={() => saveEdit(p)}
-                          disabled={!editDescription.trim() || !editLine || status === 'loading'}
-                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-green-400 hover:bg-green-400/10 disabled:opacity-40"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={cancelEdit}
-                          disabled={status === 'loading'}
-                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-white/30 hover:text-white/60 disabled:opacity-40"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
                       </div>
                     ) : (
                       <>
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-semibold text-white/85 truncate">{p.description} <span className="text-white/40">(O/U {p.line})</span></p>
+                          <p className="text-xs font-semibold text-white/85 truncate">
+                            {p.description} <span className="text-white/40">(O/U {p.line})</span>
+                            {p.stat_scope && (
+                              <span className="ml-1.5 text-[9px] font-bold uppercase tracking-wider text-vgd-orange/70 border border-vgd-orange/30 rounded px-1 py-0.5">
+                                Auto
+                              </span>
+                            )}
+                          </p>
                           {p.actual_result ? (
                             <p className="text-[10px] text-vgd-orange mt-0.5">
                               Graded: {p.actual_value} — {p.actual_result.toUpperCase()}
@@ -995,12 +1181,20 @@ function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
               </div>
             )}
 
-            <div className="grid grid-cols-[1fr_80px_auto] gap-2 items-end">
-              <LabelInput label="Description" value={newDescription} onChange={setNewDescription} placeholder="Player Stat" />
-              <LabelInput label="Line" value={newLine} onChange={setNewLine} type="number" placeholder="2.5" />
-              <ActionButton onClick={addProp} disabled={!newDescription.trim() || !newLine || status === 'loading'}>
-                <span className="flex items-center gap-1"><Plus className="w-3 h-3" /> Add</span>
-              </ActionButton>
+            <div className="space-y-1.5">
+              <div className="grid grid-cols-[1fr_80px_auto] gap-2 items-end">
+                <LabelInput label="Description" value={newDescription} onChange={setNewDescription} placeholder="Player Stat" />
+                <LabelInput label="Line" value={newLine} onChange={setNewLine} type="number" placeholder="2.5" />
+                <ActionButton onClick={addProp} disabled={!newDescription.trim() || !newLine || status === 'loading'}>
+                  <span className="flex items-center gap-1"><Plus className="w-3 h-3" /> Add</span>
+                </ActionButton>
+              </div>
+              <AutoGradeFields
+                fields={newAutoGrade}
+                onChange={setNewAutoGrade}
+                homeTeam={selectedGame?.home_team ?? 'Home'}
+                awayTeam={selectedGame?.away_team ?? 'Away'}
+              />
             </div>
 
             <OpResult status={status} message={msg} />
