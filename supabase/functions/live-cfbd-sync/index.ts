@@ -265,7 +265,7 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
   // manual testing, and silently never get opened or settled.
   const { data: existingWindows } = await supabase
     .from("drive_windows")
-    .select("drive_number, cfbd_drive_id, status, actual_outcome")
+    .select("drive_number, cfbd_drive_id, status, actual_outcome, resolved_at")
     .eq("game_id", game.id);
 
   const windowByCfbdId = new Map(
@@ -275,6 +275,21 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
   );
   let nextDriveNumber =
     Math.max(0, ...(existingWindows ?? []).map((w) => w.drive_number)) + 1;
+
+  // Deliberate pause between drives (auto mode only — manual_control games
+  // never reach this code): as soon as a drive resolves, hold off opening
+  // the NEXT drive's pick window for ~15s, rather than the instant CFBD's
+  // data allows, so picks don't feel like they're firing back-to-back.
+  // live-cfbd-sync is a stateless 15s poller, so this is enforced by
+  // checking drive_windows.resolved_at across polls, not a real in-memory
+  // timer — the actual gap ends up being one poll cycle (~15-30s), not an
+  // exact 15.000s.
+  const NEW_DRIVE_OPEN_DELAY_MS = 15_000;
+  const mostRecentResolvedAt = (existingWindows ?? [])
+    .map((w) => (w.resolved_at ? new Date(w.resolved_at).getTime() : null))
+    .filter((t): t is number => t !== null)
+    .reduce((max, t) => (t > max ? t : max), 0);
+  const readyToOpenNext = Date.now() - mostRecentResolvedAt >= NEW_DRIVE_OPEN_DELAY_MS;
 
   let opened = 0;
   let settled = 0;
@@ -295,6 +310,7 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
       // offense-relative (offense's own score minus the opponent's),
       // matching how open_drive_window's odds heuristics are written.
       if (existing) continue;
+      if (!readyToOpenNext) continue; // still inside the post-drive pause
 
       const offenseIsHome = drive.offense === homeTeam?.team;
       const offenseScore = offenseIsHome ? homeScore : awayScore;
@@ -310,13 +326,17 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
         p_down: lastPlay?.down ?? 1,
         p_distance: lastPlay?.distance ?? 10,
         p_cfbd_drive_id: drive.id,
+        p_window_seconds: 60,
       });
       if (!error) opened++;
       if (!existing) nextDriveNumber = driveNumber + 1;
     } else if (!existing || existing.status !== "resolved") {
       // Drive already ended by the time we saw it (possible if a poll is
       // missed) — open its window with the drive's starting situation
-      // first so settle_drive_outcome has a row to resolve against.
+      // first so settle_drive_outcome has a row to resolve against. This
+      // is a catch-up path (the drive is already over), so the post-drive
+      // pause doesn't apply — there's no "next pick window" being shown
+      // early, just history being recorded.
       if (!existing) {
         await supabase.rpc("open_drive_window", {
           p_game_id: game.id,
@@ -328,6 +348,7 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
           p_down: 1,
           p_distance: 10,
           p_cfbd_drive_id: drive.id,
+          p_window_seconds: 60,
         });
         nextDriveNumber = driveNumber + 1;
       }
