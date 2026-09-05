@@ -46,8 +46,11 @@ export function DashboardCard({
       {/* Hairline divider */}
       <div className="h-px bg-white/[0.07]" />
 
-      {/* Body slot — participates in parent flex-col so children can flex-grow */}
-      <div className="flex-1 flex flex-col min-h-0">{children}</div>
+      {/* Body slot — participates in parent flex-col so children can flex-grow.
+          overflow-y-auto so a card given a fixed/constrained height (e.g. the
+          Home page's split predictor column) scrolls its own content instead
+          of silently clipping whatever doesn't fit. */}
+      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">{children}</div>
     </div>
   );
 }
