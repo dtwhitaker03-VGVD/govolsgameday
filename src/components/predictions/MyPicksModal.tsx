@@ -169,9 +169,14 @@ export function MyPicksModal({ game, open, onClose }: Props) {
   const propRows = propPicks
     .filter((p): p is PropPick & { game_props: NonNullable<PropPick['game_props']> } => !!p.game_props)
     .map((p) => ({
-      label: `${p.game_props.description} (O/U ${p.game_props.line})`,
-      predicted: p.pick.toUpperCase(),
-      actual: isFinal ? (p.game_props.actual_result ? p.game_props.actual_result.toUpperCase() : 'N/A') : null,
+      label: p.game_props.description,
+      predicted: `${p.pick.toUpperCase()} ${p.game_props.line}`,
+      // Shows the real final stat (e.g. "2" receptions) rather than just
+      // repeating over/under — actual_value comes back from Postgres
+      // NUMERIC as a string, so this normalizes either shape.
+      actual: isFinal
+        ? (p.game_props.actual_value != null ? String(Number(p.game_props.actual_value)) : 'N/A')
+        : null,
       correct: isFinal ? p.correct : null,
       pts: isFinal ? p.points_earned : null,
     }));
