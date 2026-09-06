@@ -60,6 +60,7 @@ interface GameProp {
   description: string;
   line: number;
   points_value: number;
+  actual_value: number | string | null;
 }
 
 interface PropPick {
@@ -92,6 +93,19 @@ function ptColor(pts: number | null, max: number): string {
   if (pts >= max) return 'text-green-400';
   if (pts >= max * 0.5) return 'text-vgd-orange';
   return 'text-vgd-red';
+}
+
+// Shows the real final stat once an admin has graded the prop (e.g. "2" for
+// Braylon Staley's actual receptions), falling back to just the line for a
+// prop that hasn't been graded yet — actual_value comes back from Postgres
+// NUMERIC as a string, so this normalizes either shape and drops a trailing
+// ".0" for whole-number stats (receptions, TDs, tackles) without truncating
+// a genuinely fractional one.
+function formatPropActual(gp: { line: number; actual_value: number | string | null }): string {
+  if (gp.actual_value == null) return `line ${gp.line}`;
+  const n = Number(gp.actual_value);
+  if (!Number.isFinite(n)) return `line ${gp.line}`;
+  return Number.isInteger(n) ? String(n) : n.toFixed(1);
 }
 
 // ─── Tooltip ─────────────────────────────────────────────────────────────────
@@ -229,8 +243,8 @@ function PredictionSummary({ pred, game, tnIsHome, gameProps, propPicks }: {
       const pick = propPicks.find((p) => p.prop_id === gp.id);
       return {
         label: gp.description,
-        predicted: pick ? pick.pick.toUpperCase() : '—',
-        actual: `line ${gp.line}`,
+        predicted: pick ? `${pick.pick.toUpperCase()} ${gp.line}` : '—',
+        actual: formatPropActual(gp),
         pts: pick ? pick.points_earned : null,
         max: gp.points_value,
       };
@@ -300,7 +314,7 @@ export function PreGamePredictions({ game }: Props) {
     if (!game) return;
     supabase
       .from('game_props')
-      .select('id, description, line, points_value')
+      .select('id, description, line, points_value, actual_value')
       .eq('game_id', game.id)
       .order('sort_order', { ascending: true })
       .then(({ data }) => setGameProps((data as GameProp[]) ?? []));
