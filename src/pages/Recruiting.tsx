@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Trophy, Star, Search, Award, Users, TrendingUp, Clock,
-  GraduationCap, ArrowRightLeft, Target, RefreshCw,
+  Trophy, Search, Users,
+  GraduationCap, ArrowRightLeft, Target,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { DashboardCard } from '../components/ui/DashboardCard';
@@ -68,15 +68,6 @@ const TIER1_SPORT = 'basketball';
 const TIER1_LABEL = "Men's Basketball";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
-
-function timeAgo(iso: string | null): string {
-  if (!iso) return '—';
-  const diff = Date.now() - new Date(iso).getTime();
-  const h = Math.floor(diff / 3_600_000);
-  if (h < 1) return 'just now';
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
 
 // 0 means "not yet synced from this source" (e.g. On3 hasn't been scraped
 // successfully), not a real rank of zero — show as unavailable rather than "#0".
@@ -170,56 +161,18 @@ function ClassRankingsBanner({ rankings, label }: { rankings: ClassRanking | nul
   );
 }
 
-// ─── Commit Tracker (Tier 1) ────────────────────────────────────────────────────
-
-function CommitTracker({ recruits }: { recruits: Recruit[] }) {
-  const commits = recruits.filter((r) => r.status === 'committed' || r.status === 'signed');
-  const decommits = recruits.filter((r) => r.status === 'decommitted');
-  const portal = recruits.filter((r) => r.status === 'portal');
-  const recent = [...recruits].sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? '')).slice(0, 8);
-
-  return (
-    <DashboardCard
-      title="LIVE COMMIT TRACKER"
-      statusDotColor="#FF8200"
-      metadataTag={<span className="text-[10px] text-vgd-muted">{commits.length}C · {decommits.length}D · {portal.length}P</span>}
-    >
-      {recent.length === 0 ? (
-        <EmptyState icon={RefreshCw} title="No commit activity yet" subtitle="Commit, decommit, and portal activity will appear here." />
-      ) : (
-        <div className="divide-y divide-white/[0.05]">
-          {recent.map((r) => {
-            const isCommit = r.status === 'committed' || r.status === 'signed';
-            const isDecommit = r.status === 'decommitted';
-            const accentColor = isDecommit ? '#D11919' : isCommit ? '#FF8200' : '#f59e0b';
-            return (
-              <div key={r.id} className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-white/[0.02] transition-colors">
-                <div className="w-1 h-8 rounded-full flex-shrink-0" style={{ backgroundColor: accentColor }} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-white/85 truncate">{r.full_name}</p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[10px] text-vgd-muted">{r.position || '—'}</span>
-                    {r.hometown && <span className="text-[10px] text-vgd-muted truncate">· {r.hometown}</span>}
-                  </div>
-                </div>
-                <StatusPill status={r.status} />
-                <span className="text-[10px] text-vgd-muted flex-shrink-0">{timeAgo(r.updated_at)}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </DashboardCard>
-  );
-}
-
 // ─── Tabbed Prospect Database (Tier 1) ──────────────────────────────────────────
+// Doubles as the ranking view — a separate "Player Rankings" module used to sit
+// next to this and just re-listed the same recruits sorted differently, which
+// read as duplicated information. Sorting now lives here instead, applied on
+// top of whichever tab/filters are active, with a rank number per row.
 
 function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading: boolean }) {
   const [activeTab, setActiveTab] = useState<typeof PROSPECT_TABS[number]['key']>('hs_commits');
   const [posFilter, setPosFilter] = useState<string>('');
   const [starFilter, setStarFilter] = useState<number>(0);
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<typeof SORT_OPTIONS[number]['key']>('composite');
 
   const currentTab = PROSPECT_TABS.find((t) => t.key === activeTab)!;
   const filtered = recruits.filter((r) => {
@@ -233,8 +186,38 @@ function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading:
     return true;
   });
 
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === '247') return (b.stars_247 ?? 0) - (a.stars_247 ?? 0);
+    if (sortBy === 'on3') return (b.stars_on3 ?? 0) - (a.stars_on3 ?? 0);
+    if (sortBy === 'position') return (a.position ?? 'zzz').localeCompare(b.position ?? 'zzz');
+    // composite: average of both
+    const aAvg = ((a.stars_247 ?? 0) + (a.stars_on3 ?? 0)) / 2;
+    const bAvg = ((b.stars_247 ?? 0) + (b.stars_on3 ?? 0)) / 2;
+    return bAvg - aAvg;
+  });
+
   return (
-    <DashboardCard title="PROSPECT DATABASE" statusDotColor="#60a5fa">
+    <DashboardCard
+      title="PROSPECT DATABASE"
+      statusDotColor="#60a5fa"
+      metadataTag={
+        <div className="flex items-center gap-1">
+          {SORT_OPTIONS.map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => setSortBy(opt.key)}
+              className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors ${
+                sortBy === opt.key
+                  ? 'bg-vgd-orange/20 border-vgd-orange/50 text-vgd-orange'
+                  : 'border-white/[0.08] text-white/40 hover:text-white/70'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      }
+    >
       <div className="flex items-center gap-1 px-3 pt-3 border-b border-white/[0.07] pb-2">
         {PROSPECT_TABS.map((tab) => {
           const Icon = tab.icon;
@@ -285,12 +268,13 @@ function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading:
         <div className="p-3 space-y-2">
           {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-10 bg-white/[0.03] rounded animate-pulse" />)}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : sorted.length === 0 ? (
         <EmptyState icon={Search} title="No prospects found" subtitle="Adjust filters or wait for recruiting data ingestion." />
       ) : (
         <div className="divide-y divide-white/[0.05]">
-          {filtered.map((r) => (
+          {sorted.map((r, i) => (
             <div key={r.id} className="flex items-center gap-2.5 px-3 py-2 hover:bg-white/[0.02] transition-colors">
+              <span className="text-xs font-black text-vgd-orange w-5 text-right flex-shrink-0">{i + 1}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-white/85 truncate">{r.full_name}</p>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -304,96 +288,6 @@ function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading:
             </div>
           ))}
         </div>
-      )}
-    </DashboardCard>
-  );
-}
-
-// ─── Player Rankings Module (Tier 1) ────────────────────────────────────────────
-
-function PlayerRankings({ recruits, loading }: { recruits: Recruit[]; loading: boolean }) {
-  const [sortBy, setSortBy] = useState<typeof SORT_OPTIONS[number]['key']>('composite');
-
-  const sorted = [...recruits].sort((a, b) => {
-    if (sortBy === '247') return (b.stars_247 ?? 0) - (a.stars_247 ?? 0);
-    if (sortBy === 'on3') return (b.stars_on3 ?? 0) - (a.stars_on3 ?? 0);
-    if (sortBy === 'position') return (a.position ?? 'zzz').localeCompare(b.position ?? 'zzz');
-    const aAvg = ((a.stars_247 ?? 0) + (a.stars_on3 ?? 0)) / 2;
-    const bAvg = ((b.stars_247 ?? 0) + (b.stars_on3 ?? 0)) / 2;
-    return bAvg - aAvg;
-  }).slice(0, 15);
-
-  return (
-    <DashboardCard
-      title="PLAYER RANKINGS"
-      statusDotColor="#a78bfa"
-      metadataTag={
-        <div className="flex items-center gap-1">
-          {SORT_OPTIONS.map((opt) => (
-            <button
-              key={opt.key}
-              onClick={() => setSortBy(opt.key)}
-              className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors ${
-                sortBy === opt.key
-                  ? 'bg-vgd-orange/20 border-vgd-orange/50 text-vgd-orange'
-                  : 'border-white/[0.08] text-white/40 hover:text-white/70'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      }
-    >
-      {loading || sorted.length === 0 ? (
-        <EmptyState icon={Award} title="No player rankings yet" subtitle="Recruit rankings will appear once data ingestion begins." />
-      ) : (
-        <div className="divide-y divide-white/[0.05]">
-          {sorted.map((r, i) => (
-            <div key={r.id} className="flex items-center gap-2.5 px-3 py-2 hover:bg-white/[0.02] transition-colors">
-              <span className="text-xs font-black text-vgd-orange w-6 text-right">{i + 1}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white/85 truncate">{r.full_name}</p>
-                <span className="text-[10px] text-vgd-muted">{r.position || '—'} · {r.hometown || '—'}</span>
-              </div>
-              <StarBadge stars={r.stars_247} label="247" />
-              <StarBadge stars={r.stars_on3} label="On3" />
-            </div>
-          ))}
-        </div>
-      )}
-    </DashboardCard>
-  );
-}
-
-// ─── Team Rankings Comparison (Tier 1) ──────────────────────────────────────────
-
-function TeamRankingsComparison({ rankings }: { rankings: ClassRanking | null }) {
-  const secRivals = ['Kentucky', 'Arkansas', 'Florida', 'Alabama', 'Auburn', 'Missouri'];
-  return (
-    <DashboardCard title="TEAM RANKINGS — TN vs SEC" statusDotColor="#34d399">
-      {rankings ? (
-        <div className="divide-y divide-white/[0.05]">
-          <div className="flex items-center gap-2.5 px-3 py-2.5 bg-vgd-orange/[0.06]">
-            <span className="w-6 text-xs font-black text-vgd-orange text-right">{rankLabel(rankings.rank_247)}</span>
-            <div className="flex-1">
-              <p className="text-xs font-bold text-vgd-orange">Tennessee</p>
-              <p className="text-[10px] text-vgd-muted">247: {rankLabel(rankings.rank_247)} · On3: {rankLabel(rankings.rank_on3)}</p>
-            </div>
-            <Trophy className="w-3.5 h-3.5 text-vgd-orange" />
-          </div>
-          {secRivals.map((rival) => (
-            <div key={rival} className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-white/[0.02] transition-colors">
-              <span className="w-6 text-xs font-bold text-white/30 text-right">—</span>
-              <div className="flex-1">
-                <p className="text-xs font-semibold text-white/60">{rival}</p>
-                <p className="text-[10px] text-vgd-muted">Awaiting data</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <EmptyState icon={TrendingUp} title="No team rankings yet" subtitle="SEC rival comparison will appear once rankings sync." />
       )}
     </DashboardCard>
   );
@@ -436,16 +330,16 @@ export default function Recruiting() {
 
       <ClassYearTabs year={classYear} onChange={setClassYear} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Class Rankings + Prospect Database, side by side — there's no real
+          SEC team-level ranking data for basketball recruiting (unlike
+          football's sec_team_rankings table), so this doesn't try to fake a
+          "TN vs SEC" comparison the way the football page can. Player
+          Rankings used to sit next to Prospect Database re-listing the same
+          recruits sorted differently; that sort now lives in Prospect
+          Database's own header instead. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <ClassRankingsBanner rankings={rankings} label={TIER1_LABEL} />
-        <TeamRankingsComparison rankings={rankings} />
-      </div>
-
-      <CommitTracker recruits={recruits} />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ProspectDatabase recruits={recruits} loading={loading} />
-        <PlayerRankings recruits={recruits} loading={loading} />
       </div>
 
       {/* ── SHARED FOOTER ─────────────────────────────────────────────────────── */}
