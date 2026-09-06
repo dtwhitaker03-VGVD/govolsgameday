@@ -261,7 +261,7 @@ export function AllSportLeaders() {
 
   return (
     <DashboardCard
-      title="ALL-SPORT LEADERS"
+      title="TOTAL POINTS LEADERS"
       metadataTag={<span className="text-[10px] text-vgd-muted">TOP 10</span>}
     >
       <div className="p-3 space-y-1.5">
