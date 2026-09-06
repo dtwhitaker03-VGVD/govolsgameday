@@ -495,26 +495,26 @@ export function PreGamePredictions({ game }: Props) {
     </span>
   );
 
+  const scoringRulesToggle = (
+    <div className="relative">
+      <button
+        onClick={() => setShowTooltip(v => !v)}
+        className="text-vgd-muted hover:text-vgd-orange transition-colors"
+        title="Scoring rules"
+      >
+        <HelpCircle className="w-4 h-4" />
+      </button>
+      <ScoringTooltip open={showTooltip} onClose={() => setShowTooltip(false)} propCount={gameProps.length} hasTennessee={hasTennessee} />
+    </div>
+  );
+
   return (
     <DashboardCard
       title="PRE-GAME PREDICTIONS"
+      headerExtra={scoringRulesToggle}
       metadataTag={metaTag}
       className="h-full"
     >
-      <div className="relative">
-        {/* Tooltip toggle */}
-        <button
-          onClick={() => setShowTooltip(v => !v)}
-          className="absolute top-2 right-3 z-20 text-vgd-muted hover:text-vgd-orange transition-colors"
-          title="Scoring rules"
-        >
-          <HelpCircle className="w-4 h-4" />
-        </button>
-        <div className="relative">
-          <ScoringTooltip open={showTooltip} onClose={() => setShowTooltip(false)} propCount={gameProps.length} hasTennessee={hasTennessee} />
-        </div>
-      </div>
-
       {/* Post-game summary */}
       {isCalculated && existing ? (
         <PredictionSummary pred={existing} game={game} tnIsHome={tnIsHome} gameProps={gameProps} propPicks={propPicks} />
