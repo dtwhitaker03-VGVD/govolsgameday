@@ -27,20 +27,19 @@ function daysAgoInET(dateStr: string): number {
 // system_health issue, not something to keep showing as "current" forever.
 const KICKOFF_PASSED_GRACE_MS = 4 * 60 * 60 * 1000;
 
-// How long a just-finished game keeps priority over a further-out upcoming
-// game — matches Home.tsx's pickActiveGame. Without this tier, a game that
-// finished minutes ago loses to any 'pregame' game already sitting in the
-// DB for a future week (its kickoff_time is always ">= now"), so the banner
-// jumps straight to "Next week's opponent" instead of showing this week's
-// final score.
-const JUST_FINISHED_GRACE_MS = 3 * 60 * 60 * 1000;
-
 /**
- * Picks the game the banner should show: live first, else a game that just
- * finished (so the final score doesn't get bumped by a future game already
- * on the schedule), else the soonest upcoming game, else a game that
+ * Picks the game the banner should show: live first, else a game that
  * finished today or yesterday (ET) — so a Saturday final score keeps
- * showing through all of Sunday, not just the day of the game.
+ * showing through all of Sunday, not just the day of the game — else the
+ * soonest upcoming game.
+ *
+ * "Finished recently" has to come BEFORE "upcoming": a future game sits in
+ * the DB as 'pregame' from the moment game-sync creates its row (days or
+ * weeks ahead of kickoff), so its kickoff_time is always ">= now" and it
+ * would otherwise permanently outrank a game that just finished — the
+ * "through all of Sunday" guarantee was never actually reachable with the
+ * reverse order, since next week's opponent is always "upcoming" the
+ * instant this week's game ends.
  */
 function pickBannerGame(games: LiveGame[]): LiveGame | null {
   const live = games.find((g) => g.status === 'live');
@@ -48,11 +47,10 @@ function pickBannerGame(games: LiveGame[]): LiveGame | null {
 
   const now = Date.now();
 
-  const justFinished = games
-    .filter((g) => ['final', 'calculated'].includes(g.status) && g.updated_at)
-    .filter((g) => now - new Date(g.updated_at!).getTime() <= JUST_FINISHED_GRACE_MS)
-    .sort((a, b) => new Date(b.updated_at!).getTime() - new Date(a.updated_at!).getTime())[0];
-  if (justFinished) return justFinished;
+  const finishedRecently = games
+    .filter((g) => ['final', 'calculated'].includes(g.status) && daysAgoInET(g.kickoff_time) <= 1)
+    .sort((a, b) => new Date(b.kickoff_time).getTime() - new Date(a.kickoff_time).getTime())[0];
+  if (finishedRecently) return finishedRecently;
 
   const upcoming = games
     .filter((g) => {
@@ -61,12 +59,7 @@ function pickBannerGame(games: LiveGame[]): LiveGame | null {
       return kickoffMs >= now || now - kickoffMs <= KICKOFF_PASSED_GRACE_MS;
     })
     .sort((a, b) => new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime())[0];
-  if (upcoming) return upcoming;
-
-  const finishedRecently = games
-    .filter((g) => ['final', 'calculated'].includes(g.status) && daysAgoInET(g.kickoff_time) <= 1)
-    .sort((a, b) => new Date(b.kickoff_time).getTime() - new Date(a.kickoff_time).getTime())[0];
-  return finishedRecently ?? null;
+  return upcoming ?? null;
 }
 
 /**
@@ -90,7 +83,7 @@ export function GameDayBanner() {
       .select(
         'id, cfbd_game_id, home_team, away_team, kickoff_time, status, home_score, away_score, ' +
         'home_total_yards, away_total_yards, current_quarter, game_clock, possession, ' +
-        'down, distance, yardline, updated_at'
+        'down, distance, yardline'
       )
       .in('status', ['pregame', 'live', 'final', 'calculated'])
       .order('kickoff_time', { ascending: true })
