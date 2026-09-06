@@ -82,8 +82,10 @@ export function GameDayBanner() {
       .from('live_games')
       .select(
         'id, cfbd_game_id, home_team, away_team, kickoff_time, status, home_score, away_score, ' +
-        'home_total_yards, away_total_yards, current_quarter, game_clock, possession, ' +
-        'down, distance, yardline'
+        'home_total_yards, away_total_yards, home_rushing_yards, away_rushing_yards, ' +
+        'home_passing_yards, away_passing_yards, home_turnovers, away_turnovers, ' +
+        'home_timeouts_remaining, away_timeouts_remaining, current_quarter, game_clock, ' +
+        'possession, down, distance, yardline'
       )
       .in('status', ['pregame', 'live', 'final', 'calculated'])
       .order('kickoff_time', { ascending: true })
