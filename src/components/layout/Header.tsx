@@ -164,20 +164,8 @@ function AvatarDropdown({ profile }: { profile: UserProfile }) {
 }
 
 const navItems = [
-  { label: 'Basketball', to: '/basketball' },
-  { label: 'Baseball', to: '/baseball' },
   { label: 'Forums', to: '/forums' },
   { label: 'About', to: '/about' },
-];
-
-const footballDropdown: DropdownItem[] = [
-  { label: 'Football', to: '/football' },
-  { label: 'Football Recruiting', to: '/football-recruiting' },
-];
-
-const ladyVolsDropdown: DropdownItem[] = [
-  { label: 'LV Basketball', to: '/lv-basketball' },
-  { label: 'LV Softball', to: '/lv-softball' },
 ];
 
 const recruitingDropdown: DropdownItem[] = [
@@ -223,18 +211,9 @@ export function Header() {
                 Home
               </NavLink>
 
-              <NavDropdown label="Football" items={footballDropdown} />
-
-              {navItems.slice(0, 2).map((item) => (
-                <NavLink key={item.to} to={item.to} className={navLinkClass}>
-                  {item.label}
-                </NavLink>
-              ))}
-
-              <NavDropdown label="Lady Vols" items={ladyVolsDropdown} />
               <NavDropdown label="Recruiting" items={recruitingDropdown} />
 
-              {navItems.slice(2).map((item) => (
+              {navItems.map((item) => (
                 <NavLink key={item.to} to={item.to} className={navLinkClass}>
                   {item.label}
                 </NavLink>
@@ -300,12 +279,7 @@ export function Header() {
             <nav className="flex-1 overflow-y-auto py-4 px-5 space-y-1">
               {[
                 { label: 'Home', to: '/' },
-                { label: 'Football', to: '/football' },
                 { label: 'Football Recruiting', to: '/football-recruiting' },
-                { label: 'Basketball', to: '/basketball' },
-                { label: 'Baseball', to: '/baseball' },
-                { label: 'LV Basketball', to: '/lv-basketball' },
-                { label: 'LV Softball', to: '/lv-softball' },
                 { label: 'Basketball Recruiting', to: '/recruiting' },
                 { label: 'Forums', to: '/forums' },
                 { label: 'About', to: '/about' },

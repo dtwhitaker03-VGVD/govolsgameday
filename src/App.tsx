@@ -3,12 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import { RootLayout } from './components/layout/RootLayout';
 
 import Home from './pages/Home';
-import Football from './pages/Football';
 import FootballRecruiting from './pages/FootballRecruiting';
-import Basketball from './pages/Basketball';
-import Baseball from './pages/Baseball';
-import LvBasketball from './pages/LvBasketball';
-import LvSoftball from './pages/LvSoftball';
 import Recruiting from './pages/Recruiting';
 import Forums from './pages/Forums';
 import ThreadPage from './pages/ThreadPage';
@@ -24,12 +19,7 @@ export default function App() {
         <Routes>
           <Route element={<RootLayout />}>
             <Route index element={<Home />} />
-            <Route path="football" element={<Football />} />
             <Route path="football-recruiting" element={<FootballRecruiting />} />
-            <Route path="basketball" element={<Basketball />} />
-            <Route path="baseball" element={<Baseball />} />
-            <Route path="lv-basketball" element={<LvBasketball />} />
-            <Route path="lv-softball" element={<LvSoftball />} />
             <Route path="recruiting" element={<Recruiting />} />
             <Route path="forums" element={<Forums />} />
             <Route path="forums/:threadId" element={<ThreadPage />} />
