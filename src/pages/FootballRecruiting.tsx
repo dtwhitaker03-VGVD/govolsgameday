@@ -481,19 +481,15 @@ export default function FootballRecruiting() {
         onIndustryToggle={setIndustryToggle}
       />
 
-      {/* Section 2: Team Rankings — full width, the primary content on this
-          page alongside the prospect database below. Class Rankings used to
-          sit next to this in its own card, but every number it showed (247/
-          On3 national rank, SEC rank) already appears in the header stats
-          bar above and again inline in Tennessee's own row here — a whole
-          card just to repeat them wasn't earning its space. */}
-      <TeamRankingsComparison rankings={rankings} teamRankings={teamRankings} />
-
-      {/* Section 3: Prospect Database — also full width. This used to sit
-          next to a "Player Rankings" module that just re-listed the same
-          recruits sorted differently; that sort now lives in this card's
-          own header instead of duplicating the whole list a second time. */}
-      <ProspectDatabase recruits={recruits} loading={loading} />
+      {/* Section 2 & 3: Team Rankings + Prospect Database, side by side. Each
+          row in Team Rankings is just a team name and one short stat line —
+          full page width left most of each row empty, so it shares a row
+          with Prospect Database instead (whose own "Player Rankings" sort
+          now lives in its header, rather than a separate duplicate list). */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        <TeamRankingsComparison rankings={rankings} teamRankings={teamRankings} />
+        <ProspectDatabase recruits={recruits} loading={loading} />
+      </div>
 
       {/* Section 4: Football Recruiting Discussion Board */}
       <DiscussionBoard
