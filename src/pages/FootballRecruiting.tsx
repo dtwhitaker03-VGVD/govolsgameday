@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Trophy, Star, TrendingUp, TrendingDown, Users, Calendar, Search,
-  Filter, ChevronDown, Award, GraduationCap, ArrowRightLeft, Target,
-  RefreshCw, Clock, UserCircle, AlertCircle,
+  Trophy, TrendingUp, Users, Search,
+  GraduationCap, ArrowRightLeft, Target, Clock,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { DashboardCard } from '../components/ui/DashboardCard';
@@ -97,11 +96,6 @@ function avgStars(recruits: Recruit[], source: '247' | 'on3'): string {
   if (valid.length === 0) return '—';
   const avg = valid.reduce((sum, r) => sum + (r[key] as number), 0) / valid.length;
   return avg.toFixed(1);
-}
-
-function starRow(stars: number | null): string {
-  if (!stars) return '—';
-  return '★'.repeat(stars) + '☆'.repeat(5 - stars);
 }
 
 // ─── Empty State ─────────────────────────────────────────────────────────────────
@@ -251,105 +245,18 @@ function HeaderStatsBar({
   );
 }
 
-// ─── Section 2: Class Rankings Banner ──────────────────────────────────────────────
-
-function ClassRankingsBanner({ rankings }: { rankings: ClassRanking | null }) {
-  return (
-    <DashboardCard title="CLASS RANKINGS" statusDotColor="#34d399">
-      {rankings ? (
-        <div className="grid grid-cols-2 gap-0 divide-x divide-white/[0.07]">
-          {/* 247Sports */}
-          <div className="px-4 py-3.5 text-center">
-            <div className="text-[10px] font-bold text-vgd-orange uppercase tracking-wider mb-2">247Sports</div>
-            <div className="flex items-center justify-center gap-3">
-              <div>
-                <div className="text-[9px] text-vgd-muted uppercase">National</div>
-                <div className="text-2xl font-black text-white">{rankLabel(rankings.rank_247)}</div>
-              </div>
-              <div className="w-px h-8 bg-white/[0.07]" />
-              <div>
-                <div className="text-[9px] text-vgd-muted uppercase">SEC</div>
-                <div className="text-2xl font-black text-white">{rankLabel(rankings.sec_rank)}</div>
-              </div>
-            </div>
-          </div>
-          {/* On3 */}
-          <div className="px-4 py-3.5 text-center">
-            <div className="text-[10px] font-bold text-vgd-orange uppercase tracking-wider mb-2">On3</div>
-            <div className="flex items-center justify-center gap-3">
-              <div>
-                <div className="text-[9px] text-vgd-muted uppercase">National</div>
-                <div className="text-2xl font-black text-white">{rankLabel(rankings.rank_on3)}</div>
-              </div>
-              <div className="w-px h-8 bg-white/[0.07]" />
-              <div>
-                <div className="text-[9px] text-vgd-muted uppercase">SEC</div>
-                <div className="text-2xl font-black text-white">{rankLabel(rankings.sec_rank)}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <EmptyState icon={Trophy} title="No class rankings yet" subtitle="Rankings sync from 247Sports and On3 twice daily." />
-      )}
-    </DashboardCard>
-  );
-}
-
-// ─── Section 3: Live Commit Tracker ──────────────────────────────────────────────
-
-function CommitTracker({ recruits }: { recruits: Recruit[] }) {
-  const commits = recruits.filter((r) => r.status === 'committed' || r.status === 'signed');
-  const decommits = recruits.filter((r) => r.status === 'decommitted');
-  const portal = recruits.filter((r) => r.status === 'portal');
-  const recent = [...recruits].sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? '')).slice(0, 8);
-
-  return (
-    <DashboardCard
-      title="LIVE COMMIT TRACKER"
-      statusDotColor="#FF8200"
-      metadataTag={
-        <span className="text-[10px] text-vgd-muted">
-          {commits.length}C · {decommits.length}D · {portal.length}P
-        </span>
-      }
-    >
-      {recent.length === 0 ? (
-        <EmptyState icon={RefreshCw} title="No commit activity yet" subtitle="Commit, decommit, and portal activity will appear here." />
-      ) : (
-        <div className="divide-y divide-white/[0.05]">
-          {recent.map((r) => {
-            const isCommit = r.status === 'committed' || r.status === 'signed';
-            const isDecommit = r.status === 'decommitted';
-            const accentColor = isDecommit ? '#D11919' : isCommit ? '#FF8200' : '#f59e0b';
-            return (
-              <div key={r.id} className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-white/[0.02] transition-colors">
-                <div className="w-1 h-8 rounded-full flex-shrink-0" style={{ backgroundColor: accentColor }} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-white/85 truncate">{r.full_name}</p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[10px] text-vgd-muted">{r.position || '—'}</span>
-                    {r.hometown && <span className="text-[10px] text-vgd-muted truncate">· {r.hometown}</span>}
-                  </div>
-                </div>
-                <StatusPill status={r.status} />
-                <span className="text-[10px] text-vgd-muted flex-shrink-0">{timeAgo(r.updated_at)}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </DashboardCard>
-  );
-}
-
-// ─── Section 4: Tabbed Prospect Database ──────────────────────────────────────────
+// ─── Section 2: Tabbed Prospect Database ──────────────────────────────────────────
+// Doubles as the ranking view — a separate "Player Rankings" module used to sit
+// next to this and just re-listed the same recruits sorted differently, which
+// read as duplicated information. Sorting now lives here instead, applied on
+// top of whichever tab/filters are active, with a rank number per row.
 
 function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading: boolean }) {
   const [activeTab, setActiveTab] = useState<typeof PROSPECT_TABS[number]['key']>('hs_commits');
   const [posFilter, setPosFilter] = useState<string>('');
   const [starFilter, setStarFilter] = useState<number>(0);
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<typeof SORT_OPTIONS[number]['key']>('composite');
 
   const currentTab = PROSPECT_TABS.find((t) => t.key === activeTab)!;
   const filtered = recruits.filter((r) => {
@@ -363,8 +270,38 @@ function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading:
     return true;
   });
 
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === '247') return (b.stars_247 ?? 0) - (a.stars_247 ?? 0);
+    if (sortBy === 'on3') return (b.stars_on3 ?? 0) - (a.stars_on3 ?? 0);
+    if (sortBy === 'position') return (a.position ?? 'zzz').localeCompare(b.position ?? 'zzz');
+    // composite: average of both
+    const aAvg = ((a.stars_247 ?? 0) + (a.stars_on3 ?? 0)) / 2;
+    const bAvg = ((b.stars_247 ?? 0) + (b.stars_on3 ?? 0)) / 2;
+    return bAvg - aAvg;
+  });
+
   return (
-    <DashboardCard title="PROSPECT DATABASE" statusDotColor="#60a5fa">
+    <DashboardCard
+      title="PROSPECT DATABASE"
+      statusDotColor="#60a5fa"
+      metadataTag={
+        <div className="flex items-center gap-1">
+          {SORT_OPTIONS.map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => setSortBy(opt.key)}
+              className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors ${
+                sortBy === opt.key
+                  ? 'bg-vgd-orange/20 border-vgd-orange/50 text-vgd-orange'
+                  : 'border-white/[0.08] text-white/40 hover:text-white/70'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      }
+    >
       {/* Tabs */}
       <div className="flex items-center gap-1 px-3 pt-3 border-b border-white/[0.07] pb-2">
         {PROSPECT_TABS.map((tab) => {
@@ -422,12 +359,13 @@ function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading:
             <div key={i} className="h-10 bg-white/[0.03] rounded animate-pulse" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : sorted.length === 0 ? (
         <EmptyState icon={Search} title="No prospects found" subtitle="Adjust filters or wait for recruiting data ingestion." />
       ) : (
         <div className="divide-y divide-white/[0.05]">
-          {filtered.map((r) => (
+          {sorted.map((r, i) => (
             <div key={r.id} className="flex items-center gap-2.5 px-3 py-2 hover:bg-white/[0.02] transition-colors">
+              <span className="text-xs font-black text-vgd-orange w-5 text-right flex-shrink-0">{i + 1}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-white/85 truncate">{r.full_name}</p>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -446,65 +384,7 @@ function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading:
   );
 }
 
-// ─── Section 5: Player Rankings Module ────────────────────────────────────────────
-
-function PlayerRankings({ recruits, loading }: { recruits: Recruit[]; loading: boolean }) {
-  const [sortBy, setSortBy] = useState<typeof SORT_OPTIONS[number]['key']>('composite');
-
-  const sorted = [...recruits].sort((a, b) => {
-    if (sortBy === '247') return (b.stars_247 ?? 0) - (a.stars_247 ?? 0);
-    if (sortBy === 'on3') return (b.stars_on3 ?? 0) - (a.stars_on3 ?? 0);
-    if (sortBy === 'position') return (a.position ?? 'zzz').localeCompare(b.position ?? 'zzz');
-    // composite: average of both
-    const aAvg = ((a.stars_247 ?? 0) + (a.stars_on3 ?? 0)) / 2;
-    const bAvg = ((b.stars_247 ?? 0) + (b.stars_on3 ?? 0)) / 2;
-    return bAvg - aAvg;
-  }).slice(0, 15);
-
-  return (
-    <DashboardCard
-      title="PLAYER RANKINGS"
-      statusDotColor="#a78bfa"
-      metadataTag={
-        <div className="flex items-center gap-1">
-          {SORT_OPTIONS.map((opt) => (
-            <button
-              key={opt.key}
-              onClick={() => setSortBy(opt.key)}
-              className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors ${
-                sortBy === opt.key
-                  ? 'bg-vgd-orange/20 border-vgd-orange/50 text-vgd-orange'
-                  : 'border-white/[0.08] text-white/40 hover:text-white/70'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      }
-    >
-      {loading || sorted.length === 0 ? (
-        <EmptyState icon={Award} title="No player rankings yet" subtitle="Recruit rankings will appear once data ingestion begins." />
-      ) : (
-        <div className="divide-y divide-white/[0.05]">
-          {sorted.map((r, i) => (
-            <div key={r.id} className="flex items-center gap-2.5 px-3 py-2 hover:bg-white/[0.02] transition-colors">
-              <span className="text-xs font-black text-vgd-orange w-6 text-right">{i + 1}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white/85 truncate">{r.full_name}</p>
-                <span className="text-[10px] text-vgd-muted">{r.position || '—'} · {r.hometown || '—'}</span>
-              </div>
-              <StarBadge stars={r.stars_247} label="247" />
-              <StarBadge stars={r.stars_on3} label="On3" />
-            </div>
-          ))}
-        </div>
-      )}
-    </DashboardCard>
-  );
-}
-
-// ─── Section 6: Team Rankings Comparison ──────────────────────────────────────────
+// ─── Section 3: Team Rankings Comparison ──────────────────────────────────────────
 
 function TeamRankingsComparison({ rankings, teamRankings }: { rankings: ClassRanking | null; teamRankings: SecTeamRanking[] }) {
   const rivals = teamRankings.filter((t) => t.team !== 'Tennessee').sort((a, b) => a.rank - b.rank);
@@ -601,22 +481,21 @@ export default function FootballRecruiting() {
         onIndustryToggle={setIndustryToggle}
       />
 
-      {/* Section 2 & 6: Class Rankings + Team Rankings Comparison */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <ClassRankingsBanner rankings={rankings} />
-        <TeamRankingsComparison rankings={rankings} teamRankings={teamRankings} />
-      </div>
+      {/* Section 2: Team Rankings — full width, the primary content on this
+          page alongside the prospect database below. Class Rankings used to
+          sit next to this in its own card, but every number it showed (247/
+          On3 national rank, SEC rank) already appears in the header stats
+          bar above and again inline in Tennessee's own row here — a whole
+          card just to repeat them wasn't earning its space. */}
+      <TeamRankingsComparison rankings={rankings} teamRankings={teamRankings} />
 
-      {/* Section 3: Live Commit Tracker */}
-      <CommitTracker recruits={recruits} />
+      {/* Section 3: Prospect Database — also full width. This used to sit
+          next to a "Player Rankings" module that just re-listed the same
+          recruits sorted differently; that sort now lives in this card's
+          own header instead of duplicating the whole list a second time. */}
+      <ProspectDatabase recruits={recruits} loading={loading} />
 
-      {/* Section 4 & 5: Prospect Database + Player Rankings */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ProspectDatabase recruits={recruits} loading={loading} />
-        <PlayerRankings recruits={recruits} loading={loading} />
-      </div>
-
-      {/* Section 8: Football Recruiting Discussion Board */}
+      {/* Section 4: Football Recruiting Discussion Board */}
       <DiscussionBoard
         roomCategory="football-recruiting"
         title="FOOTBALL RECRUITING DISCUSSION BOARD"
@@ -624,10 +503,10 @@ export default function FootballRecruiting() {
         className="h-[700px]"
       />
 
-      {/* Section 10: 3×10 News Grid */}
+      {/* Section 5: News Grid */}
       <VolNewsWire sportCategory="football-recruiting" />
 
-      {/* Section 11: Three-Window Forum Tray */}
+      {/* Section 6: Three-Window Forum Tray */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
         <ForumThreadsPanel mode="new" category="football_recruiting" />
         <ForumThreadsPanel mode="popular" category="football_recruiting" />
