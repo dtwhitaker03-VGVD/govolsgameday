@@ -247,7 +247,7 @@ function HeaderStatsBar({
 // read as duplicated information. Sorting now lives here instead, applied on
 // top of whichever tab/filters are active, with a rank number per row.
 
-function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading: boolean }) {
+function ProspectDatabase({ recruits, transferRecruits, loading }: { recruits: Recruit[]; transferRecruits: Recruit[]; loading: boolean }) {
   const [activeTab, setActiveTab] = useState<typeof PROSPECT_TABS[number]['key']>('hs_commits');
   const [posFilter, setPosFilter] = useState<string>('');
   const [starFilter, setStarFilter] = useState<number>(0);
@@ -255,7 +255,12 @@ function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading:
   const [sortBy, setSortBy] = useState<typeof SORT_OPTIONS[number]['key']>('composite');
 
   const currentTab = PROSPECT_TABS.find((t) => t.key === activeTab)!;
-  const filtered = recruits.filter((r) => {
+  // Transfers live under the current transfer-portal season, which is a
+  // different vintage than the selected HS recruiting class year (see
+  // recruiting_sources.transfers_scouting_year) — so the Transfer tab reads
+  // from its own year-independent fetch instead of the classYear-scoped list.
+  const sourceRecruits = currentTab.key === 'transfer' ? transferRecruits : recruits;
+  const filtered = sourceRecruits.filter((r) => {
     if (currentTab.key === 'hs_commits' && !(r.status === 'committed' || r.status === 'signed')) return false;
     if (currentTab.key === 'transfer' && r.status !== 'portal') return false;
     if (currentTab.key === 'targets' && r.status !== 'target') return false;
@@ -448,6 +453,7 @@ export default function FootballRecruiting() {
   const [classYear, setClassYear] = useState(CURRENT_YEAR + 1);
   const [industryToggle, setIndustryToggle] = useState<'247' | 'on3'>('247');
   const [recruits, setRecruits] = useState<Recruit[]>([]);
+  const [transferRecruits, setTransferRecruits] = useState<Recruit[]>([]);
   const [rankings, setRankings] = useState<ClassRanking | null>(null);
   const [nationalRankings, setNationalRankings] = useState<TeamRankingRow[]>([]);
   const [secRankings, setSecRankings] = useState<TeamRankingRow[]>([]);
@@ -455,12 +461,20 @@ export default function FootballRecruiting() {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [recruitsRes, rankingsRes, nationalRes, secRes] = await Promise.all([
+    const [recruitsRes, transfersRes, rankingsRes, nationalRes, secRes] = await Promise.all([
       supabase
         .from('recruits')
         .select('*')
         .eq('sport_category', 'football')
         .eq('scouting_year', classYear),
+      // Portal transfers live under the current transfer season, a different
+      // vintage than the selected HS class year, so this fetch is scoped by
+      // status only rather than classYear.
+      supabase
+        .from('recruits')
+        .select('*')
+        .eq('sport_category', 'football')
+        .eq('status', 'portal'),
       supabase
         .from('recruiting_class_rankings')
         .select('*')
@@ -471,7 +485,9 @@ export default function FootballRecruiting() {
         .from('national_team_rankings')
         .select('*')
         .eq('sport_category', 'football')
-        .eq('scouting_year', classYear),
+        .eq('scouting_year', classYear)
+        .order('rank', { ascending: true })
+        .limit(25),
       supabase
         .from('sec_team_rankings')
         .select('*')
@@ -479,6 +495,7 @@ export default function FootballRecruiting() {
         .eq('scouting_year', classYear),
     ]);
     setRecruits((recruitsRes.data as Recruit[]) ?? []);
+    setTransferRecruits((transfersRes.data as Recruit[]) ?? []);
     setRankings((rankingsRes.data as ClassRanking) ?? null);
     setNationalRankings((nationalRes.data as TeamRankingRow[]) ?? []);
     setSecRankings((secRes.data as TeamRankingRow[]) ?? []);
@@ -513,7 +530,7 @@ export default function FootballRecruiting() {
           now lives in its header, rather than a separate duplicate list). */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <TeamRankingsComparison nationalRankings={nationalRankings} secRankings={secRankings} />
-        <ProspectDatabase recruits={recruits} loading={loading} />
+        <ProspectDatabase recruits={recruits} transferRecruits={transferRecruits} loading={loading} />
       </div>
 
       {/* Section 4: Football Recruiting Discussion Board */}

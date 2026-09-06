@@ -486,7 +486,9 @@ function extractOn3Transfers(markdown: string): On3Transfer[] {
 
   const playerLinkRe = /\[([A-Z][a-zA-Z.'’\-]+(?: [A-Z][a-zA-Z.'’\-]+){1,3})\]\(https:\/\/www\.on3\.com\/rivals\/[^)]+\)/;
   const schoolCityRe = /^([A-Z][a-zA-Z.'\s]+)\s*\(([A-Z][a-zA-Z.'\s]+,\s*[A-Z]{2})\)$/;
-  const positionRe = /^(QB|RB|WR|TE|OL|OT|OG|IOL|C|DL|DE|DT|LB|ILB|OLB|CB|S|K|P|ATH|EDGE|FB|LS)$/;
+  // Includes both football and basketball position abbreviations — this
+  // parser is shared across both sports' On3 transfer-portal pages.
+  const positionRe = /^(QB|RB|WR|TE|OL|OT|OG|IOL|C|DL|DE|DT|LB|ILB|OLB|CB|S|K|P|ATH|EDGE|FB|LS|PG|SG|SF|PF)$/;
 
   for (let i = 0; i < lines.length; i++) {
     const match = lines[i].match(playerLinkRe);
