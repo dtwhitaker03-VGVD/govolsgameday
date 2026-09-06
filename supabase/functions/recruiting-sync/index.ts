@@ -32,6 +32,9 @@ interface SourceConfig {
    *  conference (e.g. "?conference=sec") — gives the real conference-only
    *  rank, unlike guessing one from the national rank. */
   sec_rankings_url?: string;
+  /** The same On3 industry-composite team rankings page, without the
+   *  conference filter — every team, any conference, ranked nationally. */
+  national_rankings_url?: string;
 }
 
 // Sources live in the recruiting_sources table (not hardcoded here) so a new
@@ -40,7 +43,7 @@ interface SourceConfig {
 async function loadSources(supabase: ReturnType<typeof createClient>): Promise<SourceConfig[]> {
   const { data, error } = await supabase
     .from("recruiting_sources")
-    .select("sport_category, scouting_year, target_url, on3_url, targets_url, transfers_url, transfers_scouting_year, sec_rankings_url")
+    .select("sport_category, scouting_year, target_url, on3_url, targets_url, transfers_url, transfers_scouting_year, sec_rankings_url, national_rankings_url")
     .eq("active", true)
     .order("sport_category");
 
@@ -55,6 +58,7 @@ async function loadSources(supabase: ReturnType<typeof createClient>): Promise<S
     transfers_url: row.transfers_url ?? undefined,
     transfers_scouting_year: row.transfers_scouting_year ?? undefined,
     sec_rankings_url: row.sec_rankings_url ?? undefined,
+    national_rankings_url: row.national_rankings_url ?? undefined,
   }));
 }
 
@@ -378,9 +382,11 @@ function extractOn3TeamRank(markdown: string): number | null {
 }
 
 // ─── On3 conference (SEC) team-rankings extraction ───────────────────────────
-// On3's industry-composite team rankings page, filtered to one conference
-// (e.g. .../rankings/industry-team/football/2027/?conference=sec), lists each
-// team as a numbered row in its main table:
+// On3's industry-composite team rankings page — filtered to one conference
+// (e.g. .../rankings/industry-team/football/2027/?conference=sec) for the SEC
+// comparison, or unfiltered for the national one — lists each team as a
+// numbered row in its main table, identically either way (confirmed live:
+// dropping the conference filter returns every team, same table shape):
 //   09
 //   ![Tennessee](...)
 //   [Tennessee](https://www.on3.com/college/tennessee-volunteers/football/2027/industry-comparison-commits/)
@@ -405,7 +411,7 @@ interface On3TeamRanking {
   avg_rating: number;
 }
 
-function extractOn3ConferenceTeamRankings(markdown: string): On3TeamRanking[] {
+function extractOn3TeamRankings(markdown: string): On3TeamRanking[] {
   const tableStart = markdown.search(/Rank\s*Team\s*Stars/i);
   const lines = (tableStart >= 0 ? markdown.slice(tableStart) : markdown).split("\n");
   const teamLinkRe = /^\[([^\]]+)\]\(https:\/\/www\.on3\.com\/college\/[^)]+\)$/;
@@ -631,7 +637,7 @@ async function syncSource(supabase: ReturnType<typeof createClient>, source: Sou
   if (source.sec_rankings_url) {
     try {
       const secMarkdown = await scrapePage(source.sec_rankings_url);
-      const conferenceRankings = extractOn3ConferenceTeamRankings(secMarkdown);
+      const conferenceRankings = extractOn3TeamRankings(secMarkdown);
       secRank = conferenceRankings.find((t) => t.team === "Tennessee")?.rank ?? null;
       if (secRank === null) errors.push("SEC rankings page scraped but Tennessee's row wasn't found");
 
@@ -654,6 +660,40 @@ async function syncSource(supabase: ReturnType<typeof createClient>, source: Sou
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`SEC rankings scrape failed (non-fatal, sec_rank unchanged): ${msg}`);
+    }
+  }
+
+  // Same page, same shape, minus the conference filter — every team ranked
+  // nationally. Firecrawl's single-page scrape only renders the site's first
+  // ~50 rows (no "load more" pagination triggered), which is plenty to place
+  // Tennessee's real national rank (~19) in context without needing all ~130
+  // FBS teams.
+  if (source.national_rankings_url) {
+    try {
+      const nationalMarkdown = await scrapePage(source.national_rankings_url);
+      const nationalRankings = extractOn3TeamRankings(nationalMarkdown);
+
+      if (nationalRankings.length > 0) {
+        const now = new Date().toISOString();
+        const rows = nationalRankings.map((t) => ({
+          sport_category: source.sport_category,
+          scouting_year: source.scouting_year,
+          team: t.team,
+          rank: t.rank,
+          total_commits: t.total_commits,
+          avg_rating: t.avg_rating,
+          updated_at: now,
+        }));
+        const { error } = await supabase
+          .from("national_team_rankings")
+          .upsert(rows, { onConflict: "sport_category,scouting_year,team" });
+        if (error) errors.push(`National team rankings upsert error: ${error.message}`);
+      } else {
+        errors.push("National rankings page scraped but no rows were parsed");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(`National rankings scrape failed (non-fatal): ${msg}`);
     }
   }
 

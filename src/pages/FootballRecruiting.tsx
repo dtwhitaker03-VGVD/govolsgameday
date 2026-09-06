@@ -35,7 +35,9 @@ interface ClassRanking {
   updated_at: string | null;
 }
 
-interface SecTeamRanking {
+// Shared shape for both national_team_rankings and sec_team_rankings rows —
+// same columns, different scope.
+interface TeamRankingRow {
   id: string;
   team: string;
   rank: number;
@@ -82,12 +84,6 @@ function timeAgo(iso: string | null): string {
   if (h < 1) return 'just now';
   if (h < 24) return `${h}h ago`;
   return `${Math.floor(h / 24)}d ago`;
-}
-
-// 0 means "not yet synced from this source" (e.g. On3 hasn't been scraped
-// successfully), not a real rank of zero — show as unavailable rather than "#0".
-function rankLabel(rank: number): string {
-  return rank > 0 ? `#${rank}` : '—';
 }
 
 function avgStars(recruits: Recruit[], source: '247' | 'on3'): string {
@@ -384,42 +380,64 @@ function ProspectDatabase({ recruits, loading }: { recruits: Recruit[]; loading:
   );
 }
 
-// ─── Section 3: Team Rankings Comparison ──────────────────────────────────────────
+// ─── Section 3: Team Rankings — National + SEC, side by side ───────────────────────
+// Tennessee sits at its real rank in each list, highlighted, rather than
+// pulled out to a pinned top row — same data, no special-casing.
 
-function TeamRankingsComparison({ rankings, teamRankings }: { rankings: ClassRanking | null; teamRankings: SecTeamRanking[] }) {
-  const rivals = teamRankings.filter((t) => t.team !== 'Tennessee').sort((a, b) => a.rank - b.rank);
+function RankingColumn({ label, rows }: { label: string; rows: TeamRankingRow[] }) {
+  const sorted = [...rows].sort((a, b) => a.rank - b.rank);
+
+  if (sorted.length === 0) {
+    return (
+      <div>
+        <div className="px-3 py-2 text-[10px] font-bold text-vgd-orange uppercase tracking-wider border-b border-white/[0.07]">{label}</div>
+        <EmptyState icon={TrendingUp} title="No rankings yet" subtitle="Syncs from On3 twice daily." />
+      </div>
+    );
+  }
 
   return (
-    <DashboardCard title="TEAM RANKINGS — TN vs SEC" statusDotColor="#34d399">
-      {rankings ? (
-        <div className="divide-y divide-white/[0.05]">
-          <div className="flex items-center gap-2.5 px-3 py-2.5 bg-vgd-orange/[0.06]">
-            <span className="w-6 text-xs font-black text-vgd-orange text-right">{rankings.sec_rank > 0 ? `#${rankings.sec_rank}` : '—'}</span>
-            <div className="flex-1">
-              <p className="text-xs font-bold text-vgd-orange">Tennessee</p>
-              <p className="text-[10px] text-vgd-muted">247: {rankLabel(rankings.rank_247)} · On3: {rankLabel(rankings.rank_on3)}</p>
-            </div>
-            <Trophy className="w-3.5 h-3.5 text-vgd-orange" />
-          </div>
-          {rivals.length > 0 ? (
-            rivals.map((rival) => (
-              <div key={rival.id} className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-white/[0.02] transition-colors">
-                <span className="w-6 text-xs font-bold text-white/30 text-right">#{rival.rank}</span>
-                <div className="flex-1">
-                  <p className="text-xs font-semibold text-white/60">{rival.team}</p>
-                  <p className="text-[10px] text-vgd-muted">{rival.total_commits} commits · {rival.avg_rating > 0 ? rival.avg_rating.toFixed(2) : '—'} avg</p>
-                </div>
+    <div>
+      <div className="px-3 py-2 text-[10px] font-bold text-vgd-orange uppercase tracking-wider border-b border-white/[0.07]">{label}</div>
+      <div className="divide-y divide-white/[0.05]">
+        {sorted.map((r) => {
+          const isTN = r.team === 'Tennessee';
+          return (
+            <div
+              key={r.id}
+              className={`flex items-center gap-2 px-3 py-2 transition-colors ${isTN ? 'bg-vgd-orange/[0.08]' : 'hover:bg-white/[0.02]'}`}
+            >
+              <span className={`w-6 text-xs font-black text-right flex-shrink-0 ${isTN ? 'text-vgd-orange' : 'text-white/30'}`}>
+                #{r.rank}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-semibold truncate ${isTN ? 'text-vgd-orange' : 'text-white/60'}`}>{r.team}</p>
+                <p className="text-[10px] text-vgd-muted">
+                  {r.total_commits} commits · {r.avg_rating > 0 ? r.avg_rating.toFixed(2) : '—'} avg
+                </p>
               </div>
-            ))
-          ) : (
-            <div className="px-3 py-3">
-              <p className="text-[10px] text-vgd-muted">SEC rival rankings will appear once rankings sync.</p>
+              {isTN && <Trophy className="w-3.5 h-3.5 text-vgd-orange flex-shrink-0" />}
             </div>
-          )}
-        </div>
-      ) : (
-        <EmptyState icon={TrendingUp} title="No team rankings yet" subtitle="SEC rival comparison will appear once rankings sync." />
-      )}
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TeamRankingsComparison({
+  nationalRankings,
+  secRankings,
+}: {
+  nationalRankings: TeamRankingRow[];
+  secRankings: TeamRankingRow[];
+}) {
+  return (
+    <DashboardCard title="TEAM RANKINGS" statusDotColor="#34d399">
+      <div className="grid grid-cols-2 divide-x divide-white/[0.07]">
+        <RankingColumn label="National" rows={nationalRankings} />
+        <RankingColumn label="SEC" rows={secRankings} />
+      </div>
     </DashboardCard>
   );
 }
@@ -431,12 +449,13 @@ export default function FootballRecruiting() {
   const [industryToggle, setIndustryToggle] = useState<'247' | 'on3'>('247');
   const [recruits, setRecruits] = useState<Recruit[]>([]);
   const [rankings, setRankings] = useState<ClassRanking | null>(null);
-  const [teamRankings, setTeamRankings] = useState<SecTeamRanking[]>([]);
+  const [nationalRankings, setNationalRankings] = useState<TeamRankingRow[]>([]);
+  const [secRankings, setSecRankings] = useState<TeamRankingRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [recruitsRes, rankingsRes, teamRankingsRes] = await Promise.all([
+    const [recruitsRes, rankingsRes, nationalRes, secRes] = await Promise.all([
       supabase
         .from('recruits')
         .select('*')
@@ -449,6 +468,11 @@ export default function FootballRecruiting() {
         .eq('scouting_year', classYear)
         .maybeSingle(),
       supabase
+        .from('national_team_rankings')
+        .select('*')
+        .eq('sport_category', 'football')
+        .eq('scouting_year', classYear),
+      supabase
         .from('sec_team_rankings')
         .select('*')
         .eq('sport_category', 'football')
@@ -456,7 +480,8 @@ export default function FootballRecruiting() {
     ]);
     setRecruits((recruitsRes.data as Recruit[]) ?? []);
     setRankings((rankingsRes.data as ClassRanking) ?? null);
-    setTeamRankings((teamRankingsRes.data as SecTeamRanking[]) ?? []);
+    setNationalRankings((nationalRes.data as TeamRankingRow[]) ?? []);
+    setSecRankings((secRes.data as TeamRankingRow[]) ?? []);
     setLoading(false);
   }, [classYear]);
 
@@ -487,7 +512,7 @@ export default function FootballRecruiting() {
           with Prospect Database instead (whose own "Player Rankings" sort
           now lives in its header, rather than a separate duplicate list). */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-        <TeamRankingsComparison rankings={rankings} teamRankings={teamRankings} />
+        <TeamRankingsComparison nationalRankings={nationalRankings} secRankings={secRankings} />
         <ProspectDatabase recruits={recruits} loading={loading} />
       </div>
 
