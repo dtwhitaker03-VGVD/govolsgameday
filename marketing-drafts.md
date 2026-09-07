@@ -114,3 +114,22 @@ either posts it himself or asks for changes first.
 - Canvas (all 7 artboards): https://claude.ai/code/artifact/96406099-f7f1-4381-bdbd-e3108a7fa08c
 - Status: ⏳ pending review (full week batch, ready for David to export
   and schedule)
+
+### Update — remove betting line (both canvases)
+
+- David's call on the staleness problem flagged above: rather than keep
+  refreshing the DraftKings line across a week of pre-scheduled posts (or
+  accepting that it may drift), drop the line from the graphics entirely.
+  Everything else that doesn't go stale — matchup, kickoff time, the
+  day-count/GAME DAY hero, and the Furman recap — stays exactly as-is.
+- The context card at the bottom of every artboard now reads only
+  "Coming off a 56–9 Week 1 win over Furman," centered, with no odds
+  column. Applied identically to the single Game Week canvas and all 7
+  artboards in the batch canvas.
+- Both redeployed to their existing URLs (no new artifacts):
+  - Single canvas: https://claude.ai/code/artifact/8180dc70-276e-4667-8621-295df9f572b5
+  - Full week batch (7 artboards): https://claude.ai/code/artifact/96406099-f7f1-4381-bdbd-e3108a7fa08c
+- The earlier "betting line will drift" caveat above is now moot for both
+  canvases — there's no line on them to go stale.
+- Status: ⏳ pending review (line removed from both; ready for David to
+  re-check and schedule)
