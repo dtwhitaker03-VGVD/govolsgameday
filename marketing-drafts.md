@@ -24,26 +24,41 @@ either posts it himself or asks for changes first.
   diagonal-stripe/glow motif, matching the site's brand system pushed
   bolder for social.
 - Canvas: https://claude.ai/code/artifact/6aeb72ba-c728-4037-9cdb-da8274525d21
-- Status: ⏳ pending review
+- Status: ✅ posted (page's first post)
 
 ## 2026-09-07 — Gameday hype/countdown
 
 - Trigger: on-demand (originally drafted as the first post for the
-  brand-new GoVolsGameDay Facebook page; David asked for the intro
-  graphic above instead, and to keep this one for a later post)
+  brand-new GoVolsGameDay Facebook page; David posted the intro graphic
+  above as post #1 instead and held this one for post #2)
 - Subject: Tennessee at Georgia Tech, kickoff Saturday, Sept 12, 2026 at
-  7:00 PM ET. Graphic leads with a "5 DAYS TIL KICKOFF" countdown, the
+  7:00 PM ET. Graphic leads with a countdown ("X DAYS TIL KICKOFF"), the
   matchup, kickoff time, the DraftKings line (TN −10.5, O/U 56.5), and
   context that Tennessee is coming off a 56–9 Week 1 win over Furman
-  (638–221 total yards). All figures pulled from `live_games` this run —
-  no invented stats. No team logos/crests used (text-only matchup
-  treatment); the "photo" motif is intentionally typographic/diagonal-stripe
-  per the brand system, not a stylized placeholder block, since no photo
-  element was called for in this design.
+  (638–221 total yards). All figures pulled from `live_games`. No team
+  logos/crests used (text-only matchup treatment); the "photo" motif is
+  intentionally typographic/diagonal-stripe per the brand system, not a
+  stylized placeholder block, since no photo element was called for in
+  this design.
 - Canvas: https://claude.ai/code/artifact/8180dc70-276e-4667-8621-295df9f572b5
-- Status: ⏳ pending review (held for a later post, per David)
+- Status: ⏳ pending review (queued as post #2)
 
-Note: the "5 DAYS" countdown on the Game Week draft above is only accurate
-as of 2026-09-07/09-08 — if it's posted later than that, the day count
-needs a quick edit first. Everything else on that draft (matchup,
-date/time, line, Furman recap) stays accurate through kickoff.
+### Refresh — 2026-09-06 (Eastern) / 2026-09-07 01:17 UTC
+
+- Re-checked before David posts it as #2. Re-pulled `live_games` for both
+  the Georgia Tech game and the Furman recap: kickoff time, the
+  DraftKings line (TN −10.5, O/U 56.5), and the Furman score/yardage
+  (56–9, 638–221) are all unchanged since the original draft — no other
+  stat needed updating.
+- The countdown itself needed correcting: the graphic states kickoff as
+  "7:00 PM ET," so the day count is computed against the Eastern
+  calendar date, not the raw UTC date. At the moment of this refresh it
+  is still September 6 in US Eastern time (9:17 PM EDT) even though the
+  UTC calendar has already rolled to September 7 — so kickoff on
+  September 12 is **6 days** away, not 5. Updated the countdown number
+  from 5 to 6 and republished to the same canvas URL (no new artifact
+  created).
+- Canvas (same URL): https://claude.ai/code/artifact/8180dc70-276e-4667-8621-295df9f572b5
+- Status: ⏳ pending review (6-day countdown is accurate through the end
+  of 2026-09-06 Eastern time; if it sits past then, the number will need
+  another quick bump before posting)
