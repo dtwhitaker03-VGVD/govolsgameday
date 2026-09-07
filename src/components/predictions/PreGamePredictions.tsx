@@ -283,9 +283,12 @@ interface Props { game: LiveGame | null }
 export function PreGamePredictions({ game }: Props) {
   const { session, profile, openAuthModal } = useAuth();
 
-  // "tn" naming throughout refers to whichever team is home — generalized
-  // for the 2026-08-29 one-off live test (see live-cfbd-sync).
-  const tnIsHome = true;
+  // "tn" naming throughout refers to Tennessee's side of the game, whichever
+  // of home/away that is. An admin test game between two other teams has no
+  // real "tn" side — hasTennessee (computed below, after the null check)
+  // skips the TN-specific stat guesses for those — so this just falls back
+  // to treating the home team as "tn" for layout purposes.
+  const tnIsHome = game?.away_team !== 'Tennessee';
 
   const [existing, setExisting] = useState<PregamePrediction | null>(null);
   const [form, setForm] = useState<FormState>({
@@ -414,7 +417,7 @@ export function PreGamePredictions({ game }: Props) {
     );
   }
 
-  const tnName = game.home_team;
+  const tnName = tnIsHome ? game.home_team : game.away_team;
   const oppName  = tnIsHome ? game.away_team : game.home_team;
   const spreadAvailable = game.spread_line_tn != null;
   const totalAvailable = game.total_points_line != null;
@@ -749,7 +752,7 @@ export function PreGamePredictions({ game }: Props) {
                       className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
                         form.spreadPick === 'under' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
                       }`}>Under</button>
-                    <span className="text-[11px] font-bold text-white/50 text-center">{game.spread_line_tn! > 0 ? '+' : ''}{game.spread_line_tn}</span>
+                    <span className="text-[11px] font-bold text-white/50 text-center">{Math.abs(game.spread_line_tn!)}</span>
                     <button type="button" onClick={() => setField('spreadPick', 'over')} disabled={isLocked}
                       className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
                         form.spreadPick === 'over' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
