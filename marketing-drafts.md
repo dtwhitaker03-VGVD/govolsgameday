@@ -133,3 +133,23 @@ either posts it himself or asks for changes first.
   canvases — there's no line on them to go stale.
 - Status: ⏳ pending review (line removed from both; ready for David to
   re-check and schedule)
+
+### Update — Day4 artboard: swap in Sept 8 Daily Poll
+
+- David updated `daily_polls` directly (active_date 2026-09-08): "How many
+  total TDs will Faizon Brandon have?" with options 1 / 2 / 3 / 4+, and
+  asked for it on the "4 DAYS TIL KICKOFF" artboard (`Day4`, mapped to the
+  Sept 8 posting date) in the countdown batch canvas.
+- Re-verified the poll row directly in `daily_polls` before editing:
+  question and options above match the live row exactly.
+- Design choice: replaced the Furman-recap context card on `Day4` only
+  with a poll card (eyebrow "TODAY'S POLL," the question, and the four
+  options as pill chips) rather than stacking both — keeps the graphic
+  focused on one timely call-to-action instead of pairing a 3-day-old
+  recap with same-day poll content. The other 6 artboards (Main, Day5,
+  Day3, Day2, Day1, GameDay) are untouched and still show the Furman
+  recap card.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/96406099-f7f1-4381-bdbd-e3108a7fa08c
+- Status: ⏳ pending review (Day4 now carries the Sept 8 poll; re-check
+  before scheduling that day's post)
