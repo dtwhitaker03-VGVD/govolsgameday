@@ -336,10 +336,12 @@ export function PreGamePredictions({ game }: Props) {
         if (data) {
           const d = data as PregamePrediction;
           setExisting(d);
-          const tnWinner = tnIsHome ? 'home' : 'away';
-          const oppWinner = tnIsHome ? 'away' : 'home';
+          // predicted_winner is already stored as 'home' | 'away' in the same
+          // actual-home/away convention the toggle buttons' val uses (see the
+          // Winner toggle below), so it can be assigned directly — no
+          // tn/opp remapping needed.
           setForm({
-            winner: d.predicted_winner === tnWinner ? 'tn' as unknown as 'home' : 'opp' as unknown as 'away',
+            winner: d.predicted_winner,
             tnScore: String(tnIsHome ? d.predicted_home_score : d.predicted_away_score),
             oppScore: String(!tnIsHome ? d.predicted_home_score : d.predicted_away_score),
             tnYards: String(tnIsHome ? d.predicted_home_yards : d.predicted_away_yards),
@@ -351,11 +353,6 @@ export function PreGamePredictions({ game }: Props) {
             tnTurnoversForced: d.predicted_tn_turnovers_forced != null ? String(d.predicted_tn_turnovers_forced) : '',
           });
           setSubmitted(true);
-          // Re-read winner field correctly
-          setForm(prev => ({
-            ...prev,
-            winner: d.predicted_winner === (tnIsHome ? 'home' : 'away') ? 'home' : 'away'
-          }));
         }
       });
   }, [session, game?.id, tnIsHome]);
