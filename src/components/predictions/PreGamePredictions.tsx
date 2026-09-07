@@ -744,7 +744,7 @@ export function PreGamePredictions({ game }: Props) {
 
                 {spreadAvailable && (
                   <div className="grid grid-cols-[1fr_44px_38px_44px] gap-1.5 items-center px-2.5 py-1.5 border-b border-white/[0.05]">
-                    <span className="text-[11px] font-bold text-white/85 truncate">Spread ({tnName})</span>
+                    <span className="text-[11px] font-bold text-white/85 truncate">Spread (TN wins by)</span>
                     <button type="button" onClick={() => setField('spreadPick', 'under')} disabled={isLocked}
                       className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
                         form.spreadPick === 'under' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
