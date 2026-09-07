@@ -62,3 +62,55 @@ either posts it himself or asks for changes first.
 - Status: ⏳ pending review (6-day countdown is accurate through the end
   of 2026-09-06 Eastern time; if it sits past then, the number will need
   another quick bump before posting)
+
+## 2026-09-07 — Gameday hype/countdown: full pre-scheduled week batch
+
+- Trigger: on-demand — David wants to pre-schedule the whole countdown
+  week in Meta Business Suite's Planner rather than have posts generated
+  day-by-day, so this batch generates all 7 graphics for the Tennessee at
+  Georgia Tech countdown in one pass. Same design/layout/branding as the
+  single Game Week countdown draft above — same matchup, kickoff time,
+  DraftKings line, and Furman recap — with only the hero content changing
+  per artboard (day count, or the distinct "GAME DAY" treatment for
+  kickoff day itself instead of an awkward "0 DAYS").
+- Re-verified against `live_games` immediately before generating this
+  batch: kickoff 2026-09-12 23:00 UTC (7:00 PM ET) unchanged, DraftKings
+  line still TN −10.5 / O/U 56.5, Furman recap still 56–9 (638–221 total
+  yards). Nothing had moved since the single-canvas refresh above.
+- Each of the 7 images is its own artboard on one canvas (David can open
+  each and use the toolbar's Export to grab it as a standalone PNG for
+  scheduling). Date-to-variant mapping (Eastern time, matching how the
+  countdown logic already works — this is the same timezone reasoning
+  used in the refresh above):
+
+  | Post date (Eastern) | Artboard      | Hero content              |
+  |----------------------|---------------|----------------------------|
+  | Sun, Sep 6 (today)   | `Main`        | 6 DAYS TIL KICKOFF         |
+  | Mon, Sep 7           | `Day5`        | 5 DAYS TIL KICKOFF         |
+  | Tue, Sep 8           | `Day4`        | 4 DAYS TIL KICKOFF         |
+  | Wed, Sep 9           | `Day3`        | 3 DAYS TIL KICKOFF         |
+  | Thu, Sep 10          | `Day2`        | 2 DAYS TIL KICKOFF         |
+  | Fri, Sep 11          | `Day1`        | 1 DAY TIL KICKOFF          |
+  | Sat, Sep 12 (kickoff)| `GameDay`     | "GAME DAY" + KICKOFF 7:00 PM ET, pill reads "IT'S HERE" instead of "GAME WEEK" |
+
+- Caveats worth flagging before David schedules the full week:
+  - **The betting line will not stay live.** All 7 images bake in the
+    DraftKings line captured today (TN −10.5, O/U 56.5). Lines routinely
+    move over a full week, so by Thursday/Friday this number may no
+    longer match the market — that's an accepted tradeoff of
+    pre-generating a static batch instead of a live daily pull, per
+    David's instruction to reuse the same line across all variants. If
+    it drifts meaningfully, a quick manual edit to the later-day
+    artboards (or re-running this batch closer to those days) would keep
+    it honest.
+  - **The Sep 6 ("today"/6-day) artboard duplicates the single Game Week
+    canvas already logged above** — it's included here for a complete,
+    grab-any-day batch, not a separate new post.
+  - The Furman recap line ("Coming off a 56–9 Week 1 win") stays fixed
+    across all 7 days per David's instruction to keep the design
+    otherwise unchanged; by kickoff day (Sep 12) that reference is over a
+    week old — fine as shipped, but worth a look if it reads stale by
+    then.
+- Canvas (all 7 artboards): https://claude.ai/code/artifact/96406099-f7f1-4381-bdbd-e3108a7fa08c
+- Status: ⏳ pending review (full week batch, ready for David to export
+  and schedule)
