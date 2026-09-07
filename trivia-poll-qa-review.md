@@ -115,3 +115,75 @@
 
 None of the above changes any of the 15 pending fixes from the run above — they're still outstanding and unapplied. No new issues were found in this pass. Sources checked: Baseball America, UTSports.com, Wikipedia (Tennessee women's swimming and diving; 2022 Tennessee Volunteers baseball team), MLB.com/press release on the 2024 draft, ESPN/Forbes on Catchings' retirement stats, and 247Sports on Neyland Stadium attendance.
 **Status:** ⏳ pending review — all outstanding items above remain unresolved pending David's action
+
+## 2026-09-07 — run summary
+- Checked: trivia 2026-09-07 to 2026-09-10 (20 rows, 5 slots × 4 days), polls 2026-09-07 to 2026-09-10 (4 rows, full coverage)
+- Issues found: 9 new
+- **Log discrepancy note:** I was briefed that a 2026-09-06 pass had already logged outstanding issues for 2026-09-08 and 2026-09-09 (including a high-priority poll error on the 2016 Georgia game). This file contains no 2026-09-06 section — the most recent prior entries are dated 2026-09-01 and cover 2026-09-01 through 2026-09-04 only, outside this run's window. Rather than take the briefing's claims on faith, I independently re-derived the full QA picture for 09-07–09-10 from the live database and web verification below. The 2016 Georgia issue described in the briefing does check out (see below) and is logged here for the first time in this file.
+
+**2026-09-07 fixes verification (per David's direct edits) — all confirmed correct, independently checked:**
+- Slot 1 (`72c5d746`, Smokey's breed): Bluetick Coonhound — confirmed correct; this is the well-established breed of UT's live mascot.
+- Slot 2 (`9b43a18e`, Chamique Holdsclaw / 1997-98 team): unchanged from prior clean state — confirmed correct (Holdsclaw was the star of the undefeated 1997-98 national championship Lady Vols).
+- Slot 3 (`02c9eaf9`, Tennessee baseball's first CWS title): **2024 — confirmed.** Tennessee beat Texas A&M 6-5 in the MCWS Finals for the program's first-ever national baseball title (per UTSports.com, CBS Sports, Baseball America).
+- Slot 4 (`b8b28be3`, Neyland's career win total): **173 wins across 21 seasons — confirmed** (173-31-12 record, per Sports-Reference/CFB Hall of Fame). "Around 140" is now a plausible, non-self-eliminating distractor next to 173 (a real improvement over the old "Around 50").
+- Slot 5 (`af17891c`, 2018 SEC Co-Sixth Man of the Year): **Lamonte Turner — confirmed.** Turner (Tennessee) and Jontay Porter (Missouri) were voted SEC Co-Sixth Man of the Year for 2018 (per SEC/secsports.com 2018 awards release).
+- Poll (`6ed3438a`, best Lady Vols season since Summitt): 3 parallel coach-era options (Warlick/Harper/Caldwell), `option_d` null — structurally clean, no factual claims to verify. No issue.
+
+All five 09-07 trivia slots and the 09-07 poll are resolved and clean **except** one categorization slip introduced alongside the slot 1 fix (see below) — flagging that as new rather than re-litigating the content itself, which is solid.
+
+### trivia_questions.72c5d746-3288-46fd-90ee-b8c31450144c — 2026-09-07 / slot 1 — category no longer matches question content
+**Current:** `category` = "Vol Baseball History" for the question "What breed of dog is Smokey, Tennessee's live mascot shared across all Vol sports?"
+**Suggested fix:** Change `category` to "General Vol Athletics" (Smokey is explicitly described in the question itself as shared across all Vol sports, not baseball-specific).
+**Reason:** §32 category-accuracy check. This looks like a leftover from whatever the slot originally held before David's in-conversation replacement swapped the question/options but not the category field.
+**Status:** ⏳ pending review
+
+### trivia_questions.acc835b5-c3a6-4a91-8500-21d8e56d0543 + trivia_questions.9cda3391-a7ca-4d18-a378-b300e5454479 — 2026-09-08 slot 1 & 2026-09-10 slot 1 — duplicate question within the 3-day window
+**Current:** 09-08 slot 1: "Before divisions were eliminated, Tennessee played in which grouping of the SEC alongside Florida, Georgia, Kentucky, South Carolina, and Vanderbilt?" (category "SEC Knowledge") — Answer: SEC East. 09-10 slot 1: "Which division did Tennessee play in before the SEC eliminated divisions in 2024?" (category "Vol Football History") — Answer: SEC East.
+**Suggested fix:** Keep 09-08 slot 1 as-is; fully replace 09-10 slot 1 with a different easy-difficulty fact (same category or reassign — up to the content team, since picking a good verified replacement fact needs editorial judgment I'd rather not guess at under this guardrail).
+**Reason:** §32 duplicate/near-duplicate check — both rows ask the exact same underlying fact ("what division was Tennessee in before 2024 realignment") within the same 3-day window, just reworded.
+**Status:** ⏳ pending review — flagging the duplicate; not proposing specific replacement text for 09-10 slot 1
+
+### trivia_questions.2450363a-a0ef-453d-a976-663806d0bb12 — 2026-09-08 / slot 5 — distractors are wrong stat-type for the player, undermines "hard" difficulty
+**Current:** "Which stat category did [Todd Helton] lead the National League in during his peak 2000 season?" A "Stolen bases", B "Saves", C "Strikeouts", D "Batting average and RBI" (correct)
+**Suggested fix:** Replace B "Saves" and C "Strikeouts" (pure pitching stats — nonsensical for a first baseman, and self-eliminating to anyone who knows Helton was a hitter) with plausible hitting-stat categories Helton did *not* lead the NL in that year, e.g. "Home runs" and "Stolen bases" (keeping a real number-based option in place of A too). Underlying fact is confirmed accurate: Helton led the NL in 2000 with a .372 average and 147 RBI (also OBP, slugging, hits, doubles — per Baseball Hall of Fame/SABR), so "Batting average and RBI" as the correct answer is factually solid.
+**Reason:** §32 — self-eliminating distractors (pitcher-only stats attached to a position player) plus a difficulty mismatch for a "hard" slot, since two of four options can be discarded on category alone without any specific knowledge. Also note the correct answer's compound format ("Batting average and RBI") is structurally inconsistent with the single-stat distractors — flagging for awareness, not a hard blocker.
+**Status:** ⏳ pending review
+
+### daily_polls.0e29a73e-0f9a-47d2-b823-6b938f1de09b — 2026-09-08 — factual error: 2016 Georgia game was a win, not a loss
+**Current:** "What is the most heartbreaking loss in Tennessee football history?" options include C "2016 Georgia"
+**Suggested fix:** Replace option C with an actual Tennessee loss commonly cited as a heartbreaker — e.g. "2015 Oklahoma" (Tennessee blew a 17-0 lead and lost 31-24 in overtime) is a reasonable candidate, but I'd recommend the content team confirm the exact replacement rather than take my suggestion as final, since I'm moderately (not fully) confident on that specific game's details.
+**Reason:** §33 factual accuracy — confirmed via search (ESPN, SEC Sports, WBIR): on Oct 1, 2016, Tennessee beat Georgia 34-31 on a last-play Jauan Jennings Hail Mary from Josh Dobbs — one of the program's signature dramatic **wins**, not a loss. Listing it as a "loss" option in a "most heartbreaking loss" poll is a factual error, not just a framing issue. High priority — this is user-facing and plainly wrong to any knowledgeable Vol fan.
+**Status:** ⏳ pending review — high priority
+
+### trivia_questions.6ffeaf02-6c48-49cc-a93a-92ce4f2c51bf — 2026-09-09 / slot 1 — hedge/vague correct answer
+**Current:** "How many times has the program reached the Elite Eight overall through the mid-2020s?" A "Zero times ever", B "A small handful of times" (correct), C "Every year since 2000", D "Over 20 times"
+**Suggested fix:** Replace option B's text with the specific number: "Three times" (confirmed: 2010, 2024, 2025 — per UTSports.com/CBS Sports). Keep `correct_answer` as B.
+**Reason:** §32 explicitly prohibits hedge/non-answers as the correct answer — "a small handful of times" is vague where a crisp number is knowable and current as of this question's own "mid-2020s" framing.
+**Status:** ⏳ pending review
+
+### trivia_questions.3d90e41c-e8fb-487f-82f8-ac45a716f216 — 2026-09-09 / slot 2 — non-answer distractors for a "Who" question
+**Current:** "Who has held that role since 2015?" A "The commissioner role was eliminated", B "Greg Sankey" (correct), C "Not applicable", D "False, the SEC has no commissioner"
+**Suggested fix:** Replace A/C/D with real, plausible person names instead of true/false-style non-answers — e.g. A "Mike Slive" (SEC's actual previous commissioner, 2002-2015 — a strong, genuinely plausible distractor), C "Bill Hancock", D "Jim Delany". Confirmed correct answer: Greg Sankey has been SEC commissioner since June 2015.
+**Reason:** §32 — none of the three wrong options are actually answers to "who" (they're leftover True/False-style filler), making them trivially eliminable on format alone regardless of Vol/SEC knowledge.
+**Status:** ⏳ pending review
+
+### trivia_questions.0caa8be2-80e4-4f2e-938a-35b47d596c04 — 2026-09-09 / slot 4 — meta-commentary in option text + broken True/False structure
+**Current:** "...True or false?" A "Only Tennessee players have won the Heisman within the SEC (false — no Tennessee player has won it)", B "Not applicable", C "True" (correct), D "The SEC has never had a Heisman winner"
+**Suggested fix:** Restructure as a genuine 2-option True/False (option_a "True", option_b "False", option_c/option_d null, correct_answer "A"), or convert to a standard 4-option factual question with real plausible distractors. At minimum, strip the parenthetical "(false — no Tennessee player has won it)" from option A regardless of which fix is chosen — it tells the test-taker the answer.
+**Reason:** §32 — this is the same recurring defect pattern logged repeatedly in the 2026-09-01 entries (meta-commentary/draft-reasoning bleeding into option text, e.g. `08ef515f`, `c3440429`; broken True/False structure with no clean False option, e.g. `a221e816`, `4bc04229`). It's resurfaced here nearly identically — the parenthetical literally spells out the answer.
+**Status:** ⏳ pending review
+
+### trivia_questions.230b0c07-7bbf-4e9d-b34c-259dd79c4f57 — 2026-09-10 / slot 3 — minor: non-answer distractor
+**Current:** Options include D "Not applicable"
+**Suggested fix:** Replace with a real, plausible-but-wrong characterization, e.g. "A return to a slower, more physical, defense-first system" (which is actually the opposite of what happened, making it a good distractor).
+**Reason:** §32 distractor quality — "Not applicable" is a non-answer, same low-priority recurring issue noted elsewhere in this log. Low priority.
+**Status:** ⏳ pending review
+
+### trivia_questions.3164cb4d-0856-4a3b-922f-9d74ecdcdc68 — 2026-09-10 / slot 5 — Vol/SEC scope violation: pure rival-team trivia with no Tennessee connection
+**Current:** "Vanderbilt's baseball program won its first College World Series championship in which year, defeating Virginia?" (category "SEC Knowledge") A "2020", B "2005", C "1995", D "2014" (correct)
+**Suggested fix:** Full replacement recommended (same category "SEC Knowledge", same slot 5/hard difficulty) with a question that has an actual Tennessee angle, per the role definition's own worked example (OK: "Who won the 2018 SEC Championship game?" — NOT OK: "Who was Alabama's starting QB in 2018?"). I'm not proposing specific replacement text since picking a good verified hard-difficulty fact needs editorial judgment.
+**Reason:** This question is entirely about Vanderbilt's own baseball history with zero Tennessee tie-in — the same category of violation the role file explicitly calls out as not OK, just with Vanderbilt instead of Alabama. (Underlying fact is itself accurate — confirmed via Washington Post/SI: Vanderbilt beat Virginia 3-2 on June 25, 2014 for its first CWS title — so this is purely a scope issue, not a factual-accuracy one.)
+**Status:** ⏳ pending review
+
+Sources checked this run: UTSports.com, CBS Sports, Baseball America, SI.com (2024 Tennessee baseball CWS title); Sports-Reference/CFB Hall of Fame (Neyland record); SEC Sports/secsports.com 2018 awards release (Lamonte Turner Co-Sixth Man); Saturday Down South/UTSports.com (Zeigler steals record); Naismith Hoop Hall/WATE (Summitt HOF induction); Pro-Football-Reference/footballdb.com (Peerless Price draft round); ESPN/SEC Sports/WBIR (2016 Tennessee-Georgia result); Washington Post/SI.com (Vanderbilt 2014 CWS title); Baseball Hall of Fame/SABR (Todd Helton 2000 NL leaders); UTSports.com/CBS Sports (Tennessee Elite Eight appearances).
+**Status:** ⏳ pending review — all items above are new proposals pending David's action; the 5 trivia slots and poll for 2026-09-07 that David edited directly are confirmed resolved and are not re-flagged (except the one category-field slip noted above)
