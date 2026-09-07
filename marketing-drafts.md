@@ -133,3 +133,28 @@ either posts it himself or asks for changes first.
   canvases — there's no line on them to go stale.
 - Status: ⏳ pending review (line removed from both; ready for David to
   re-check and schedule)
+
+## 2026-09-07 — Final score recap
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Subject: Tennessee's Week 1 win over Furman, 56–9 (638–221 total
+  yards), pulled fresh from `live_games` (`status = 'calculated'`,
+  `updated_at` 2026-09-05 — 2 days old, well within the "just finished"
+  window). This game has been referenced in passing on the Georgia
+  Tech countdown graphics ("coming off a 56–9 win") but never had its
+  own dedicated recap graphic, so it was picked as this run's pillar —
+  a Final Score Recap is the most timely fit per the pillar rubric,
+  and it's a distinct subject from the already-extensively-covered
+  Georgia Tech countdown (single canvas + full 7-artboard pre-scheduled
+  week batch), so this doesn't repeat that. Also spotlights the game's
+  top predictor from `game_leaderboard` (joined to `profiles` for the
+  real username): **Tiberious**, rank #1 for this game, 1,961 total
+  game points (929 pregame + 1,032 drive), 16/21 drive picks correct —
+  all real columns, no invented box-score stats. A small footer notes
+  the real next game (at Georgia Tech, Sat Sep 12, 7:00 PM ET, from
+  `live_games`) without repeating the countdown/line treatment already
+  covered elsewhere — no day-count, no betting line. No team
+  logos/crests or stock photos used — pure typography (Inter + Anton),
+  color, and the diagonal-stripe/glow motif per the brand system.
+- Canvas: https://claude.ai/code/artifact/7ea8e7f8-78d9-4d55-9016-e024d8df544c
+- Status: ⏳ pending review
