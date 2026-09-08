@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Zap } from 'lucide-react';
+import { Zap, Newspaper } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { DashboardCard } from '../ui/DashboardCard';
+import { GamePreviewModal } from './GamePreviewModal';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -80,6 +81,19 @@ function yardlineStr(yardline: number | null): string {
   return yardline <= 50 ? `own ${yardline}` : `opp ${100 - yardline}`;
 }
 
+// First-word-of-name (e.g. "Alabama" from "Alabama Crimson Tide") is the
+// default short label above the stat rows, but it reads badly for teams
+// whose common short form isn't their first word — "Georgia Tech" as just
+// "Georgia" gets clipped to "Geor" in that narrow column and misreads as
+// the University of Georgia. Known exceptions override the default.
+const SHORT_TEAM_NAME: Record<string, string> = {
+  'Georgia Tech': 'GT',
+};
+
+function shortTeamName(team: string): string {
+  return SHORT_TEAM_NAME[team] ?? team.split(' ')[0];
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 interface LiveGameStatsPanelProps {
@@ -89,6 +103,7 @@ interface LiveGameStatsPanelProps {
 export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
   const [game, setGame] = useState<LiveGame>(initialGame);
   const [scoringStats, setScoringStats] = useState<ScoringStat[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
 
   // When the parent resolves a different active game, sync local state so this
   // component doesn't stay frozen on the old game after an admin creates a new one.
@@ -184,8 +199,19 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
     <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">PREGAME</span>
   );
 
+  const headerExtra = (
+    <button
+      onClick={() => setShowPreview(true)}
+      className="flex items-center gap-1 text-[9px] lg:text-[10px] font-bold uppercase tracking-wider text-vgd-muted hover:text-vgd-orange transition-colors border border-white/10 hover:border-vgd-orange/40 rounded px-1.5 py-0.5"
+    >
+      <Newspaper className="w-2.5 h-2.5 lg:w-3 lg:h-3" />
+      Game Preview
+    </button>
+  );
+
   return (
-    <DashboardCard title="LIVE GAME STATS" metadataTag={metaTag} className="w-full h-[220px] lg:h-[320px]">
+    <>
+    <DashboardCard title="LIVE GAME STATS" headerExtra={headerExtra} metadataTag={metaTag} className="w-full h-[220px] lg:h-[320px]">
       <div className="px-3 py-1.5 lg:px-4 lg:py-2 flex-1 flex flex-col min-h-0 gap-1 lg:gap-1.5">
         {/* Scoreboard strip */}
         <div className="bg-vgd-bg rounded-lg px-2.5 py-1 lg:px-4 lg:py-1.5 flex-shrink-0">
@@ -230,12 +256,18 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
           </div>
         </div>
 
-        {/* Team stat rows */}
-        <div className="flex-1 min-h-0 flex flex-col lg:justify-center">
+        {/* Team stat rows. justify-content: center (used here previously)
+            overflows a too-tall flex child equally upward AND downward
+            instead of just downward — with Scoring Offense/Defense added,
+            7 rows no longer reliably fit the card's fixed height, and
+            centering pushed the top rows up into the scoreboard strip
+            above instead of just scrolling (DashboardCard's body already
+            provides overflow-y-auto for exactly this case). */}
+        <div className="flex-1 min-h-0 flex flex-col">
           <div className="grid grid-cols-[1fr_auto_1fr] text-[9px] lg:text-xs text-vgd-muted uppercase tracking-wider pb-0.5 lg:pb-1 border-b border-white/[0.06] flex-shrink-0">
-            <span className="text-right">{game.home_team.split(' ')[0]}</span>
+            <span className="text-right">{shortTeamName(game.home_team)}</span>
             <span className="text-center w-24 lg:w-32">Stat</span>
-            <span className="text-left">{oppName.split(' ')[0]}</span>
+            <span className="text-left">{shortTeamName(oppName)}</span>
           </div>
           {statRows.map((row) => (
             <div
@@ -262,5 +294,7 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
         </div>
       </div>
     </DashboardCard>
+    {showPreview && <GamePreviewModal gameId={game.id} onClose={() => setShowPreview(false)} />}
+    </>
   );
 }
