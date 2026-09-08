@@ -3,6 +3,7 @@ import { Zap, Newspaper } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { DashboardCard } from '../ui/DashboardCard';
 import { GamePreviewModal } from './GamePreviewModal';
+import { shortTeamName } from '../../lib/teamNames';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -79,19 +80,6 @@ function ordinal(n: number | null): string {
 function yardlineStr(yardline: number | null): string {
   if (yardline === null) return '';
   return yardline <= 50 ? `own ${yardline}` : `opp ${100 - yardline}`;
-}
-
-// First-word-of-name (e.g. "Alabama" from "Alabama Crimson Tide") is the
-// default short label above the stat rows, but it reads badly for teams
-// whose common short form isn't their first word — "Georgia Tech" as just
-// "Georgia" gets clipped to "Geor" in that narrow column and misreads as
-// the University of Georgia. Known exceptions override the default.
-const SHORT_TEAM_NAME: Record<string, string> = {
-  'Georgia Tech': 'GT',
-};
-
-function shortTeamName(team: string): string {
-  return SHORT_TEAM_NAME[team] ?? team.split(' ')[0];
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
