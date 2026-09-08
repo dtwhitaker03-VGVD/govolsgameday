@@ -35,14 +35,15 @@ interface ClassRanking {
   updated_at: string | null;
 }
 
-// Shared shape for both national_team_rankings and sec_team_rankings rows —
-// same columns, different scope.
-interface TeamRankingRow {
+// Shared shape for both stat_type='offense' and stat_type='defense' rows
+// from ncaa_scoring_rankings.
+interface ScoringRankingRow {
   id: string;
   team: string;
   rank: number;
-  total_commits: number;
-  avg_rating: number;
+  games: number;
+  points: number;
+  points_per_game: number;
 }
 
 // ─── Constants ──────────────────────────────────────────────────────────────────
@@ -385,63 +386,79 @@ function ProspectDatabase({ recruits, transferRecruits, loading }: { recruits: R
   );
 }
 
-// ─── Section 3: Team Rankings — National + SEC, side by side ───────────────────────
-// Tennessee sits at its real rank in each list, highlighted, rather than
-// pulled out to a pinned top row — same data, no special-casing.
+// ─── Section 3: Team Rankings — Scoring Offense + Scoring Defense, side by side ────
+// Sourced from NCAA.com's own team stat pages rather than a recruiting
+// metric — this is where Tennessee actually ranks nationally on the field.
+// Tennessee sits at its real rank in the list, highlighted, rather than
+// pulled out to a pinned top row — except when its rank falls outside the
+// top 25 shown here, in which case its row is appended after a divider so
+// it's never simply missing from its own team's rankings panel.
+const RANKING_DISPLAY_LIMIT = 25;
 
-function RankingColumn({ label, rows }: { label: string; rows: TeamRankingRow[] }) {
+function topRowsWithTennessee(rows: ScoringRankingRow[]): { top: ScoringRankingRow[]; pinnedTennessee: ScoringRankingRow | null } {
   const sorted = [...rows].sort((a, b) => a.rank - b.rank);
+  const top = sorted.slice(0, RANKING_DISPLAY_LIMIT);
+  if (top.some((r) => r.team === 'Tennessee')) return { top, pinnedTennessee: null };
+  const tnRow = sorted.find((r) => r.team === 'Tennessee') ?? null;
+  return { top, pinnedTennessee: tnRow };
+}
 
-  if (sorted.length === 0) {
+function RankingRow({ r, statSuffix }: { r: ScoringRankingRow; statSuffix: string }) {
+  const isTN = r.team === 'Tennessee';
+  return (
+    <div className={`flex items-center gap-2 px-3 py-2 transition-colors ${isTN ? 'bg-vgd-orange/[0.08]' : 'hover:bg-white/[0.02]'}`}>
+      <span className={`w-6 text-xs font-black text-right flex-shrink-0 ${isTN ? 'text-vgd-orange' : 'text-white/30'}`}>
+        #{r.rank}
+      </span>
+      <div className="flex-1 min-w-0">
+        <p className={`text-xs font-semibold truncate ${isTN ? 'text-vgd-orange' : 'text-white/60'}`}>{r.team}</p>
+        <p className="text-[10px] text-vgd-muted">{r.points_per_game.toFixed(1)} {statSuffix}</p>
+      </div>
+      {isTN && <Trophy className="w-3.5 h-3.5 text-vgd-orange flex-shrink-0" />}
+    </div>
+  );
+}
+
+function RankingColumn({ label, statSuffix, rows }: { label: string; statSuffix: string; rows: ScoringRankingRow[] }) {
+  if (rows.length === 0) {
     return (
       <div>
         <div className="px-3 py-2 text-[10px] font-bold text-vgd-orange uppercase tracking-wider border-b border-white/[0.07]">{label}</div>
-        <EmptyState icon={TrendingUp} title="No rankings yet" subtitle="Syncs from On3 twice daily." />
+        <EmptyState icon={TrendingUp} title="No rankings yet" subtitle="Syncs from NCAA.com daily." />
       </div>
     );
   }
+
+  const { top, pinnedTennessee } = topRowsWithTennessee(rows);
 
   return (
     <div>
       <div className="px-3 py-2 text-[10px] font-bold text-vgd-orange uppercase tracking-wider border-b border-white/[0.07]">{label}</div>
       <div className="divide-y divide-white/[0.05]">
-        {sorted.map((r) => {
-          const isTN = r.team === 'Tennessee';
-          return (
-            <div
-              key={r.id}
-              className={`flex items-center gap-2 px-3 py-2 transition-colors ${isTN ? 'bg-vgd-orange/[0.08]' : 'hover:bg-white/[0.02]'}`}
-            >
-              <span className={`w-6 text-xs font-black text-right flex-shrink-0 ${isTN ? 'text-vgd-orange' : 'text-white/30'}`}>
-                #{r.rank}
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold truncate ${isTN ? 'text-vgd-orange' : 'text-white/60'}`}>{r.team}</p>
-                <p className="text-[10px] text-vgd-muted">
-                  {r.total_commits} commits · {r.avg_rating > 0 ? r.avg_rating.toFixed(2) : '—'} avg
-                </p>
-              </div>
-              {isTN && <Trophy className="w-3.5 h-3.5 text-vgd-orange flex-shrink-0" />}
-            </div>
-          );
-        })}
+        {top.map((r) => <RankingRow key={r.id} r={r} statSuffix={statSuffix} />)}
+        {pinnedTennessee && (
+          <>
+            <div className="px-3 py-1 text-center text-[10px] text-vgd-muted">···</div>
+            <RankingRow key={pinnedTennessee.id} r={pinnedTennessee} statSuffix={statSuffix} />
+          </>
+        )}
       </div>
     </div>
   );
 }
 
 function TeamRankingsComparison({
-  nationalRankings,
-  secRankings,
+  offenseRankings,
+  defenseRankings,
 }: {
-  nationalRankings: TeamRankingRow[];
-  secRankings: TeamRankingRow[];
+  offenseRankings: ScoringRankingRow[];
+  defenseRankings: ScoringRankingRow[];
 }) {
   return (
     <DashboardCard title="TEAM RANKINGS" statusDotColor="#34d399">
       <div className="grid grid-cols-2 divide-x divide-white/[0.07]">
-        <RankingColumn label="National" rows={nationalRankings} />
-        <RankingColumn label="SEC" rows={secRankings} />
+        <RankingColumn label="Scoring Offense" statSuffix="PPG" rows={offenseRankings} />
+        <RankingColumn label="Scoring Defense" statSuffix="PPG allowed" rows={defenseRankings} />
       </div>
     </DashboardCard>
   );
@@ -455,13 +472,13 @@ export default function FootballRecruiting() {
   const [recruits, setRecruits] = useState<Recruit[]>([]);
   const [transferRecruits, setTransferRecruits] = useState<Recruit[]>([]);
   const [rankings, setRankings] = useState<ClassRanking | null>(null);
-  const [nationalRankings, setNationalRankings] = useState<TeamRankingRow[]>([]);
-  const [secRankings, setSecRankings] = useState<TeamRankingRow[]>([]);
+  const [offenseRankings, setOffenseRankings] = useState<ScoringRankingRow[]>([]);
+  const [defenseRankings, setDefenseRankings] = useState<ScoringRankingRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [recruitsRes, transfersRes, rankingsRes, nationalRes, secRes] = await Promise.all([
+    const [recruitsRes, transfersRes, rankingsRes, offenseRes, defenseRes] = await Promise.all([
       supabase
         .from('recruits')
         .select('*')
@@ -481,24 +498,26 @@ export default function FootballRecruiting() {
         .eq('sport_category', 'football')
         .eq('scouting_year', classYear)
         .maybeSingle(),
+      // Scoring Offense/Defense are current-season on-field stats, not tied
+      // to the HS recruiting class year selector above — so these fetch the
+      // full current-season list (topRowsWithTennessee caps for display and
+      // pins Tennessee's row separately if it falls outside that cap).
       supabase
-        .from('national_team_rankings')
+        .from('ncaa_scoring_rankings')
         .select('*')
-        .eq('sport_category', 'football')
-        .eq('scouting_year', classYear)
-        .order('rank', { ascending: true })
-        .limit(25),
+        .eq('stat_type', 'offense')
+        .eq('season', CURRENT_YEAR),
       supabase
-        .from('sec_team_rankings')
+        .from('ncaa_scoring_rankings')
         .select('*')
-        .eq('sport_category', 'football')
-        .eq('scouting_year', classYear),
+        .eq('stat_type', 'defense')
+        .eq('season', CURRENT_YEAR),
     ]);
     setRecruits((recruitsRes.data as Recruit[]) ?? []);
     setTransferRecruits((transfersRes.data as Recruit[]) ?? []);
     setRankings((rankingsRes.data as ClassRanking) ?? null);
-    setNationalRankings((nationalRes.data as TeamRankingRow[]) ?? []);
-    setSecRankings((secRes.data as TeamRankingRow[]) ?? []);
+    setOffenseRankings((offenseRes.data as ScoringRankingRow[]) ?? []);
+    setDefenseRankings((defenseRes.data as ScoringRankingRow[]) ?? []);
     setLoading(false);
   }, [classYear]);
 
@@ -529,7 +548,7 @@ export default function FootballRecruiting() {
           with Prospect Database instead (whose own "Player Rankings" sort
           now lives in its header, rather than a separate duplicate list). */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-        <TeamRankingsComparison nationalRankings={nationalRankings} secRankings={secRankings} />
+        <TeamRankingsComparison offenseRankings={offenseRankings} defenseRankings={defenseRankings} />
         <ProspectDatabase recruits={recruits} transferRecruits={transferRecruits} loading={loading} />
       </div>
 
