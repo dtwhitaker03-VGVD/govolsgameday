@@ -23,8 +23,7 @@ const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 
 // Each page lists ~50 teams (/team/27, /team/27/p2, /team/27/p3, ...). FBS
-// has ~134 teams, so 3 pages covers all of them — but syncStat() below stops
-// as soon as Tennessee's own row is found, so most syncs only fetch 1 page.
+// has ~134 teams, so 3 pages covers the whole field.
 const MAX_PAGES = 3;
 
 interface Row {
@@ -114,6 +113,11 @@ async function syncStat(
   let foundTennessee = false;
   let pagesFetched = 0;
 
+  // Fetches every page (all ~134 FBS teams) rather than stopping once
+  // Tennessee's own row is found — the Live Game Stats panel needs
+  // whichever team Tennessee is playing that week too, and that opponent
+  // could rank anywhere in the field, not just within Tennessee's own
+  // top ~50.
   for (let page = 1; page <= MAX_PAGES; page++) {
     const html = await fetchStatPage(category, page);
     pagesFetched++;
@@ -121,12 +125,7 @@ async function syncStat(
     if (rows.length === 0) break; // ran out of pages
     allRows.push(...rows);
     lastRank = newLastRank;
-    // Stop as soon as Tennessee's own row is captured — no need to keep
-    // paging just to grow the "everyone else" list further than that.
-    if (teamsSeen.includes("Tennessee")) {
-      foundTennessee = true;
-      break;
-    }
+    if (teamsSeen.includes("Tennessee")) foundTennessee = true;
   }
 
   return { rows: allRows, pagesFetched, foundTennessee };
