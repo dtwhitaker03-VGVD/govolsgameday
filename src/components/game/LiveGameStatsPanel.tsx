@@ -46,6 +46,15 @@ interface TeamStatRow {
   danger?: boolean; // bold red if awayVal (opponent) > 0
 }
 
+// One row per (team, stat_type) from ncaa_scoring_rankings — see
+// scoring-rankings-sync, which syncs NCAA.com's Scoring Offense/Defense
+// team stat pages daily.
+interface ScoringStat {
+  team: string;
+  stat_type: 'offense' | 'defense';
+  points_per_game: number;
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function quarterLabel(q: number | null): string {
@@ -79,12 +88,26 @@ interface LiveGameStatsPanelProps {
 
 export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
   const [game, setGame] = useState<LiveGame>(initialGame);
+  const [scoringStats, setScoringStats] = useState<ScoringStat[]>([]);
 
   // When the parent resolves a different active game, sync local state so this
   // component doesn't stay frozen on the old game after an admin creates a new one.
   useEffect(() => {
     setGame(initialGame);
   }, [initialGame.id]);
+
+  // Each team's season-long national Scoring Offense/Defense (points per
+  // game) — context stats, not this-game box score numbers, so they're
+  // fetched once per matchup rather than over the live Realtime channel below.
+  useEffect(() => {
+    const season = new Date().getFullYear();
+    supabase
+      .from('ncaa_scoring_rankings')
+      .select('team, stat_type, points_per_game')
+      .eq('season', season)
+      .in('team', [initialGame.home_team, initialGame.away_team])
+      .then(({ data }) => setScoringStats((data as ScoringStat[]) ?? []));
+  }, [initialGame.home_team, initialGame.away_team]);
 
   // Subscribe to Realtime updates for this specific game row.
   // Dependency on game.id means the channel automatically re-attaches when the
@@ -130,7 +153,19 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
       ? `${ordinal(game.down)} & ${game.distance} — ${yardlineStr(game.yardline)}`
       : null;
 
+  // Each team's own season scoring numbers — Scoring Offense shows a team's
+  // own points-per-game, Scoring Defense shows its own points-allowed-per-
+  // game, same "each side shows its own stat" shape as Rushing/Passing Yards.
+  const findScoringStat = (team: string, statType: 'offense' | 'defense') =>
+    scoringStats.find((s) => s.team === team && s.stat_type === statType)?.points_per_game;
+  const homeOffensePpg = findScoringStat(game.home_team, 'offense');
+  const awayOffensePpg = findScoringStat(game.away_team, 'offense');
+  const homeDefensePpg = findScoringStat(game.home_team, 'defense');
+  const awayDefensePpg = findScoringStat(game.away_team, 'defense');
+
   const statRows: TeamStatRow[] = [
+    { label: 'Scoring Offense', homeVal: homeOffensePpg?.toFixed(1) ?? '—', awayVal: awayOffensePpg?.toFixed(1) ?? '—' },
+    { label: 'Scoring Defense', homeVal: homeDefensePpg?.toFixed(1) ?? '—', awayVal: awayDefensePpg?.toFixed(1) ?? '—' },
     { label: 'Rushing Yards', homeVal: game.home_rushing_yards ?? '—', awayVal: game.away_rushing_yards ?? '—' },
     { label: 'Passing Yards', homeVal: game.home_passing_yards ?? '—', awayVal: game.away_passing_yards ?? '—' },
     { label: 'Total Yards', homeVal: tnYards ?? '—', awayVal: oppYards ?? '—' },
