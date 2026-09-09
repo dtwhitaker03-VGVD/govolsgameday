@@ -153,3 +153,44 @@ either posts it himself or asks for changes first.
   https://claude.ai/code/artifact/96406099-f7f1-4381-bdbd-e3108a7fa08c
 - Status: ⏳ pending review (Day4 now carries the Sept 8 poll; re-check
   before scheduling that day's post)
+
+## 2026-09-09 — News/recruiting highlight
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Subject: Faizon Brandon named SEC Freshman of the Week, per a real
+  `scraped_articles` row from UT Sports (published 2026-09-07, ingested
+  2026-09-09) — the official SEC office announcement following his
+  debut against Furman. Picked this pillar after checking
+  `marketing-drafts.md` and confirming the Gameday hype/countdown
+  pillar (Tennessee at Georgia Tech) and the Final score recap pillar
+  (Furman 56–9) are both already well covered this week (open PR #151
+  refreshed the countdown canvas with today's poll and a 3-day count;
+  open PR #136 carries the dedicated Furman recap graphic) — so this
+  run deliberately did not touch either subject again. Also checked
+  `daily_polls` (today's real poll, "Greatest TN Vol Backfield?", is
+  active but only 1 response so far — too thin for a standalone
+  results spotlight) and the newer `ncaa_scoring_rankings`/
+  `game_previews` tables for a possible Team Stats angle (Tennessee is
+  real, clean data: offense ranked 19th nationally at 56 ppg, defense
+  35th at 9 ppg allowed) — but that number is just the Furman score
+  restated, not new information, so it didn't earn a graphic of its
+  own this run. `scraped_articles` had the freshest, cleanest, most
+  timely real content: an official University of Tennessee Athletics
+  release (not a paywalled/junk aggregator piece), ingested the
+  morning of this run.
+- Real content used, all pulled directly from the `scraped_articles`
+  row (title "Faizon Brandon Named SEC Freshman of the Week -
+  University of Tennessee Athletics", source UT Sports,
+  https://utsports.com/news/2026/9/7/football-faizon-brandon-named-sec-freshman-of-the-week):
+  5 total touchdowns in the first two-and-a-half quarters; 13-of-17
+  passing (76.5%) for 226 yards and 3 passing TDs, 0 INTs; 10 carries
+  for 68 rushing yards and 2 rushing TDs; "the youngest starting
+  quarterback in Tennessee history"; SEC office announcement dated
+  Sept. 7, 2026. No stat on the graphic was invented — every number
+  traces to this one article. No team logos/crests or player photos
+  used — pure typography (Anton headline/hero number, Inter body),
+  color, and the diagonal end-zone-stripe + radial-glow motif, matching
+  the site's brand system pushed bolder for social, same as the other
+  graphics logged above.
+- Canvas: https://claude.ai/code/artifact/28d6b925-dbd5-4a59-ae88-5e7f7aff10cb
+- Status: ⏳ pending review
