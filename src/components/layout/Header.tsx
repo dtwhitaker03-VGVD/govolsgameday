@@ -35,7 +35,7 @@ function NavDropdown({ label, items }: NavDropdownProps) {
       onMouseLeave={handleMouseLeave}
     >
       <button
-        className="flex items-center gap-1 text-[13px] font-medium text-vgd-muted hover:text-vgd-orange transition-colors duration-150 py-1 whitespace-nowrap"
+        className="flex items-center gap-1 text-[13px] font-medium text-white hover:text-vgd-orange transition-colors duration-150 py-1 whitespace-nowrap"
         aria-haspopup="true"
         aria-expanded={open}
       >
@@ -55,7 +55,7 @@ function NavDropdown({ label, items }: NavDropdownProps) {
                 `block px-4 py-2 text-[13px] transition-colors duration-150 ${
                   isActive
                     ? 'text-vgd-orange font-semibold'
-                    : 'text-gray-300 hover:text-vgd-orange hover:bg-white/[0.04]'
+                    : 'text-white hover:text-vgd-orange hover:bg-white/[0.04]'
                 }`
               }
               onClick={() => setOpen(false)}
@@ -130,7 +130,7 @@ function AvatarDropdown({ profile }: { profile: UserProfile }) {
             <Link
               to={`/profile/${profile.username}`}
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-gray-300 hover:text-white hover:bg-white/[0.05] transition-colors duration-150"
+              className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-white hover:bg-white/[0.05] transition-colors duration-150"
             >
               <User className="w-3.5 h-3.5 flex-shrink-0" />
               My Profile
@@ -151,7 +151,7 @@ function AvatarDropdown({ profile }: { profile: UserProfile }) {
 
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-gray-400 hover:text-vgd-red hover:bg-vgd-red/[0.06] transition-colors duration-150"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-white hover:text-vgd-red hover:bg-vgd-red/[0.06] transition-colors duration-150"
             >
               <LogOut className="w-3.5 h-3.5 flex-shrink-0" />
               Sign Out
@@ -194,7 +194,7 @@ export function Header() {
     `text-[13px] font-medium whitespace-nowrap transition-colors duration-150 pb-0.5 ${
       isActive
         ? 'text-vgd-orange font-bold border-b-2 border-vgd-orange'
-        : 'text-vgd-muted hover:text-vgd-orange'
+        : 'text-white hover:text-vgd-orange'
     }`;
 
   return (
@@ -292,7 +292,7 @@ export function Header() {
                     `block px-3 py-2.5 rounded-md text-sm font-medium transition-colors duration-150 ${
                       isActive
                         ? 'text-vgd-orange bg-vgd-orange/10 font-bold'
-                        : 'text-gray-300 hover:text-white hover:bg-white/[0.04]'
+                        : 'text-white hover:bg-white/[0.04]'
                     }`
                   }
                   onClick={() => setDrawerOpen(false)}
@@ -317,7 +317,7 @@ export function Header() {
                   <Link
                     to={`/profile/${profile.username}`}
                     onClick={() => setDrawerOpen(false)}
-                    className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-300 hover:text-white rounded-md hover:bg-white/[0.04] transition-colors duration-150"
+                    className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-white rounded-md hover:bg-white/[0.04] transition-colors duration-150"
                   >
                     <User className="w-4 h-4" /> My Profile
                   </Link>
@@ -332,7 +332,7 @@ export function Header() {
                   )}
                   <button
                     onClick={() => { setDrawerOpen(false); signOut(); }}
-                    className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-400 hover:text-vgd-red rounded-md hover:bg-vgd-red/[0.06] transition-colors duration-150"
+                    className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-white hover:text-vgd-red rounded-md hover:bg-vgd-red/[0.06] transition-colors duration-150"
                   >
                     <LogOut className="w-4 h-4" /> Sign Out
                   </button>
