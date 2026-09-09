@@ -51,8 +51,10 @@ interface Countdown {
 // CFBD's own season-stats endpoint doesn't expose points/yards allowed
 // (see cfbd-data's buildTeamStats), so Scoring/Total Defense (and, this
 // early in the season, often Scoring Offense too) stay "—" from that
-// source. The Game Preview scrape already carries real per-game numbers
-// for both sides, so it doubles as the stat source here.
+// source. The Game Preview scrape already carries each team's national
+// rank in these categories (the "(19th)" in "56 points per game (19th)"),
+// so it doubles as the stat source here — this card shows that rank
+// rather than the raw per-game number.
 interface PreviewStatBlock {
   overall?: string;
   scoring?: string;
@@ -90,12 +92,12 @@ function formatGameDate(dateStr: string) {
   });
 }
 
-function rankSuffix(rank: number | null): string {
-  if (!rank) return 'NR';
-  if (rank >= 11 && rank <= 13) return `#${rank}th`;
+function ordinal(rank: number | null): string {
+  if (!rank) return '—';
+  if (rank >= 11 && rank <= 13) return `${rank}th`;
   const suffixes = ['th', 'st', 'nd', 'rd'];
   const v = rank % 10;
-  return `#${rank}${suffixes[v <= 3 ? v : 0]}`;
+  return `${rank}${suffixes[v <= 3 ? v : 0]}`;
 }
 
 function recordStr(record: TeamRecord | null): string {
@@ -111,12 +113,12 @@ function combinedRanking(ap: number | null, coaches: number | null): string {
   return parts.join(' / ');
 }
 
-// Pulls the leading number out of a Game Preview stat string, e.g.
-// "56 points per game (19th)" -> 56, "221 yards per game (38th in FBS)" -> 221.
-function parseLeadingNumber(s: string | undefined): number | null {
+// Pulls the national rank out of a Game Preview stat string, e.g.
+// "56 points per game (19th)" -> 19, "221 yards per game (38th in FBS)" -> 38.
+function parseRank(s: string | undefined): number | null {
   if (!s) return null;
-  const m = s.match(/^([\d,.]+)/);
-  return m ? parseFloat(m[1].replace(/,/g, '')) : null;
+  const m = s.match(/\((\d+)/);
+  return m ? parseInt(m[1], 10) : null;
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
@@ -232,12 +234,12 @@ export function UpcomingGameCard() {
   const tnKeyStats = findKeyStats('Tennessee');
   const oppKeyStats = data ? findKeyStats(data.opponent.name) : undefined;
 
-  const tnScoringOff = parseLeadingNumber(tnKeyStats?.offense.scoring) ?? data?.tennessee.stats.scoringOffense?.value ?? null;
-  const oppScoringOff = parseLeadingNumber(oppKeyStats?.offense.scoring) ?? data?.opponent.stats.scoringOffense?.value ?? null;
-  const tnScoringDef = parseLeadingNumber(tnKeyStats?.defense.scoring) ?? data?.tennessee.stats.scoringDefense?.value ?? null;
-  const oppScoringDef = parseLeadingNumber(oppKeyStats?.defense.scoring) ?? data?.opponent.stats.scoringDefense?.value ?? null;
-  const tnTotalDef = parseLeadingNumber(tnKeyStats?.defense.overall) ?? data?.tennessee.stats.totalDefense?.value ?? null;
-  const oppTotalDef = parseLeadingNumber(oppKeyStats?.defense.overall) ?? data?.opponent.stats.totalDefense?.value ?? null;
+  const tnScoringOffRank = parseRank(tnKeyStats?.offense.scoring) ?? data?.tennessee.stats.scoringOffense?.rank ?? null;
+  const oppScoringOffRank = parseRank(oppKeyStats?.offense.scoring) ?? data?.opponent.stats.scoringOffense?.rank ?? null;
+  const tnScoringDefRank = parseRank(tnKeyStats?.defense.scoring) ?? data?.tennessee.stats.scoringDefense?.rank ?? null;
+  const oppScoringDefRank = parseRank(oppKeyStats?.defense.scoring) ?? data?.opponent.stats.scoringDefense?.rank ?? null;
+  const tnTotalDefRank = parseRank(tnKeyStats?.defense.overall) ?? data?.tennessee.stats.totalDefense?.rank ?? null;
+  const oppTotalDefRank = parseRank(oppKeyStats?.defense.overall) ?? data?.opponent.stats.totalDefense?.rank ?? null;
 
   const headerExtra = fetchState === 'ok' && data ? (
     <button
@@ -331,8 +333,8 @@ export function UpcomingGameCard() {
             />
             <StatRow
               label="Scoring Off"
-              tnValue={fmt(tnScoringOff)}
-              oppValue={fmt(oppScoringOff)}
+              tnValue={ordinal(tnScoringOffRank)}
+              oppValue={ordinal(oppScoringOffRank)}
             />
             <StatRow
               label="Total Off"
@@ -341,13 +343,13 @@ export function UpcomingGameCard() {
             />
             <StatRow
               label="Scoring Def"
-              tnValue={fmt(tnScoringDef)}
-              oppValue={fmt(oppScoringDef)}
+              tnValue={ordinal(tnScoringDefRank)}
+              oppValue={ordinal(oppScoringDefRank)}
             />
             <StatRow
               label="Total Def"
-              tnValue={fmt(tnTotalDef)}
-              oppValue={fmt(oppTotalDef)}
+              tnValue={ordinal(tnTotalDefRank)}
+              oppValue={ordinal(oppTotalDefRank)}
             />
           </div>
         </div>
