@@ -153,3 +153,22 @@ either posts it himself or asks for changes first.
   https://claude.ai/code/artifact/96406099-f7f1-4381-bdbd-e3108a7fa08c
 - Status: ⏳ pending review (Day4 now carries the Sept 8 poll; re-check
   before scheduling that day's post)
+
+### Update — single canvas: swap in today's poll, bump countdown (2026-09-09)
+
+- David asked for a countdown canvas with today's poll question at the
+  bottom. Applied to the **single Game Week canvas** (not the 7-artboard
+  batch): re-pulled `live_games` (Georgia Tech kickoff unchanged,
+  2026-09-12 23:00 UTC / 7:00 PM ET, 3 days from today) and `daily_polls`
+  for `active_date = 2026-09-09`: "Greatest TN Vol Backfield?" (McEver–
+  Feathers / Cobb–Webb / Lewis–Henry–Stephens / Wright–Small–Sampson).
+- Bumped the hero countdown from the stale "6" to the real "3."
+- Followed the Day4-batch precedent above rather than stacking a second
+  card: **replaced** the Furman-recap context card with a poll card
+  (same "TODAY'S POLL" eyebrow + question + option-chip treatment used on
+  Day4), so the graphic keeps one timely call-to-action instead of
+  pairing a now-4-day-old recap with a same-day poll.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/8180dc70-276e-4667-8621-295df9f572b5
+- Status: ⏳ pending review (poll and 3-day countdown current as of
+  2026-09-09; the batch canvas's other 6 artboards are untouched)
