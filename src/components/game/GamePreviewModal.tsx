@@ -58,7 +58,13 @@ function StatBlockList({ label, stats }: { label: string; stats: StatBlock }) {
   );
 }
 
-export function GamePreviewModal({ gameId, onClose }: { gameId: string; onClose: () => void }) {
+// Pregame (UpcomingGameCard) only knows CFBD's numeric schedule id, not the
+// live_games UUID — pass whichever one is available.
+type GamePreviewModalProps =
+  | { gameId: string; cfbdGameId?: never; onClose: () => void }
+  | { gameId?: never; cfbdGameId: number; onClose: () => void };
+
+export function GamePreviewModal({ gameId, cfbdGameId, onClose }: GamePreviewModalProps) {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [available, setAvailable] = useState(true);
@@ -69,7 +75,7 @@ export function GamePreviewModal({ gameId, onClose }: { gameId: string; onClose:
     setLoading(true);
     setErrorMsg('');
     supabase.functions
-      .invoke('game-preview-sync', { body: { game_id: gameId } })
+      .invoke('game-preview-sync', { body: gameId ? { game_id: gameId } : { cfbd_game_id: cfbdGameId } })
       .then(({ data, error }) => {
         if (cancelled) return;
         if (error || data?.error) {
@@ -81,7 +87,7 @@ export function GamePreviewModal({ gameId, onClose }: { gameId: string; onClose:
         setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [gameId]);
+  }, [gameId, cfbdGameId]);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>

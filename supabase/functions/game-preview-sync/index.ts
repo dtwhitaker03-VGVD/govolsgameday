@@ -213,24 +213,35 @@ Deno.serve(async (req: Request) => {
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
   let gameId: string | undefined;
+  let cfbdGameId: number | undefined;
   try {
     const body = await req.json();
     gameId = body?.game_id;
+    cfbdGameId = body?.cfbd_game_id;
   } catch {
     // no body
   }
-  if (!gameId) {
-    return new Response(JSON.stringify({ error: "game_id is required" }), {
+  if (!gameId && !cfbdGameId) {
+    return new Response(JSON.stringify({ error: "game_id or cfbd_game_id is required" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
-  const { data: game, error: gameError } = await supabase
+  // UpcomingGameCard (pregame, before a live_games row's UUID is known to the
+  // client) only has CFBD's own numeric schedule id — the same value
+  // game-sync stores as live_games.cfbd_game_id — so look up by whichever
+  // identifier the caller has.
+  const gameQuery = supabase
     .from("live_games")
-    .select("id, home_team, away_team, espn_preview_url")
-    .eq("id", gameId)
-    .maybeSingle();
+    .select("id, home_team, away_team, espn_preview_url");
+  const { data: game, error: gameError } = await (
+    gameId ? gameQuery.eq("id", gameId) : gameQuery.eq("cfbd_game_id", cfbdGameId!)
+  ).maybeSingle();
+
+  // Cache lookups/writes below key off the live_games UUID regardless of
+  // which identifier the caller sent.
+  gameId = game?.id ?? gameId;
 
   if (gameError || !game) {
     return new Response(JSON.stringify({ error: gameError?.message ?? "game not found" }), {

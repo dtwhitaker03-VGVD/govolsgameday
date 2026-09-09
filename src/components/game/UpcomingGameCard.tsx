@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Loader2, Zap } from 'lucide-react';
+import { Calendar, Loader2, Newspaper, Zap } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { DashboardCard } from '../ui/DashboardCard';
+import { GamePreviewModal } from './GamePreviewModal';
+import { shortTeamName } from '../../lib/teamNames';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -143,6 +145,7 @@ export function UpcomingGameCard() {
   const [fetchState, setFetchState] = useState<'loading' | 'ok' | 'no_games' | 'api_error'>('loading');
   const [apiErrorMsg, setApiErrorMsg] = useState('');
   const [countdown, setCountdown] = useState<Countdown | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     supabase.functions
@@ -186,8 +189,19 @@ export function UpcomingGameCard() {
 
   const fmt = (v: number | null) => (v == null ? '—' : v % 1 === 0 ? v.toString() : v.toFixed(1));
 
+  const headerExtra = fetchState === 'ok' && data ? (
+    <button
+      onClick={() => setShowPreview(true)}
+      className="flex items-center gap-1 text-[9px] lg:text-[10px] font-bold uppercase tracking-wider text-vgd-muted hover:text-vgd-orange transition-colors border border-white/10 hover:border-vgd-orange/40 rounded px-1.5 py-0.5"
+    >
+      <Newspaper className="w-2.5 h-2.5 lg:w-3 lg:h-3" />
+      Game Preview
+    </button>
+  ) : undefined;
+
   return (
-    <DashboardCard title="UPCOMING GAME" metadataTag={metaTag} className="w-full h-[220px] lg:h-[320px]">
+    <>
+    <DashboardCard title="UPCOMING GAME" metadataTag={metaTag} headerExtra={headerExtra} className="w-full h-[220px] lg:h-[320px]">
       {fetchState === 'loading' ? (
         <div className="flex items-center justify-center h-full">
           <Loader2 className="w-5 h-5 text-vgd-orange animate-spin" />
@@ -235,7 +249,7 @@ export function UpcomingGameCard() {
             <div className="grid grid-cols-[1fr_auto_1fr] text-[9px] text-vgd-muted uppercase tracking-wider pb-0.5 border-b border-white/[0.06] gap-2">
               <span className="text-right font-bold text-vgd-orange">TENN</span>
               <span className="text-center w-24" />
-              <span className="text-left font-bold">{data.opponent.name.slice(0, 4).toUpperCase()}</span>
+              <span className="text-left font-bold">{shortTeamName(data.opponent.name)}</span>
             </div>
 
             <StatRow
@@ -272,5 +286,9 @@ export function UpcomingGameCard() {
         </div>
       ) : null}
     </DashboardCard>
+    {showPreview && data && (
+      <GamePreviewModal cfbdGameId={data.game.id} onClose={() => setShowPreview(false)} />
+    )}
+    </>
   );
 }
