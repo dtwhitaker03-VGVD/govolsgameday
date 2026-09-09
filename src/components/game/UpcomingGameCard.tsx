@@ -161,7 +161,7 @@ function StatRow({
   return (
     <div className="grid grid-cols-[1fr_auto_1fr] items-center py-0.5 border-b border-white/[0.05] last:border-0 gap-2">
       <span className="text-white text-xs font-semibold text-right">{tnValue}</span>
-      <span className="text-center text-[9px] text-vgd-muted uppercase tracking-wider w-24">{label}</span>
+      <span className="text-center text-[9px] text-white uppercase tracking-wider w-24">{label}</span>
       <span className="text-white text-xs font-semibold text-left">{oppValue}</span>
     </div>
   );
@@ -247,7 +247,7 @@ export function UpcomingGameCard() {
   const headerExtra = fetchState === 'ok' && data ? (
     <button
       onClick={() => setShowPreview(true)}
-      className="flex items-center gap-1 text-[9px] lg:text-[10px] font-bold uppercase tracking-wider text-vgd-muted hover:text-vgd-orange transition-colors border border-white/10 hover:border-vgd-orange/40 rounded px-1.5 py-0.5"
+      className="flex items-center gap-1 text-[9px] lg:text-[10px] font-bold uppercase tracking-wider text-white hover:text-vgd-orange transition-colors border border-white/10 hover:border-vgd-orange/40 rounded px-1.5 py-0.5"
     >
       <Newspaper className="w-2.5 h-2.5 lg:w-3 lg:h-3" />
       Game Preview
@@ -264,11 +264,11 @@ export function UpcomingGameCard() {
       ) : fetchState === 'api_error' ? (
         <div className="flex flex-col items-center justify-center h-full gap-2 px-4 text-center">
           <Zap className="w-6 h-6 text-vgd-red/50" />
-          <p className="text-xs text-white/70">Unable to load game data.</p>
-          <p className="text-[10px] text-vgd-muted/60">{apiErrorMsg}</p>
+          <p className="text-xs text-white">Unable to load game data.</p>
+          <p className="text-[10px] text-white">{apiErrorMsg}</p>
         </div>
       ) : fetchState === 'no_games' ? (
-        <div className="flex flex-col items-center justify-center h-full gap-2 text-vgd-muted px-4 text-center">
+        <div className="flex flex-col items-center justify-center h-full gap-2 text-white px-4 text-center">
           <Calendar className="w-8 h-8 opacity-30" />
           <p className="text-xs">No upcoming game scheduled.</p>
         </div>
@@ -278,7 +278,7 @@ export function UpcomingGameCard() {
           <div className="flex items-center justify-center gap-2 py-0.5 lg:py-1 flex-shrink-0">
             <TeamLogo src={data.tennessee.logo} name="TN" size={26} />
             <span className="text-white font-bold text-sm">Tennessee</span>
-            <span className="text-vgd-muted text-xs font-bold uppercase tracking-wider mx-1">vs</span>
+            <span className="text-white text-xs font-bold uppercase tracking-wider mx-1">vs</span>
             <span className="text-white font-bold text-sm">{data.opponent.name}</span>
             <TeamLogo src={data.opponent.logo} name={shortTeamName(data.opponent.name)} size={26} />
           </div>
@@ -297,11 +297,11 @@ export function UpcomingGameCard() {
                 <span className="text-xl lg:text-4xl font-extrabold text-vgd-orange animate-pulse">:</span>
                 <span className="text-3xl lg:text-6xl font-black text-vgd-orange leading-none tabular-nums">{String(countdown.seconds).padStart(2, '0')}</span>
               </div>
-              <p className="text-[8px] lg:text-[10px] text-vgd-muted mt-0.5 lg:mt-1 leading-tight">{formatGameDate(data.game.date)}</p>
+              <p className="text-[8px] lg:text-[10px] text-white mt-0.5 lg:mt-1 leading-tight">{formatGameDate(data.game.date)}</p>
             </div>
           ) : (
             <div className="flex items-center justify-center pb-2">
-              <span className="text-[11px] text-vgd-muted">{formatGameDate(data.game.date)}</span>
+              <span className="text-[11px] text-white">{formatGameDate(data.game.date)}</span>
             </div>
           )}
 
