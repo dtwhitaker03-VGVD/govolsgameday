@@ -44,6 +44,7 @@ interface Countdown {
   days: number;
   hours: number;
   minutes: number;
+  seconds: number;
   total: number;
 }
 
@@ -76,6 +77,7 @@ function computeCountdown(dateStr: string): Countdown {
     days: Math.floor(secs / 86400),
     hours: Math.floor((secs % 86400) / 3600),
     minutes: Math.floor((secs % 3600) / 60),
+    seconds: secs % 60,
   };
 }
 
@@ -198,13 +200,14 @@ export function UpcomingGameCard() {
       });
   }, []);
 
-  // Live countdown tick — updates every minute (no seconds needed)
+  // Live countdown tick — ticking seconds is what makes the card read as
+  // "live" rather than a static date, so this updates every second.
   useEffect(() => {
     if (!data?.game?.date) return;
     setCountdown(computeCountdown(data.game.date));
     const id = setInterval(() => {
       setCountdown(computeCountdown(data.game.date));
-    }, 60000);
+    }, 1000);
     return () => clearInterval(id);
   }, [data?.game?.date]);
 
@@ -299,6 +302,11 @@ export function UpcomingGameCard() {
                 <div className="flex flex-col items-center w-8 lg:w-12">
                   <span className="text-lg lg:text-3xl font-black text-white leading-none tabular-nums">{String(countdown.minutes).padStart(2, '0')}</span>
                   <span className="text-[7px] lg:text-[8px] font-bold text-vgd-muted uppercase tracking-wider mt-0.5 lg:mt-1">Min</span>
+                </div>
+                <span className="text-sm lg:text-2xl font-extrabold text-vgd-orange mb-2 lg:mb-3 animate-pulse">:</span>
+                <div className="flex flex-col items-center w-8 lg:w-12">
+                  <span className="text-lg lg:text-3xl font-black text-vgd-orange leading-none tabular-nums">{String(countdown.seconds).padStart(2, '0')}</span>
+                  <span className="text-[7px] lg:text-[8px] font-bold text-vgd-muted uppercase tracking-wider mt-0.5 lg:mt-1">Sec</span>
                 </div>
               </div>
               <p className="text-[8px] lg:text-[10px] text-vgd-muted mt-0.5 lg:mt-1 leading-tight">{formatGameDate(data.game.date)}</p>
