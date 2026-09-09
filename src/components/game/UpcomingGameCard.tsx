@@ -287,27 +287,15 @@ export function UpcomingGameCard() {
               gets a dedicated jumbotron-style banner instead of sharing a
               row with the date line (which now sits underneath it, small). */}
           {countdown && countdown.total > 0 ? (
-            <div className="bg-gradient-to-b from-vgd-orange/[0.12] to-vgd-orange/[0.02] border border-vgd-orange/25 rounded-lg px-2 py-1 mb-1 text-center flex-shrink-0">
+            <div className="bg-gradient-to-b from-vgd-orange/[0.12] to-vgd-orange/[0.02] border border-vgd-orange/25 rounded-lg px-1 py-1.5 lg:py-2 mb-1 text-center flex-shrink-0">
               <div className="flex items-center justify-center gap-0.5">
-                <div className="flex flex-col items-center w-8 lg:w-12">
-                  <span className="text-lg lg:text-3xl font-black text-white leading-none tabular-nums">{countdown.days}</span>
-                  <span className="text-[7px] lg:text-[8px] font-bold text-vgd-muted uppercase tracking-wider mt-0.5 lg:mt-1">Days</span>
-                </div>
-                <span className="text-sm lg:text-2xl font-extrabold text-vgd-orange mb-2 lg:mb-3 animate-pulse">:</span>
-                <div className="flex flex-col items-center w-8 lg:w-12">
-                  <span className="text-lg lg:text-3xl font-black text-white leading-none tabular-nums">{String(countdown.hours).padStart(2, '0')}</span>
-                  <span className="text-[7px] lg:text-[8px] font-bold text-vgd-muted uppercase tracking-wider mt-0.5 lg:mt-1">Hrs</span>
-                </div>
-                <span className="text-sm lg:text-2xl font-extrabold text-vgd-orange mb-2 lg:mb-3 animate-pulse">:</span>
-                <div className="flex flex-col items-center w-8 lg:w-12">
-                  <span className="text-lg lg:text-3xl font-black text-white leading-none tabular-nums">{String(countdown.minutes).padStart(2, '0')}</span>
-                  <span className="text-[7px] lg:text-[8px] font-bold text-vgd-muted uppercase tracking-wider mt-0.5 lg:mt-1">Min</span>
-                </div>
-                <span className="text-sm lg:text-2xl font-extrabold text-vgd-orange mb-2 lg:mb-3 animate-pulse">:</span>
-                <div className="flex flex-col items-center w-8 lg:w-12">
-                  <span className="text-lg lg:text-3xl font-black text-vgd-orange leading-none tabular-nums">{String(countdown.seconds).padStart(2, '0')}</span>
-                  <span className="text-[7px] lg:text-[8px] font-bold text-vgd-muted uppercase tracking-wider mt-0.5 lg:mt-1">Sec</span>
-                </div>
+                <span className="text-3xl lg:text-6xl font-black text-white leading-none tabular-nums">{countdown.days}</span>
+                <span className="text-xl lg:text-4xl font-extrabold text-vgd-orange animate-pulse">:</span>
+                <span className="text-3xl lg:text-6xl font-black text-white leading-none tabular-nums">{String(countdown.hours).padStart(2, '0')}</span>
+                <span className="text-xl lg:text-4xl font-extrabold text-vgd-orange animate-pulse">:</span>
+                <span className="text-3xl lg:text-6xl font-black text-white leading-none tabular-nums">{String(countdown.minutes).padStart(2, '0')}</span>
+                <span className="text-xl lg:text-4xl font-extrabold text-vgd-orange animate-pulse">:</span>
+                <span className="text-3xl lg:text-6xl font-black text-vgd-orange leading-none tabular-nums">{String(countdown.seconds).padStart(2, '0')}</span>
               </div>
               <p className="text-[8px] lg:text-[10px] text-vgd-muted mt-0.5 lg:mt-1 leading-tight">{formatGameDate(data.game.date)}</p>
             </div>
@@ -322,13 +310,6 @@ export function UpcomingGameCard() {
 
           {/* 3. Six-row comparison table: label | TENN | opponent */}
           <div className="flex-1 flex flex-col justify-center">
-            {/* Column headers */}
-            <div className="grid grid-cols-[1fr_auto_1fr] text-[9px] text-vgd-muted uppercase tracking-wider pb-0.5 border-b border-white/[0.06] gap-2">
-              <span className="text-right font-bold text-vgd-orange">TENN</span>
-              <span className="text-center w-24" />
-              <span className="text-left font-bold">{shortTeamName(data.opponent.name)}</span>
-            </div>
-
             <StatRow
               label="Record"
               tnValue={recordStr(data.tennessee.record)}
