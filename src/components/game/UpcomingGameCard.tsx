@@ -47,6 +47,23 @@ interface Countdown {
   total: number;
 }
 
+// Matches the relevant slice of game-preview-sync's parsed ESPN content —
+// CFBD's own season-stats endpoint doesn't expose points/yards allowed
+// (see cfbd-data's buildTeamStats), so Scoring/Total Defense (and, this
+// early in the season, often Scoring Offense too) stay "—" from that
+// source. The Game Preview scrape already carries real per-game numbers
+// for both sides, so it doubles as the stat source here.
+interface PreviewStatBlock {
+  overall?: string;
+  scoring?: string;
+}
+
+interface PreviewTeamKeyStats {
+  team: string;
+  offense: PreviewStatBlock;
+  defense: PreviewStatBlock;
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function computeCountdown(dateStr: string): Countdown {
@@ -94,6 +111,14 @@ function combinedRanking(ap: number | null, coaches: number | null): string {
   return parts.join(' / ');
 }
 
+// Pulls the leading number out of a Game Preview stat string, e.g.
+// "56 points per game (19th)" -> 56, "221 yards per game (38th in FBS)" -> 221.
+function parseLeadingNumber(s: string | undefined): number | null {
+  if (!s) return null;
+  const m = s.match(/^([\d,.]+)/);
+  return m ? parseFloat(m[1].replace(/,/g, '')) : null;
+}
+
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 function TeamLogo({ src, name, size = 28 }: { src: string | null; name: string; size?: number }) {
@@ -130,7 +155,7 @@ function StatRow({
   oppValue: string;
 }) {
   return (
-    <div className="grid grid-cols-[1fr_auto_1fr] items-center py-1 border-b border-white/[0.05] last:border-0 gap-2">
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center py-0.5 border-b border-white/[0.05] last:border-0 gap-2">
       <span className="text-white text-xs font-semibold text-right">{tnValue}</span>
       <span className="text-center text-[9px] text-vgd-muted uppercase tracking-wider w-24">{label}</span>
       <span className="text-white text-xs font-semibold text-left">{oppValue}</span>
@@ -146,6 +171,7 @@ export function UpcomingGameCard() {
   const [apiErrorMsg, setApiErrorMsg] = useState('');
   const [countdown, setCountdown] = useState<Countdown | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [previewKeyStats, setPreviewKeyStats] = useState<PreviewTeamKeyStats[]>([]);
 
   useEffect(() => {
     supabase.functions
@@ -180,6 +206,19 @@ export function UpcomingGameCard() {
     return () => clearInterval(id);
   }, [data?.game?.date]);
 
+  // Same lookup GamePreviewModal uses (by CFBD's numeric schedule id) — this
+  // isn't the modal, just borrowing its already-scraped Scoring/Total
+  // Defense numbers for the comparison table below.
+  useEffect(() => {
+    if (!data?.game?.id) return;
+    supabase.functions
+      .invoke('game-preview-sync', { body: { cfbd_game_id: data.game.id } })
+      .then(({ data: res, error }) => {
+        if (error || !res?.available || !res.content) return;
+        setPreviewKeyStats((res.content.keyStats as PreviewTeamKeyStats[]) ?? []);
+      });
+  }, [data?.game?.id]);
+
   const metaTag = fetchState === 'ok' ? (
     <span className="flex items-center gap-1 text-vgd-orange text-[10px] font-bold uppercase tracking-wider">
       <Zap className="w-3 h-3" />
@@ -188,6 +227,17 @@ export function UpcomingGameCard() {
   ) : null;
 
   const fmt = (v: number | null) => (v == null ? '—' : v % 1 === 0 ? v.toString() : v.toFixed(1));
+
+  const findKeyStats = (team: string) => previewKeyStats.find((ks) => ks.team === team);
+  const tnKeyStats = findKeyStats('Tennessee');
+  const oppKeyStats = data ? findKeyStats(data.opponent.name) : undefined;
+
+  const tnScoringOff = parseLeadingNumber(tnKeyStats?.offense.scoring) ?? data?.tennessee.stats.scoringOffense?.value ?? null;
+  const oppScoringOff = parseLeadingNumber(oppKeyStats?.offense.scoring) ?? data?.opponent.stats.scoringOffense?.value ?? null;
+  const tnScoringDef = parseLeadingNumber(tnKeyStats?.defense.scoring) ?? data?.tennessee.stats.scoringDefense?.value ?? null;
+  const oppScoringDef = parseLeadingNumber(oppKeyStats?.defense.scoring) ?? data?.opponent.stats.scoringDefense?.value ?? null;
+  const tnTotalDef = parseLeadingNumber(tnKeyStats?.defense.overall) ?? data?.tennessee.stats.totalDefense?.value ?? null;
+  const oppTotalDef = parseLeadingNumber(oppKeyStats?.defense.overall) ?? data?.opponent.stats.totalDefense?.value ?? null;
 
   const headerExtra = fetchState === 'ok' && data ? (
     <button
@@ -220,25 +270,42 @@ export function UpcomingGameCard() {
       ) : data ? (
         <div className="px-3 py-2 flex flex-col h-full">
           {/* 1. Matchup line — centered: [TN logo] Tennessee vs [Opp] [Opp logo] */}
-          <div className="flex items-center justify-center gap-2 py-1.5">
-            <TeamLogo src={data.tennessee.logo} name="TN" size={28} />
+          <div className="flex items-center justify-center gap-2 py-0.5 lg:py-1 flex-shrink-0">
+            <TeamLogo src={data.tennessee.logo} name="TN" size={26} />
             <span className="text-white font-bold text-sm">Tennessee</span>
             <span className="text-vgd-muted text-xs font-bold uppercase tracking-wider mx-1">vs</span>
             <span className="text-white font-bold text-sm">{data.opponent.name}</span>
-            <TeamLogo src={data.opponent.logo} name={data.opponent.name.slice(0, 2)} size={28} />
+            <TeamLogo src={data.opponent.logo} name={shortTeamName(data.opponent.name)} size={26} />
           </div>
 
-          {/* 2. Date line — centered, one line: date/time + countdown inline */}
-          <div className="flex items-center justify-center gap-2 pb-2">
-            <span className="text-[11px] text-vgd-muted">
-              {formatGameDate(data.game.date)}
-            </span>
-            {countdown && countdown.total > 0 && (
-              <span className="text-[10px] font-bold text-vgd-orange bg-vgd-orange/10 px-1.5 py-0.5 rounded">
-                {countdown.days > 0 ? `${countdown.days}d ` : ''}{countdown.hours}h {countdown.minutes}m
-              </span>
-            )}
-          </div>
+          {/* 2. Kickoff countdown — the headline stat on this card, so it
+              gets a dedicated jumbotron-style banner instead of sharing a
+              row with the date line (which now sits underneath it, small). */}
+          {countdown && countdown.total > 0 ? (
+            <div className="bg-gradient-to-b from-vgd-orange/[0.12] to-vgd-orange/[0.02] border border-vgd-orange/25 rounded-lg px-2 py-1 mb-1 text-center flex-shrink-0">
+              <div className="flex items-center justify-center gap-0.5">
+                <div className="flex flex-col items-center w-8 lg:w-12">
+                  <span className="text-lg lg:text-3xl font-black text-white leading-none tabular-nums">{countdown.days}</span>
+                  <span className="text-[7px] lg:text-[8px] font-bold text-vgd-muted uppercase tracking-wider mt-0.5 lg:mt-1">Days</span>
+                </div>
+                <span className="text-sm lg:text-2xl font-extrabold text-vgd-orange mb-2 lg:mb-3 animate-pulse">:</span>
+                <div className="flex flex-col items-center w-8 lg:w-12">
+                  <span className="text-lg lg:text-3xl font-black text-white leading-none tabular-nums">{String(countdown.hours).padStart(2, '0')}</span>
+                  <span className="text-[7px] lg:text-[8px] font-bold text-vgd-muted uppercase tracking-wider mt-0.5 lg:mt-1">Hrs</span>
+                </div>
+                <span className="text-sm lg:text-2xl font-extrabold text-vgd-orange mb-2 lg:mb-3 animate-pulse">:</span>
+                <div className="flex flex-col items-center w-8 lg:w-12">
+                  <span className="text-lg lg:text-3xl font-black text-white leading-none tabular-nums">{String(countdown.minutes).padStart(2, '0')}</span>
+                  <span className="text-[7px] lg:text-[8px] font-bold text-vgd-muted uppercase tracking-wider mt-0.5 lg:mt-1">Min</span>
+                </div>
+              </div>
+              <p className="text-[8px] lg:text-[10px] text-vgd-muted mt-0.5 lg:mt-1 leading-tight">{formatGameDate(data.game.date)}</p>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center pb-2">
+              <span className="text-[11px] text-vgd-muted">{formatGameDate(data.game.date)}</span>
+            </div>
+          )}
 
           {/* Divider */}
           <div className="h-px bg-white/[0.06] mb-1" />
@@ -264,8 +331,8 @@ export function UpcomingGameCard() {
             />
             <StatRow
               label="Scoring Off"
-              tnValue={fmt(data.tennessee.stats.scoringOffense?.value ?? null)}
-              oppValue={fmt(data.opponent.stats.scoringOffense?.value ?? null)}
+              tnValue={fmt(tnScoringOff)}
+              oppValue={fmt(oppScoringOff)}
             />
             <StatRow
               label="Total Off"
@@ -274,13 +341,13 @@ export function UpcomingGameCard() {
             />
             <StatRow
               label="Scoring Def"
-              tnValue={fmt(data.tennessee.stats.scoringDefense?.value ?? null)}
-              oppValue={fmt(data.opponent.stats.scoringDefense?.value ?? null)}
+              tnValue={fmt(tnScoringDef)}
+              oppValue={fmt(oppScoringDef)}
             />
             <StatRow
               label="Total Def"
-              tnValue={fmt(data.tennessee.stats.totalDefense?.value ?? null)}
-              oppValue={fmt(data.opponent.stats.totalDefense?.value ?? null)}
+              tnValue={fmt(tnTotalDef)}
+              oppValue={fmt(oppTotalDef)}
             />
           </div>
         </div>
