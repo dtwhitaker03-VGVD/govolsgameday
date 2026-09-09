@@ -89,7 +89,7 @@ function formatCountdown(ms: number): string {
 }
 
 function ptColor(pts: number | null, max: number): string {
-  if (pts === null) return 'text-vgd-muted';
+  if (pts === null) return 'text-white';
   if (pts >= max) return 'text-green-400';
   if (pts >= max * 0.5) return 'text-vgd-orange';
   return 'text-vgd-red';
@@ -123,9 +123,9 @@ function ScoringTooltip({ open, onClose, propCount, hasTennessee }: { open: bool
       <div className="space-y-1">
         <div className="flex justify-between"><span>Winner (correct)</span><span className="text-vgd-orange font-bold">100 pts</span></div>
         <div className="flex justify-between"><span>Score (each side)</span><span className="text-vgd-orange font-bold">up to 100 pts</span></div>
-        <div className="flex justify-between pl-3 text-white/50"><span>+50 bonus if exact</span><span>max 150</span></div>
+        <div className="flex justify-between pl-3 text-white"><span>+50 bonus if exact</span><span>max 150</span></div>
         <div className="flex justify-between"><span>Yards (each side)</span><span className="text-vgd-orange font-bold">up to 200 pts</span></div>
-        <div className="flex justify-between pl-3 text-white/50"><span>+100 bonus if exact</span><span>max 300</span></div>
+        <div className="flex justify-between pl-3 text-white"><span>+100 bonus if exact</span><span>max 300</span></div>
         {hasTennessee && (
           <>
             <div className="flex justify-between"><span>TN Rushing TDs</span><span className="text-vgd-orange font-bold">100 pts</span></div>
@@ -259,8 +259,8 @@ function PredictionSummary({ pred, game, tnIsHome, gameProps, propPicks }: {
       <div className="space-y-1">
         {rows.map((r, i) => (
           <div key={i} className="grid grid-cols-[1fr_auto_auto_auto] gap-x-2 items-center text-xs py-0.5 border-b border-white/[0.05] last:border-0">
-            <span className="text-white/60">{r.label}</span>
-            <span className="text-white/50">{r.predicted}</span>
+            <span className="text-white">{r.label}</span>
+            <span className="text-white">{r.predicted}</span>
             <span className="text-white/80">→ {r.actual}</span>
             <span className={`font-bold text-right w-10 ${ptColor(r.pts ?? null, r.max)}`}>
               {r.pts !== null && r.pts !== undefined ? `+${r.pts}` : '—'}
@@ -269,8 +269,8 @@ function PredictionSummary({ pred, game, tnIsHome, gameProps, propPicks }: {
         ))}
       </div>
       <div className="flex items-center justify-between pt-1 border-t border-white/10">
-        <span className="text-xs text-white/60">Total earned</span>
-        <span className="text-xl font-black text-vgd-orange">{total.toLocaleString()} <span className="text-xs font-normal text-vgd-muted">/ {maxTotal.toLocaleString()}</span></span>
+        <span className="text-xs text-white">Total earned</span>
+        <span className="text-xl font-black text-vgd-orange">{total.toLocaleString()} <span className="text-xs font-normal text-white">/ {maxTotal.toLocaleString()}</span></span>
       </div>
     </div>
   );
@@ -399,7 +399,7 @@ export function PreGamePredictions({ game }: Props) {
       <DashboardCard
         title="PRE-GAME PREDICTIONS"
         metadataTag={
-          <span className="text-[10px] text-white/30 font-bold uppercase tracking-wider">WAITING</span>
+          <span className="text-[10px] text-white font-bold uppercase tracking-wider">WAITING</span>
         }
         className="h-full"
       >
@@ -407,8 +407,8 @@ export function PreGamePredictions({ game }: Props) {
           <div className="w-10 h-10 rounded-full border-2 border-white/10 flex items-center justify-center">
             <Lock className="w-5 h-5 text-vgd-muted" />
           </div>
-          <p className="text-xs text-vgd-muted">No game scheduled today.</p>
-          <p className="text-[10px] text-white/30">Pregame predictions open when a game is scheduled.</p>
+          <p className="text-xs text-white">No game scheduled today.</p>
+          <p className="text-[10px] text-white">Pregame predictions open when a game is scheduled.</p>
         </div>
       </DashboardCard>
     );
@@ -498,9 +498,9 @@ export function PreGamePredictions({ game }: Props) {
   const maxTotalPoints = (hasTennessee ? 1300 : 1000) + (2 + gameProps.length) * 100;
 
   const metaTag = isCalculated ? (
-    <span className="text-[10px] text-white/50 font-bold uppercase tracking-wider">FINAL</span>
+    <span className="text-[10px] text-white font-bold uppercase tracking-wider">FINAL</span>
   ) : isLocked ? (
-    <span className="flex items-center gap-1 text-[10px] text-vgd-muted font-bold uppercase tracking-wider">
+    <span className="flex items-center gap-1 text-[10px] text-white font-bold uppercase tracking-wider">
       <Lock className="w-3 h-3" /> LOCKED
     </span>
   ) : (
@@ -533,13 +533,13 @@ export function PreGamePredictions({ game }: Props) {
       {isCalculated && existing ? (
         <PredictionSummary pred={existing} game={game} tnIsHome={tnIsHome} gameProps={gameProps} propPicks={propPicks} />
       ) : isCalculated && !existing ? (
-        <div className="flex flex-col items-center justify-center py-8 gap-2 text-vgd-muted text-xs px-4 text-center">
+        <div className="flex flex-col items-center justify-center py-8 gap-2 text-white text-xs px-4 text-center">
           <p>You didn't submit predictions for this game.</p>
         </div>
       ) : !session ? (
         // Logged-out state
         <div className="flex flex-col items-center justify-center py-8 gap-3 px-4 text-center">
-          <p className="text-xs text-vgd-muted">Sign in to submit pre-game picks and earn up to {maxTotalPoints.toLocaleString()} pts.</p>
+          <p className="text-xs text-white">Sign in to submit pre-game picks and earn up to {maxTotalPoints.toLocaleString()} pts.</p>
           <button onClick={() => openAuthModal('register')}
             className="text-xs text-vgd-orange hover:underline">
             Sign in / Register
@@ -550,10 +550,10 @@ export function PreGamePredictions({ game }: Props) {
         <div className="p-4 space-y-3">
           <div className="flex items-center gap-2 bg-white/5 rounded-lg p-3 border border-white/10">
             <Lock className="w-4 h-4 text-vgd-muted flex-shrink-0" />
-            <p className="text-xs text-white/60">Predictions are locked at kickoff.</p>
+            <p className="text-xs text-white">Predictions are locked at kickoff.</p>
           </div>
           {existing && (
-            <div className="space-y-1 text-xs text-white/70">
+            <div className="space-y-1 text-xs text-white">
               <p className="text-vgd-orange font-semibold mb-1">Your picks (locked in):</p>
               <div className="flex justify-between">
                 <span>Winner</span>
@@ -620,7 +620,7 @@ export function PreGamePredictions({ game }: Props) {
         <form onSubmit={handleSubmit} noValidate className="p-3 space-y-3">
           {/* Winner toggle */}
           <div>
-            <label className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
+            <label className="block text-[10px] font-semibold text-white uppercase tracking-wider mb-1">
               Winner
             </label>
             <div className="grid grid-cols-2 gap-1.5">
@@ -636,7 +636,7 @@ export function PreGamePredictions({ game }: Props) {
                   className={`py-2 rounded-lg text-xs font-bold border transition-all ${
                     form.winner === opt.val
                       ? 'bg-vgd-orange border-vgd-orange text-white shadow-lg shadow-vgd-orange/20'
-                      : 'border-white/10 text-white/60 hover:border-white/30 hover:text-white'
+                      : 'border-white/10 text-white hover:border-white/30 hover:text-white'
                   }`}
                 >
                   {opt.label}
@@ -647,20 +647,20 @@ export function PreGamePredictions({ game }: Props) {
 
           {/* Scores */}
           <div>
-            <label className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
+            <label className="block text-[10px] font-semibold text-white uppercase tracking-wider mb-1">
               Final Score
             </label>
             <div className="grid grid-cols-[1fr_auto_1fr] gap-1.5 items-center">
               <div>
-                <p className="text-[9px] text-vgd-muted mb-0.5 truncate">{tnName}</p>
+                <p className="text-[9px] text-white mb-0.5 truncate">{tnName}</p>
                 <input type="number" min="0" max="99"
                   value={form.tnScore} onChange={e => setField('tnScore', e.target.value)}
                   disabled={isLocked}
                   className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
               </div>
-              <span className="text-vgd-muted text-sm font-bold">–</span>
+              <span className="text-white text-sm font-bold">–</span>
               <div>
-                <p className="text-[9px] text-vgd-muted mb-0.5 truncate">{oppName}</p>
+                <p className="text-[9px] text-white mb-0.5 truncate">{oppName}</p>
                 <input type="number" min="0" max="99"
                   value={form.oppScore} onChange={e => setField('oppScore', e.target.value)}
                   disabled={isLocked}
@@ -671,20 +671,20 @@ export function PreGamePredictions({ game }: Props) {
 
           {/* Yards */}
           <div>
-            <label className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
+            <label className="block text-[10px] font-semibold text-white uppercase tracking-wider mb-1">
               Total Yards
             </label>
             <div className="grid grid-cols-[1fr_auto_1fr] gap-1.5 items-center">
               <div>
-                <p className="text-[9px] text-vgd-muted mb-0.5 truncate">{tnName}</p>
+                <p className="text-[9px] text-white mb-0.5 truncate">{tnName}</p>
                 <input type="number" min="0" max="999"
                   value={form.tnYards} onChange={e => setField('tnYards', e.target.value)}
                   disabled={isLocked}
                   className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
               </div>
-              <span className="text-vgd-muted text-sm font-bold">–</span>
+              <span className="text-white text-sm font-bold">–</span>
               <div>
-                <p className="text-[9px] text-vgd-muted mb-0.5 truncate">{oppName}</p>
+                <p className="text-[9px] text-white mb-0.5 truncate">{oppName}</p>
                 <input type="number" min="0" max="999"
                   value={form.oppYards} onChange={e => setField('oppYards', e.target.value)}
                   disabled={isLocked}
@@ -697,26 +697,26 @@ export function PreGamePredictions({ game }: Props) {
               Tennessee is actually one of the two teams. */}
           {hasTennessee && (
             <div>
-              <label className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
+              <label className="block text-[10px] font-semibold text-white uppercase tracking-wider mb-1">
                 TN Stat Guesses
               </label>
               <div className="grid grid-cols-3 gap-1.5">
                 <div>
-                  <p className="text-[9px] text-vgd-muted mb-0.5 truncate">Rush TDs</p>
+                  <p className="text-[9px] text-white mb-0.5 truncate">Rush TDs</p>
                   <input type="number" min="0" max="10"
                     value={form.tnRushingTds} onChange={e => setField('tnRushingTds', e.target.value)}
                     disabled={isLocked}
                     className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
                 </div>
                 <div>
-                  <p className="text-[9px] text-vgd-muted mb-0.5 truncate">Rec TDs</p>
+                  <p className="text-[9px] text-white mb-0.5 truncate">Rec TDs</p>
                   <input type="number" min="0" max="10"
                     value={form.tnReceivingTds} onChange={e => setField('tnReceivingTds', e.target.value)}
                     disabled={isLocked}
                     className="w-full bg-vgd-bg border border-white/10 rounded text-white text-sm font-semibold px-2 py-1.5 text-center focus:outline-none focus:border-vgd-orange/50 disabled:opacity-50" />
                 </div>
                 <div>
-                  <p className="text-[9px] text-vgd-muted mb-0.5 truncate">Turnovers Forced</p>
+                  <p className="text-[9px] text-white mb-0.5 truncate">Turnovers Forced</p>
                   <input type="number" min="0" max="10"
                     value={form.tnTurnoversForced} onChange={e => setField('tnTurnoversForced', e.target.value)}
                     disabled={isLocked}
@@ -731,15 +731,15 @@ export function PreGamePredictions({ game }: Props) {
               Line | Over list. */}
           {(spreadAvailable || totalAvailable || gameProps.length > 0) && (
             <div>
-              <label className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
+              <label className="block text-[10px] font-semibold text-white uppercase tracking-wider mb-1">
                 Over / Under Picks
               </label>
               <div className="border border-white/10 rounded-lg overflow-hidden bg-white/[0.015]">
                 <div className="grid grid-cols-[1fr_44px_38px_44px] gap-1.5 items-center px-2.5 py-1.5 border-b border-white/[0.06]">
                   <span />
-                  <span className="text-[8px] font-bold text-vgd-muted text-center tracking-wide">UNDER</span>
-                  <span className="text-[8px] font-bold text-vgd-muted text-center tracking-wide">LINE</span>
-                  <span className="text-[8px] font-bold text-vgd-muted text-center tracking-wide">OVER</span>
+                  <span className="text-[8px] font-bold text-white text-center tracking-wide">UNDER</span>
+                  <span className="text-[8px] font-bold text-white text-center tracking-wide">LINE</span>
+                  <span className="text-[8px] font-bold text-white text-center tracking-wide">OVER</span>
                 </div>
 
                 {spreadAvailable && (
@@ -747,12 +747,12 @@ export function PreGamePredictions({ game }: Props) {
                     <span className="text-[11px] font-bold text-white/85 truncate">Spread (TN wins by)</span>
                     <button type="button" onClick={() => setField('spreadPick', 'under')} disabled={isLocked}
                       className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
-                        form.spreadPick === 'under' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
+                        form.spreadPick === 'under' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white hover:border-white/30'
                       }`}>Under</button>
-                    <span className="text-[11px] font-bold text-white/50 text-center">{Math.abs(game.spread_line_tn!)}</span>
+                    <span className="text-[11px] font-bold text-white text-center">{Math.abs(game.spread_line_tn!)}</span>
                     <button type="button" onClick={() => setField('spreadPick', 'over')} disabled={isLocked}
                       className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
-                        form.spreadPick === 'over' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
+                        form.spreadPick === 'over' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white hover:border-white/30'
                       }`}>Over</button>
                   </div>
                 )}
@@ -762,12 +762,12 @@ export function PreGamePredictions({ game }: Props) {
                     <span className="text-[11px] font-bold text-white/85 truncate">Total Points</span>
                     <button type="button" onClick={() => setField('totalPick', 'under')} disabled={isLocked}
                       className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
-                        form.totalPick === 'under' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
+                        form.totalPick === 'under' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white hover:border-white/30'
                       }`}>Under</button>
-                    <span className="text-[11px] font-bold text-white/50 text-center">{game.total_points_line}</span>
+                    <span className="text-[11px] font-bold text-white text-center">{game.total_points_line}</span>
                     <button type="button" onClick={() => setField('totalPick', 'over')} disabled={isLocked}
                       className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
-                        form.totalPick === 'over' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
+                        form.totalPick === 'over' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white hover:border-white/30'
                       }`}>Over</button>
                   </div>
                 )}
@@ -777,12 +777,12 @@ export function PreGamePredictions({ game }: Props) {
                     <span className="text-[11px] font-bold text-white/85 truncate">{gp.description}</span>
                     <button type="button" onClick={() => setPropForm(prev => ({ ...prev, [gp.id]: 'under' }))} disabled={isLocked}
                       className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
-                        propForm[gp.id] === 'under' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
+                        propForm[gp.id] === 'under' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white hover:border-white/30'
                       }`}>Under</button>
-                    <span className="text-[11px] font-bold text-white/50 text-center">{gp.line}</span>
+                    <span className="text-[11px] font-bold text-white text-center">{gp.line}</span>
                     <button type="button" onClick={() => setPropForm(prev => ({ ...prev, [gp.id]: 'over' }))} disabled={isLocked}
                       className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
-                        propForm[gp.id] === 'over' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white/60 hover:border-white/30'
+                        propForm[gp.id] === 'over' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white hover:border-white/30'
                       }`}>Over</button>
                   </div>
                 ))}
