@@ -185,15 +185,6 @@ either posts it himself or asks for changes first.
   (`trivia_questions`), Fan Polls (`daily_polls`), and Leaderboard
   (`game_leaderboard`) — each described as a capability, not tied to a
   specific stat/instance.
-- Trivia teaser is a real row from `trivia_questions` (`difficulty =
-  'hard'`): "On Nov. 10, 1990, #1 Notre Dame handed Johnny Majors' 9th-
-  ranked Vols a home loss. What was the final score?" with its real
-  four options (10–7 / 45–3 / 21–14 / 34–29; real correct answer is
-  34–29, not shown on the graphic — it's a teaser, not a results
-  spotlight). Picked this question over several other real hard rows
-  because it reads as a normal trivia question (a specific date, a
-  real final score) rather than the yes/no-disguised-as-options
-  phrasing some other hard rows in the table have.
 - Visual system matches the currently-live graphics (Game Week
   countdown, Faizon Brandon news post): `#0F172A` background, `#FF8200`
   orange accent, Anton for the headline/wordmark, Inter for body text,
@@ -203,4 +194,26 @@ either posts it himself or asks for changes first.
   crests. Seeded with an explicit `canvas.json` (1080×1080 frame) and
   passed `--check` before publishing.
 - Canvas: https://claude.ai/code/artifact/bf095001-7d83-4606-85e1-1a64c18056ab
+- Status: ⏳ pending review
+
+### Update — swap trivia question to something more positive (2026-09-10)
+
+- David's original trivia teaser (a real hard row about the Nov. 10,
+  1990 Notre Dame loss) read too negative for a promo piece; asked for
+  the 1991 game's final score instead.
+- **Data gap found**: no real `trivia_questions` row gives a final
+  score for any 1991 game, and there's no historical-scores table to
+  cross-reference (checked `information_schema.tables` for anything
+  `%histor%`/`%past_game%`/`%archive%` — none exist). Rather than
+  invent a score, swapped to the closest real, positive, hard-
+  difficulty row instead: "Which Tennessee running back set a since-
+  broken bowl rushing record in the 1991 Sugar Bowl?" (Travis Henry /
+  Chuck Webb / Jamal Lewis / Arian Foster; real correct answer Chuck
+  Webb, not shown on the graphic) — the 1991 Sugar Bowl (played Jan. 1,
+  1991, capping the 1990 season) was a Tennessee win over Virginia, so
+  this keeps the positive framing and the 1991 game context David
+  asked for, just phrased around the record instead of a score that
+  isn't in the database.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/bf095001-7d83-4606-85e1-1a64c18056ab
 - Status: ⏳ pending review
