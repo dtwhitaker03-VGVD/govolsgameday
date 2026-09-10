@@ -194,3 +194,31 @@ either posts it himself or asks for changes first.
   graphics logged above.
 - Canvas: https://claude.ai/code/artifact/28d6b925-dbd5-4a59-ae88-5e7f7aff10cb
 - Status: ⏳ pending review
+
+### Post copy — 2026-09-10
+
+- David asked for a caption to go with this graphic. Drafted from the
+  same `scraped_articles` row logged above — no new facts introduced.
+  Left the game-week CTA generic ("before kickoff") rather than naming
+  a day count, since day-count copy has already gone stale once this
+  week (see the Sept 6→7 countdown refresh above) and this post isn't
+  primarily about the Georgia Tech game.
+
+  ```
+  🚨 SEC FRESHMAN OF THE WEEK 🚨
+
+  Faizon Brandon didn't just win his first career start — he made
+  history. The youngest starting QB in Tennessee history went
+  13-of-17 for 226 yards and 3 TDs (zero picks), added 2 more scores
+  on the ground, and piled up 5 total touchdowns in the first two and
+  a half quarters against Furman.
+
+  The SEC noticed. Book has been served.
+
+  Vols are back in action Saturday at Georgia Tech — make your picks
+  before kickoff at GoVolsGameDay.com 🍊
+
+  #GoVols #Vols #SECFootball #TennesseeFootball #FaizonBrandon
+  ```
+
+- Status: ⏳ pending review (copy drafted, not yet approved or posted)
