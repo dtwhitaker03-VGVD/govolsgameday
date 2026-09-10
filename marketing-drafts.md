@@ -244,3 +244,25 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/bf095001-7d83-4606-85e1-1a64c18056ab
 - Status: ⏳ pending review
+
+### Update — David's own question: "Miracle at South Bend" 1991 (2026-09-10)
+
+- David supplied the exact question and four score options himself:
+  the "Miracle at South Bend" game — Tennessee at Notre Dame, 1991 —
+  with 38–37 / 33–32 / 35–34 / 36–35 as the choices.
+- Not a `trivia_questions` row (checked — no match for "South Bend" or
+  "Miracle"), and a specific score on a public graphic is exactly the
+  kind of claim this log has been careful to verify rather than take
+  on memory, so checked it independently via web search before using
+  it: UT Sports, 247Sports, and the Sports Illustrated Vault archive
+  all confirm the real final score was **Tennessee 35, Notre Dame
+  34** (Nov. 9, 1991 — Tennessee trailed 31–7 and rallied, sealed by a
+  blocked field goal as time expired). That matches David's third
+  option exactly, so used the question and options as given, with
+  35–34 as the correct answer (not shown on the graphic).
+- Switched the option layout back to the 2x2 chip grid (score pairs
+  are short, same treatment as the original Notre Dame 1990 question)
+  now that the options are short again.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/bf095001-7d83-4606-85e1-1a64c18056ab
+- Status: ⏳ pending review
