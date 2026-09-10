@@ -266,3 +266,31 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/bf095001-7d83-4606-85e1-1a64c18056ab
 - Status: ⏳ pending review
+
+### Post copy — 2026-09-10
+
+- David asked for a caption to go with this graphic. Drafted from the
+  same real content already on the canvas — the four real features and
+  the verified "Miracle at South Bend" trivia question — no new facts
+  introduced.
+
+  ```
+  🧡 MORE THAN JUST THE SCORE 🧡
+
+  Call every drive in real time. Play daily trivia. Sound off in the
+  polls. Climb the leaderboard against the whole fan base.
+
+  That's GoVolsGameDay — built for Vol fans who live and die with
+  every snap.
+
+  Think you know your Vols history? Today's challenge: what was the
+  final score of the "Miracle at South Bend" — Tennessee's legendary
+  comeback at Notre Dame in 1991?
+
+  Drop your guess below, then go test yourself for real at
+  GoVolsGameDay.com
+
+  #GoVols #Vols #TennesseeFootball #MiracleAtSouthBend
+  ```
+
+- Status: ⏳ pending review (copy drafted, not yet approved or posted)
