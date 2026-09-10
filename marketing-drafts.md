@@ -172,3 +172,35 @@ either posts it himself or asks for changes first.
   https://claude.ai/code/artifact/8180dc70-276e-4667-8621-295df9f572b5
 - Status: ⏳ pending review (poll and 3-day countdown current as of
   2026-09-09; the batch canvas's other 6 artboards are untouched)
+
+## 2026-09-10 — Site feature promo (evergreen)
+
+- Trigger: on-demand — David asked for a brand-new canvas promoting the
+  site itself, highlighting its features, with a real hard trivia
+  question on it.
+- Subject: not tied to a game or date. Headline "Pick. Predict.
+  Compete." with a subhead positioning GVGD as more than a scoreboard.
+  A 2x2 feature grid names four real, shipped capabilities: Live Drive
+  Picks (drive predictions during live games), Daily Trivia
+  (`trivia_questions`), Fan Polls (`daily_polls`), and Leaderboard
+  (`game_leaderboard`) — each described as a capability, not tied to a
+  specific stat/instance.
+- Trivia teaser is a real row from `trivia_questions` (`difficulty =
+  'hard'`): "On Nov. 10, 1990, #1 Notre Dame handed Johnny Majors' 9th-
+  ranked Vols a home loss. What was the final score?" with its real
+  four options (10–7 / 45–3 / 21–14 / 34–29; real correct answer is
+  34–29, not shown on the graphic — it's a teaser, not a results
+  spotlight). Picked this question over several other real hard rows
+  because it reads as a normal trivia question (a specific date, a
+  real final score) rather than the yes/no-disguised-as-options
+  phrasing some other hard rows in the table have.
+- Visual system matches the currently-live graphics (Game Week
+  countdown, Faizon Brandon news post): `#0F172A` background, `#FF8200`
+  orange accent, Anton for the headline/wordmark, Inter for body text,
+  diagonal end-zone-stripe motif + radial glow, GVGD logo lockup pulled
+  from the current `Header.tsx` (rounded-square orange "GVGD" mark +
+  "Go/Vols" white, "GameDay" orange wordmark). No stock photos or team
+  crests. Seeded with an explicit `canvas.json` (1080×1080 frame) and
+  passed `--check` before publishing.
+- Canvas: https://claude.ai/code/artifact/bf095001-7d83-4606-85e1-1a64c18056ab
+- Status: ⏳ pending review
