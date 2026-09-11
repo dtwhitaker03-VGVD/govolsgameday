@@ -334,3 +334,24 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+### Update — download button (2026-09-11)
+
+- David asked to be able to download this one as an image. Added a
+  "Download PNG" button below the graphic (outside the 1080×1080
+  artboard itself, so it never appears in the exported image) that
+  renders the artboard to a PNG at full resolution (2160×2160, 2x for
+  crispness) via html2canvas and saves it through the page's
+  `downloads` capability.
+- Verified the whole flow end-to-end locally (headless browser, mocked
+  save call, inspected the exported PNG) before publishing rather than
+  just shipping it — caught and fixed a real bug in the process: the
+  page's outer layout was `display: flex` with no `flex-direction`, so
+  once the download button was added as a second element it defaulted
+  to a row and squeezed the graphic sideways. Fixed to `flex-direction:
+  column` and confirmed the export renders at the correct full
+  1080×1080 artboard size regardless of viewport width (tested at both
+  desktop and phone widths).
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
+- Status: ⏳ pending review
