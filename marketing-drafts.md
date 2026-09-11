@@ -381,3 +381,14 @@ Sources for the series history claim (checked, not recalled from
 memory): [Winsipedia — Georgia Tech vs Tennessee](https://www.winsipedia.com/georgia-tech/vs/tennessee),
 [Wikipedia — Georgia Tech–Tennessee football rivalry](https://en.wikipedia.org/wiki/Georgia_Tech%E2%80%93Tennessee_football_rivalry),
 [ESPN — Vols replace canceled Huskers series with 2 vs. Yellow Jackets](https://www.espn.com/college-football/story/_/id/44604881/vols-replace-canceled-huskers-series-2-vs-yellow-jackets).
+
+### Update — removed the red zone line (2026-09-11)
+
+- David asked to remove the "Tennessee leads the FBS in red zone
+  offense, scoring on 100% of trips this season" line.
+- Dropped it and pulled the "KICKOFF TOMORROW" tag up to close the gap
+  it left behind, rather than leaving dead space. Checked the result
+  against a local render before publishing.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/25494766-84c2-4caf-8ca5-385fee9e1d95
+- Status: ⏳ pending review
