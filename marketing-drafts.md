@@ -379,3 +379,24 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+### Update — more energy (2026-09-11)
+
+- David asked to make the graphic more exciting. Pushed the design
+  further without changing any of the real content: a jagged
+  starburst "GAMEDAY EVE" badge (built from layered rotated shapes,
+  not `clip-path` — that silently dropped when rendering to PNG, so
+  switched approach after checking the output), motion chevrons
+  flanking "DAY LEFT," a slight skew on the hero number for kinetic
+  energy, a "LET'S GO VOLS" hype line with lightning-bolt accents,
+  a subtle halftone dot texture over the color wedges, brighter/denser
+  starburst rays and glow, and a vignette for more drama. Darkened the
+  "NO. 18 · 1-0" pill's background so it stays legible against the
+  brighter glow behind it.
+- Re-rendered to PNG (real Anton/Inter fonts, checked at full
+  resolution — including a close crop of the rank pill for legibility)
+  before publishing, same as the prior static-image pass.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
+- Sent David the updated PNG directly as a file as well.
+- Status: ⏳ pending review
