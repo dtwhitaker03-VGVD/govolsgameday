@@ -172,3 +172,165 @@ either posts it himself or asks for changes first.
   https://claude.ai/code/artifact/8180dc70-276e-4667-8621-295df9f572b5
 - Status: ⏳ pending review (poll and 3-day countdown current as of
   2026-09-09; the batch canvas's other 6 artboards are untouched)
+
+## 2026-09-10 — Site feature promo (evergreen)
+
+- Trigger: on-demand — David asked for a brand-new canvas promoting the
+  site itself, highlighting its features, with a real hard trivia
+  question on it.
+- Subject: not tied to a game or date. Headline "Pick. Predict.
+  Compete." with a subhead positioning GVGD as more than a scoreboard.
+  A 2x2 feature grid names four real, shipped capabilities: Live Drive
+  Picks (drive predictions during live games), Daily Trivia
+  (`trivia_questions`), Fan Polls (`daily_polls`), and Leaderboard
+  (`game_leaderboard`) — each described as a capability, not tied to a
+  specific stat/instance.
+- Visual system matches the currently-live graphics (Game Week
+  countdown, Faizon Brandon news post): `#0F172A` background, `#FF8200`
+  orange accent, Anton for the headline/wordmark, Inter for body text,
+  diagonal end-zone-stripe motif + radial glow, GVGD logo lockup pulled
+  from the current `Header.tsx` (rounded-square orange "GVGD" mark +
+  "Go/Vols" white, "GameDay" orange wordmark). No stock photos or team
+  crests. Seeded with an explicit `canvas.json` (1080×1080 frame) and
+  passed `--check` before publishing.
+- Canvas: https://claude.ai/code/artifact/bf095001-7d83-4606-85e1-1a64c18056ab
+- Status: ⏳ pending review
+
+### Update — swap trivia question to something more positive (2026-09-10)
+
+- David's original trivia teaser (a real hard row about the Nov. 10,
+  1990 Notre Dame loss) read too negative for a promo piece; asked for
+  the 1991 game's final score instead.
+- **Data gap found**: no real `trivia_questions` row gives a final
+  score for any 1991 game, and there's no historical-scores table to
+  cross-reference (checked `information_schema.tables` for anything
+  `%histor%`/`%past_game%`/`%archive%` — none exist). Rather than
+  invent a score, swapped to the closest real, positive, hard-
+  difficulty row instead: "Which Tennessee running back set a since-
+  broken bowl rushing record in the 1991 Sugar Bowl?" (Travis Henry /
+  Chuck Webb / Jamal Lewis / Arian Foster; real correct answer Chuck
+  Webb, not shown on the graphic) — the 1991 Sugar Bowl (played Jan. 1,
+  1991, capping the 1990 season) was a Tennessee win over Virginia, so
+  this keeps the positive framing and the 1991 game context David
+  asked for, just phrased around the record instead of a score that
+  isn't in the database.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/bf095001-7d83-4606-85e1-1a64c18056ab
+- Status: ⏳ pending review
+
+### Update — swap again: David wanted a harder question, not a fabricated one (2026-09-10)
+
+- David pointed out the Sugar Bowl/Chuck Webb question above isn't
+  genuinely hard (most Vol fans can place a running back's era) and
+  asked for a completely new, made-up question about the 1991 game.
+- Declined to fabricate one: a graphic presenting a trivia question as
+  a real example of site content has to actually be a real question a
+  user could get when they play — inventing one would be the same
+  kind of made-up fact this whole log has deliberately avoided
+  everywhere else. Explained this and searched the real
+  `trivia_questions` table further instead.
+- Found a real row that's genuinely hard, positive, AND tied to 1991,
+  just not a "game": "Antone Davis was drafted in which round, and by
+  which team, in 1991?" (Second round, Dallas Cowboys / Third round,
+  Green Bay Packers / First round, San Francisco 49ers / First round,
+  Philadelphia Eagles; real correct answer is First round, Philadelphia
+  Eagles — not shown on the graphic). Swapped to this — an NFL Draft
+  moment, not a game, but real, hard (round + team is specific), and a
+  positive Vol accomplishment, which was the actual goal.
+- Switched the option layout from a 2x2 chip grid to a stacked list
+  (these option strings are longer than a single name) and trimmed a
+  few margins elsewhere on the artboard to keep the extra row height
+  inside the fixed 1080×1080 frame.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/bf095001-7d83-4606-85e1-1a64c18056ab
+- Status: ⏳ pending review
+
+### Update — David's own question: "Miracle at South Bend" 1991 (2026-09-10)
+
+- David supplied the exact question and four score options himself:
+  the "Miracle at South Bend" game — Tennessee at Notre Dame, 1991 —
+  with 38–37 / 33–32 / 35–34 / 36–35 as the choices.
+- Not a `trivia_questions` row (checked — no match for "South Bend" or
+  "Miracle"), and a specific score on a public graphic is exactly the
+  kind of claim this log has been careful to verify rather than take
+  on memory, so checked it independently via web search before using
+  it: UT Sports, 247Sports, and the Sports Illustrated Vault archive
+  all confirm the real final score was **Tennessee 35, Notre Dame
+  34** (Nov. 9, 1991 — Tennessee trailed 31–7 and rallied, sealed by a
+  blocked field goal as time expired). That matches David's third
+  option exactly, so used the question and options as given, with
+  35–34 as the correct answer (not shown on the graphic).
+- Switched the option layout back to the 2x2 chip grid (score pairs
+  are short, same treatment as the original Notre Dame 1990 question)
+  now that the options are short again.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/bf095001-7d83-4606-85e1-1a64c18056ab
+- Status: ⏳ pending review
+
+### Post copy — 2026-09-10
+
+- David asked for a caption to go with this graphic. Drafted from the
+  same real content already on the canvas — the four real features and
+  the verified "Miracle at South Bend" trivia question — no new facts
+  introduced.
+
+  ```
+  🧡 MORE THAN JUST THE SCORE 🧡
+
+  Call every drive in real time. Play daily trivia. Sound off in the
+  polls. Climb the leaderboard against the whole fan base.
+
+  That's GoVolsGameDay — built for Vol fans who live and die with
+  every snap.
+
+  Think you know your Vols history? Today's challenge: what was the
+  final score of the "Miracle at South Bend" — Tennessee's legendary
+  comeback at Notre Dame in 1991?
+
+  Drop your guess below, then go test yourself for real at
+  GoVolsGameDay.com
+
+  #GoVols #Vols #TennesseeFootball #MiracleAtSouthBend
+  ```
+
+- Status: ⏳ pending review (copy drafted, not yet approved or posted)
+
+## 2026-09-11 — Gameday countdown ("1 day left", flare variant)
+
+- Trigger: on-demand — David asked for a new countdown canvas, explicitly
+  different from the earlier Game Week countdown graphic, with "more
+  design, flare and pop," built around "1 day left" before kickoff.
+- Subject: Tennessee at Georgia Tech, kickoff Sat, Sept 12, 2026, 7:00 PM
+  ET on ESPN — confirmed still the soonest pregame game in `live_games`
+  as of today (2026-09-11), so "1 day left" is accurate. Stats pulled
+  fresh from `game_previews` (fetched 2026-09-11 13:05 UTC, joined to the
+  TN@GT `live_games` row): No. 18 Tennessee, 1-0; offense averaging 638
+  yards/game (12th in FBS) and 56.0 points/game (19th in FBS); 100% red
+  zone scoring (a TD on every trip). The same `game_previews` payload
+  also included an opening betting line (Tennessee by 12.5) — deliberately
+  left off the graphic, per David's earlier standing decision to keep
+  Game Week/countdown graphics odds-free (see the "remove betting line"
+  update on the original Sept 7 countdown post above).
+- Design departs intentionally from the existing Game Week countdown
+  style: rotated diagonal color wedges, a conic-gradient starburst behind
+  the hero "1," a duotone/offset-shadow treatment on the hero number, a
+  rotated red "GAMEDAY EVE" ribbon badge, a rank/record pill, and three
+  independently-rotated stat-burst tiles — brand palette (`#0F172A` /
+  `#FF8200` / `#162038`), Anton + Inter type pairing, and GVGD logo
+  treatment unchanged from the rest of the site's graphics.
+- Canvas: https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
+- Status: ⏳ pending review
+
+### Update — cleanup pass (2026-09-11)
+
+- David flagged the "1" bleeding into "DAY LEFT" below it, the dark card
+  boxes around the three stats, and asked for the stats bigger and the
+  tiles straightened out.
+- Added clearance between the hero number and the "DAY LEFT" label,
+  dropped the stat tiles' dark background/border/shadow (now sit plain
+  on the background with thin dividers between them instead of boxes),
+  increased the stat number/label/sub-label sizes, and removed the
+  independent rotation on each stat tile so all three sit level.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
+- Status: ⏳ pending review
