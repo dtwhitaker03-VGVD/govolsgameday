@@ -334,3 +334,41 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-09-11 — Trivia/Poll spotlight
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Subject: today's real `daily_polls` row (active_date 2026-09-11): "What
+  is the greatest win in Tennessee football history?" with options 1998
+  National Championship / 1986 Sugar Bowl / 2016 comeback vs. Georgia /
+  2022 Alabama upset. `daily_polls` has no vote-count column, so the
+  graphic teases the question and asks fans to vote in the comments
+  rather than showing any results. Picked this pillar because the
+  Gameday hype pillar was already used twice today (the "1 day left"
+  flare canvas above) for the same Georgia Tech game, and the Furman
+  recap in `live_games` is now 6 days old (`updated_at` 2026-09-05),
+  past the 2-3 day freshness window for the Final Score Recap pillar.
+  `scraped_articles` was checked too, but every row has a null
+  `published_at` and the content is generic/paywalled 247Sports
+  recruiting-teaser copy with no reliable recency signal, so News/
+  Recruiting was skipped rather than forcing a headline out of it.
+  Per David's follow-up mid-build asking for more magazine-page density,
+  the sidebar packs in additional real, this-run-queried data: today's
+  hardest football `trivia_questions` row (scheduled_date 2026-09-11,
+  slot 5: which Vol RB broke a 23-year-old single-season rushing record
+  in the 2024 finale vs. Vanderbilt — Dylan Sampson, correct answer not
+  shown), the Furman recap stat line (56-9, 638 total yards, from
+  `live_games`), and the Georgia Tech kickoff (Sat 9/12, 7:00 PM ET, 1
+  day away — same soonest-`pregame` row as today's other post, used here
+  only as a small supporting "Up Next" fact, not the graphic's subject).
+- Design note: magazine-poster layout — a masthead strip, then an
+  asymmetric two-column body (left: kicker + skewed Anton headline +
+  2x2 option cards; right: three stacked sidebar modules — trivia
+  callout, a stat block, an "up next" card) instead of the earlier
+  centered/stacked treatment. Second accent typeface (Permanent Marker,
+  loaded from Google Fonts) used sparingly for one hype-phrase kicker
+  line only, paired with Anton for headlines/numbers and Inter for
+  body/labels. Diagonal end-zone stripe motif, radial glow, and a huge
+  low-opacity outline "?" for texture — no photos or stock imagery.
+- Canvas: https://claude.ai/code/artifact/dfc06815-ef9c-44ca-b9f5-ea6a3946a9a6
+- Status: ⏳ pending review
