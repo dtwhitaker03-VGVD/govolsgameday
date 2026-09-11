@@ -294,3 +294,29 @@ either posts it himself or asks for changes first.
   ```
 
 - Status: ⏳ pending review (copy drafted, not yet approved or posted)
+
+## 2026-09-11 — Gameday countdown ("1 day left", flare variant)
+
+- Trigger: on-demand — David asked for a new countdown canvas, explicitly
+  different from the earlier Game Week countdown graphic, with "more
+  design, flare and pop," built around "1 day left" before kickoff.
+- Subject: Tennessee at Georgia Tech, kickoff Sat, Sept 12, 2026, 7:00 PM
+  ET on ESPN — confirmed still the soonest pregame game in `live_games`
+  as of today (2026-09-11), so "1 day left" is accurate. Stats pulled
+  fresh from `game_previews` (fetched 2026-09-11 13:05 UTC, joined to the
+  TN@GT `live_games` row): No. 18 Tennessee, 1-0; offense averaging 638
+  yards/game (12th in FBS) and 56.0 points/game (19th in FBS); 100% red
+  zone scoring (a TD on every trip). The same `game_previews` payload
+  also included an opening betting line (Tennessee by 12.5) — deliberately
+  left off the graphic, per David's earlier standing decision to keep
+  Game Week/countdown graphics odds-free (see the "remove betting line"
+  update on the original Sept 7 countdown post above).
+- Design departs intentionally from the existing Game Week countdown
+  style: rotated diagonal color wedges, a conic-gradient starburst behind
+  the hero "1," a duotone/offset-shadow treatment on the hero number, a
+  rotated red "GAMEDAY EVE" ribbon badge, a rank/record pill, and three
+  independently-rotated stat-burst tiles — brand palette (`#0F172A` /
+  `#FF8200` / `#162038`), Anton + Inter type pairing, and GVGD logo
+  treatment unchanged from the rest of the site's graphics.
+- Canvas: https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
+- Status: ⏳ pending review
