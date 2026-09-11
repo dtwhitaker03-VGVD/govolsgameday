@@ -372,3 +372,25 @@ either posts it himself or asks for changes first.
   low-opacity outline "?" for texture — no photos or stock imagery.
 - Canvas: https://claude.ai/code/artifact/dfc06815-ef9c-44ca-b9f5-ea6a3946a9a6
 - Status: ⏳ pending review
+
+### Update — closed a dead-space gap, added a leaderboard strip (2026-09-11)
+
+- Reviewed the published canvas before handing it to David and found a
+  real layout problem the subagent's own report didn't catch: roughly
+  190px of nearly-empty space between the bottom of the two-column
+  body and the footer CTA band — directly working against the
+  "denser, more information" ask.
+- Fixed it with new real content rather than decoration: queried
+  `game_leaderboard` joined to `live_games` for the Furman game
+  (`status = 'calculated'`) and added a full-width "Week 1 Leaderboard
+  Leader" strip — Tiberious, 1,961 pts, the actual #1 rank for that
+  game — with a trophy icon (inline SVG, not emoji, per the design
+  skill's house rule). This is genuinely new real information, not
+  filler: it wasn't on the graphic before.
+- Re-extracted the canvas's working files with the design skill's
+  helper, edited `Main.dc.html`, re-seeded, and republished to the
+  same canvas URL (still `dfc06815-...`, no new artifact) — checked
+  the result against a local render before publishing, same as the
+  earlier canvases this session.
+- Canvas (same URL): https://claude.ai/code/artifact/dfc06815-ef9c-44ca-b9f5-ea6a3946a9a6
+- Status: ⏳ pending review
