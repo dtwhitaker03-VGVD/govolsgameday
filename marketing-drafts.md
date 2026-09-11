@@ -355,3 +355,27 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+### Update — switched to a static image (2026-09-11)
+
+- David reported the download button still said "unavailable" even
+  after opening the canvas in its own tab and doing a full reload.
+  Retried once with the capability declared as an object instead of a
+  boolean plus the runtime pinned to `latest`, in case that was the
+  issue — same result. Rather than keep guessing at why this
+  particular runtime capability wasn't reaching his view, switched to
+  an approach that doesn't depend on it at all: rendered the same
+  design to a real PNG (1080×1080 canvas at 2x = 2160×2160) locally
+  and republished the canvas as that baked image plus a one-line "press
+  and hold / right-click to save" hint. Saving an `<img>` this way is a
+  native browser action, not something the page triggers itself, so it
+  isn't subject to the same capability gate.
+- Trade-off: this canvas is now a static image rather than a live page,
+  so any further copy/design tweaks mean re-rendering and republishing
+  rather than editing in place — the editable source is kept locally
+  for that.
+- Also sent David the same PNG directly as a file, as a backup in case
+  saving from the browser is still inconvenient.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
+- Status: ⏳ pending review
