@@ -17,3 +17,9 @@
 - Checked `cloudflare_analytics_snapshots` on 2026-09-07: the table still has only one row total, `period_end = 2026-08-30`. There is no row for the 2026-08-31–2026-09-06 week that should have landed via Monday's `invoke_cloudflare_analytics_report()` pg_cron run.
 - Per the reporting guardrails, no dashboard was built against missing data — this is a placeholder log entry only. No new numbers to report this week.
 - Action needed: confirm the pg_cron job / `cloudflare-analytics-report` edge function ran and populated a row for this period; re-run this report once it exists.
+
+## 2026-08-31 to 2026-09-06 — still no snapshot (checked 2026-09-11, on-demand)
+- David requested an on-demand report on 2026-09-11. Re-checked `cloudflare_analytics_snapshots`: it still has exactly one row total (`period_start = 2026-08-24`, `period_end = 2026-08-30`) — the same row as the previous report. No row has landed for 2026-08-31–2026-09-06 in the four days since the 2026-09-07 check.
+- The current week, 2026-09-07 to 2026-09-13, is still in progress as of 2026-09-11 and hasn't closed yet, so no snapshot is expected for it regardless.
+- No new numbers to report and no dashboard was built — there is nothing beyond the already-reported 2026-08-24–2026-08-30 week to visualize, and building one against the same data again would misrepresent it as a new period.
+- Action needed (repeated): the `invoke_cloudflare_analytics_report()` pg_cron job / `cloudflare-analytics-report` edge function has now missed at least one Monday run (2026-09-07) with no row to show for it. Worth checking pg_cron job status / edge function logs directly rather than waiting for another weekly check to notice.
