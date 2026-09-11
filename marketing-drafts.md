@@ -334,3 +334,61 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-09-11 — Countdown promo: full TN/GT matchup + series history
+
+- Trigger: on-demand — David asked for a countdown promotion specifically
+  about the Tennessee/Georgia Tech game, built around facts about both
+  teams and their history, in the same denser magazine-poster direction
+  as the day's other pieces. This is a third piece about the same
+  kickoff (after the "Gameday Eve" flare canvas and today's poll), but a
+  genuinely different angle he explicitly asked for — a head-to-head
+  breakdown rather than a hype countdown or a trivia/poll tease — so it's
+  not a repeat in the sense the pillar guardrail is meant to prevent.
+- Subject/real data: `live_games` for the confirmed matchup (Georgia
+  Tech home, Tennessee away, kickoff Sat 9/12 7:00 PM ET). Pulled the
+  full `game_previews` ESPN payload for this game (fetched 2026-09-11)
+  for BOTH teams — not just Tennessee, which every earlier canvas this
+  week has focused on: Tennessee (1-0, No. 18) vs. Georgia Tech (0-1)
+  offense/defense/scoring/time-of-possession splits with FBS ranks,
+  each team's actual last game (Tennessee beat Furman 56-9 with real
+  Faizon Brandon/DeSean Bishop/Mike Matthews lines; Georgia Tech fell to
+  Colorado 13-14 with real Alberto Mendoza/Justice Haynes/Jordan Allen
+  lines), the opening line (Tennessee -12.5), and the red-zone/time-of-
+  possession notes already used elsewhere this week.
+  For the "history" half of the ask, `live_games`/`game_previews` had
+  nothing — this app only tracks the current season — so the all-time
+  series record was checked independently via web search rather than
+  pulled from memory: Winsipedia, Wikipedia, and ESPN/Yahoo coverage of
+  this exact 2026 renewal agree Tennessee leads the series **25-17-2**
+  across 44 meetings since 1902, with the most recent meeting a 42-41
+  2OT Tennessee win in 2017 (Mercedes-Benz Stadium) — this 2026 game is
+  the first meeting since then, the front end of a new home-and-home
+  (Atlanta 2026, Knoxville 2027).
+- Design: same magazine-poster direction as today's poll canvas —
+  masthead, a compact "1 day to kickoff" hero treatment (deliberately
+  smaller than the Gameday Eve canvas's giant hero number, so the two
+  don't look like the same graphic), a Permanent Marker accent line, an
+  all-time-series fact strip, a real side-by-side TN-vs-GT stat table
+  (4 categories, both teams' numbers and FBS ranks), two "last time out"
+  recap cards (one per team, real box-score lines), and the standard
+  footer CTA. Rendered locally and checked for overlap/dead-space before
+  publishing, same as the fix earlier today.
+- Canvas: https://claude.ai/code/artifact/25494766-84c2-4caf-8ca5-385fee9e1d95
+- Status: ⏳ pending review
+
+Sources for the series history claim (checked, not recalled from
+memory): [Winsipedia — Georgia Tech vs Tennessee](https://www.winsipedia.com/georgia-tech/vs/tennessee),
+[Wikipedia — Georgia Tech–Tennessee football rivalry](https://en.wikipedia.org/wiki/Georgia_Tech%E2%80%93Tennessee_football_rivalry),
+[ESPN — Vols replace canceled Huskers series with 2 vs. Yellow Jackets](https://www.espn.com/college-football/story/_/id/44604881/vols-replace-canceled-huskers-series-2-vs-yellow-jackets).
+
+### Update — removed the red zone line (2026-09-11)
+
+- David asked to remove the "Tennessee leads the FBS in red zone
+  offense, scoring on 100% of trips this season" line.
+- Dropped it and pulled the "KICKOFF TOMORROW" tag up to close the gap
+  it left behind, rather than leaving dead space. Checked the result
+  against a local render before publishing.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/25494766-84c2-4caf-8ca5-385fee9e1d95
+- Status: ⏳ pending review
