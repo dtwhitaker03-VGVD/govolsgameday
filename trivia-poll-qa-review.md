@@ -115,3 +115,62 @@
 
 None of the above changes any of the 15 pending fixes from the run above — they're still outstanding and unapplied. No new issues were found in this pass. Sources checked: Baseball America, UTSports.com, Wikipedia (Tennessee women's swimming and diving; 2022 Tennessee Volunteers baseball team), MLB.com/press release on the 2024 draft, ESPN/Forbes on Catchings' retirement stats, and 247Sports on Neyland Stadium attendance.
 **Status:** ⏳ pending review — all outstanding items above remain unresolved pending David's action
+
+## 2026-09-02 — run summary
+- Checked: trivia 2026-09-02 to 2026-09-05 (20 rows, 5 slots × 4 days), polls 2026-09-02 to 2026-09-05 (3 rows found — 09-04 still missing)
+- Issues found: 4 new (3 flagged content issues + 1 minor difficulty-mismatch note)
+- Context: David has personally reviewed/edited rows in this window outside this subagent's workflow since the last pass (per the task brief: 09-01 and 09-02 polls; all 5 trivia rows for 09-02; the 09-03 poll, full replacement; all 5 trivia rows for 09-03). Verified below: those edits resolved every previously-logged issue that fell in this run's window. 2026-09-04 was untouched and still carries its previously-logged issues unchanged. 2026-09-05 is newly in scope this run and had not been reviewed before.
+
+**Previously-flagged issues now resolved (confirmed by comparing current row content to the last-logged "Current" text — not re-flagging these):**
+- `4db80b43` (2026-09-02, now slot 4 — NCAA Tournament appearances): distractors replaced with closely-spaced plausible values (Around 20 / 25 / 28 / 31, correct C "Around 28"). No longer self-eliminating. Resolved.
+- `f422496d` (2026-09-02, now slot 2 — Christian Moore): options are now four clean player names (Max Ferguson, Christian Moore, Jake Rucker, Trey Lipscomb) with the parenthetical meta-commentary removed. Resolved.
+- `a221e816` (2026-09-02, now slot 5 — SEC revenue): fully replaced; no longer a broken True/False. Now a standard 4-option numeric question. Verified accurate — see below. Resolved.
+- `6bf49882` (2026-09-03 poll — nickname/overlapping options): fully replaced with a new poll question ("What's the best Tennessee football gameday tradition?") whose four options (Running through the T / Vol Navy / Rocky Top singalong / checkerboard end zone) are genuinely distinct traditions, none overlapping or non-parallel. Resolved.
+- `c3440429` (2026-09-03 slot 2 — broken True/False): replaced with a standard question about Tony Vitello's 2017 hiring; four real coach names as options. Resolved.
+- `08ef515f` (2026-09-03 slot 3 — meta-commentary + "Not applicable"): replaced; options are now four real SEC teams (Florida/Texas/Auburn/Vanderbilt) with no parenthetical asides. Resolved.
+- `eb401166` (2026-09-03 slot 4 — "Over 20,000" absurd distractor): replaced with a plausible spread (Over 7,000 / Under 500 / Exactly 1,000 / Around 3,000). Resolved.
+- `c96fb2b7` (2026-09-03 slot 5 — implausible attendance distractors): distractors tightened to more plausible figures (Above 100,000 every season without exception / Around 65,000 during down years / Below 50,000 at the low point). Substantially resolved — the original "exactly capacity, no exceptions" and "below 30,000" absurdities are gone. Minor residual note: option A's "without exception" absolutism is still a mild tell for a well-prepared player, but this is low priority and not re-flagged as a full issue.
+
+**Still open, unchanged from the last log (2026-09-04 was not touched this cycle; not re-logged in full per the precedent set in the 2026-09-01 follow-up pass — see that entry for full details):**
+- `4bc04229` (2026-09-04 slot 3) — broken True/False structure, still present verbatim.
+- `46c0072f` (2026-09-04 slot 4) — vague yes/no non-question, still present verbatim; full replacement still recommended.
+- `cd05c1e9` (2026-09-04 slot 5) — "Not applicable" distractor, still present verbatim (low priority).
+- `daily_polls` 2026-09-04 — still no row scheduled; the scheduling gap from the last pass persists and 09-04 is still inside the 3-day-out window as of today.
+
+### trivia_questions.ee9c3e59-33da-4d60-b692-1c56001a34e7 — 2026-09-05 / slot 4 — factual error: Ohio State was a #2 seed, not a #1 seed, in the cited game
+**Current:** "To reach the 2010 Elite Eight, Tennessee upset which #1 seed in the Sweet 16, winning 76-73?" A "Ohio State" (correct), B "Kansas", C "Duke", D "North Carolina"
+**Suggested fix:** Change the question stem from "#1 seed" to "#2 seed" (e.g. "...which #2 seed in the Sweet 16, winning 76-73?"), keeping A "Ohio State" as correct. Do not swap the answer to Kansas — Kansas was the #1 seed Tennessee's region contained, but Tennessee never played Kansas in that tournament (Kansas lost earlier, to Northern Iowa); the 76-73 Sweet 16 score belongs to the Ohio State game, so the score/answer pairing is right, only the seed number is wrong.
+**Reason:** §32 factual accuracy. Verified via web search (ESPN box score / Sports-Reference 2010 NCAA tournament summary): 6-seed Tennessee beat 2-seed Ohio State 76-73 in the Sweet 16 in St. Louis. Ohio State was not a #1 seed that year (Kansas was the Midwest Region's #1 seed and was upset by 9-seed Northern Iowa in the Round of 32, never facing Tennessee). As written, the question's premise contradicts its own correct answer.
+**Status:** ⏳ pending review
+
+### trivia_questions.c0dc66dd-0241-4fec-b597-eba580e35f36 — 2026-09-05 / slot 3 — factual error: presents a documented myth as fact
+**Current:** "Tennessee's checkerboard end zone design was inspired by the clock tower atop which campus building?" A "The Hill", B "Estabrook Hall", C "Ayres Hall" (correct), D "Circle Park"
+**Suggested fix:** Full replacement recommended rather than a patch, since the entire premise is the error, not just a wrong option. Recommend an alternate Vol Football History fact for slot 3/medium — e.g. a question about the actual documented origin (Coach Doug Dickey introduced the checkerboard end zones in 1964 after seeing a checkerboard pattern in a magazine ad) or an unrelated verified fact for this slot. Not proposing exact replacement text since a full new question should be authored and verified fresh rather than patched.
+**Reason:** §32 factual accuracy. Verified via web search: the University of Tennessee Libraries' own "Volopedia" archive has a dedicated entry titled "Myth—Checkerboard end zones were adopted to mirror the checkerboard design on Ayres Hall," explicitly debunking this exact claim. Per that source and a 2007 ESPN.com interview, Doug Dickey himself said he got the idea from a magazine ad, not from Ayres Hall's tower. The question states the myth as the correct answer, which is a hard factual-accuracy failure, not just a plausibility issue — this is actively documented as false by a UT institutional source.
+**Status:** ⏳ pending review
+
+### trivia_questions.0d245c5d-d1d2-45c6-8f0b-db69836e9033 — 2026-09-05 / slot 2 — meta-commentary baked into a distractor
+**Current:** "Which Tennessee coach's teams were especially known for elite defensive rankings nationally during his tenure?" A "Bruce Pearl, known more for offense and energy", B "Don DeVoe", C "Ray Mears", D "Rick Barnes" (correct)
+**Suggested fix:** Trim option A down to just "Bruce Pearl" — remove the editorializing clause ("known more for offense and energy"), matching the plain-name format of the other three options.
+**Reason:** §32 — same class of issue flagged repeatedly in prior runs (e.g. `f422496d`, `08ef515f` before their fixes): an option that argues against itself in its own text is a giveaway, not a real distractor, and reads as unpolished/editorial copy. Note: Rick Barnes as the correct answer for "elite defensive rankings" is defensible (his Tennessee teams have repeatedly ranked top-5 nationally in defensive efficiency); not flagging the underlying fact, only the option-A phrasing.
+**Status:** ⏳ pending review
+
+### trivia_questions.48d5a693-7ca7-4672-a231-6c4e3fe5912d — 2026-09-05 / slot 5 — minor: difficulty label may not match slot 5/hard
+**Current:** "The SEC Championship Game is played at a neutral site rather than a true road environment for either participant. In which city is it held?" A "Nashville", B "Atlanta" (correct), C "Birmingham", D "Knoxville" — labeled `difficulty: hard`
+**Suggested fix:** No content change needed (fact is accurate and options are fine) — consider re-labeling `difficulty` to easy/medium, or swapping this into an easier slot in a future scheduling pass, since "the SEC title game is played in Atlanta" is widely known to any casual college football fan.
+**Reason:** §32 "difficulty matches slot position" — this reads as easy/medium knowledge slotted at position 5 (hard). Low priority, informational.
+**Status:** ⏳ pending review — low priority
+
+### daily_polls — no row scheduled for 2026-09-04 — scheduling gap persists
+**Current:** `SELECT ... WHERE active_date = '2026-09-04'` still returns 0 rows.
+**Suggested fix:** N/A (no row to patch) — 09-04 is now inside the scope window for the third consecutive run with no poll scheduled; flagging again since it remains open.
+**Reason:** Same gap as logged 2026-09-01; unresolved.
+**Status:** ⏳ pending review — operational gap, no row to fix
+
+**Facts verified this run (search tool available):**
+- SEC 2024-25 revenue distribution: $1.03B total to 16 schools, $72.4M average per school for full-year participants (confirmed via ESPN, 247Sports, SEC's own release) — matches `a221e816`'s correct answer B exactly.
+- 2010 NCAA tournament: 6-seed Tennessee beat 2-seed Ohio State 76-73 in the Sweet 16 in St. Louis (Sports-Reference, ESPN) — confirms the score/opponent pairing in `ee9c3e59` but contradicts its "#1 seed" framing (see issue above).
+- Ayres Hall/checkerboard end zone origin — confirmed as a documented myth per UT Libraries' Volopedia and a 2007 ESPN interview with Doug Dickey (see issue above).
+- Tennessee–Florida rivalry historically played in September ("Third Saturday in September," per SEC East scheduling until 2024 division realignment) — confirms `0b2025d6`'s correct answer C.
+- Olivier Nkamhoua (Finnish-born Tennessee forward) and the alternating Knoxville/Athens site of the Tennessee–Georgia rivalry (`f8f5815b`, `9e317532`) match existing knowledge with high confidence — not separately re-verified by search.
+**Status:** ⏳ pending review — all items above await David's action
