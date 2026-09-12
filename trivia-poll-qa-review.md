@@ -115,3 +115,50 @@
 
 None of the above changes any of the 15 pending fixes from the run above — they're still outstanding and unapplied. No new issues were found in this pass. Sources checked: Baseball America, UTSports.com, Wikipedia (Tennessee women's swimming and diving; 2022 Tennessee Volunteers baseball team), MLB.com/press release on the 2024 draft, ESPN/Forbes on Catchings' retirement stats, and 247Sports on Neyland Stadium attendance.
 **Status:** ⏳ pending review — all outstanding items above remain unresolved pending David's action
+
+## 2026-09-12 — run summary
+- Checked: trivia 2026-09-12 to 2026-09-15 (20 rows, 5 slots × 4 days), polls 2026-09-12 to 2026-09-15 (3 rows — 2026-09-15 has none, see gap below)
+- Issues found: 2
+- Note: David has hand-edited several rows through direct conversation since the 2026-09-11 log (not via this subagent). Per instructions, all six of those edits were independently re-verified this run rather than assumed correct — see "Previously-flagged items now resolved" below. All are confirmed accurate/appropriate and are not re-flagged.
+
+### trivia_questions.bc0c60b5-1c5a-419f-820f-2a0b35f533e0 — 2026-09-13 / slot 2 — self-eliminating distractor + correct answer is a full sentence, not a short answer
+**Current:** Q: "Tennessee's SEC media rights, along with the rest of the conference, are governed by which major broadcast partnership as of the mid-2020s?" A "Big Ten Network", B "An independent regional network only", C "The SEC's agreement with ESPN/ABC, including the SEC Network" (correct), D "No broadcast partnership exists"
+**Suggested fix:** Shorten the correct answer to something like "ESPN/ABC (SEC Network)" or just "ESPN". Replace option D "No broadcast partnership exists" with a plausible-sounding but wrong network/deal, e.g. "Fox Sports exclusively" or "CBS Sports Network".
+**Reason:** §32 — "No broadcast partnership exists" is self-eliminating; no major conference plausibly has zero TV deal, so it can be eliminated on world-knowledge alone. Separately, this is the one correct answer in the whole window written as a full descriptive sentence rather than a short name/number — flagging per David's standing style preference for 1-3 word answers.
+**Status:** ⏳ pending review
+
+### daily_polls — no row scheduled for 2026-09-15 — scheduling gap
+**Current:** `SELECT ... WHERE active_date = '2026-09-15'` returns 0 rows; polls exist for 2026-09-12, 09-13, 09-14 only. (Same pattern as the 2026-09-04 gap logged 2026-09-01, which per this run's check is now filled — 09-04 no longer needs flagging.)
+**Suggested fix:** N/A (no existing row/content to patch) — flagging so a poll gets scheduled for 2026-09-15 before that date arrives. Not proposing an `active_date` value myself per the "never touch active_date" guardrail.
+**Reason:** In-scope date (today + 3) has no poll queued, unlike trivia_questions which has full 5-slot coverage for all 4 days in this window.
+**Status:** ⏳ pending review — operational gap, no row to fix
+
+### General note — repeated "coach's introductory press conference/remarks" framing device within 2 days (informational only)
+**Current:** 2026-09-13 slot 5 ("Which Tennessee coach's introductory press conference in December 2008 featured a widely mocked promise...") and 2026-09-14 slot 3 ("Which Tennessee coach's introductory remarks upon hiring emphasized a 'toughness and defense first' program identity...") both use the identical trivia hook — a coach's introductory presser/remarks — on back-to-back days, one about Kiffin, one about Rick Barnes.
+**Suggested fix:** No content is factually wrong in either; no fix proposed. Consider varying the framing device for one of the two in future scheduling so two consecutive days don't lean on the same "intro presser" hook. Separately, the 09-14 slot 3 question stem ("...that has largely held true") is a softer, more subjective framing than most rows in this window, though the correct answer itself (Rick Barnes) is still a single defensible name — flagging as a minor style observation, not a violation.
+**Reason:** §32 duplicate/near-duplicate check (structural, not textual) — judged not a violation, but noted for awareness per guardrail.
+**Status:** ⏳ pending review (informational only)
+
+### General note — narrow topical overlap: two separate Athletic Director questions in one window (informational only)
+**Current:** 2026-09-12 slot 3 asks who is Tennessee's *current* AD (Danny White, hired 2021); 2026-09-15 slot 2 asks who was AD *2017-2021* (Phillip Fulmer). Different facts, not a duplicate, but both draw from the same narrow "Tennessee Athletic Director" trivia well within a 4-day window.
+**Suggested fix:** No content fix — both are individually accurate and non-overlapping in the fact tested. Flagging only so future scheduling spaces out AD-themed questions further if possible.
+**Reason:** §32 duplicate/near-duplicate check — judged not a violation, but noted for awareness.
+**Status:** ⏳ pending review (informational only)
+
+### Previously-flagged items now resolved — independently re-verified this run
+All of the following were hand-edited by David outside this subagent since the 2026-09-11 log. Each was independently checked against a live web search this run (not assumed) and confirmed accurate/appropriate. None are re-flagged.
+- **`cd1d1634` (2026-09-11 slot 3, UConn/Maya Moore):** "A recruiting dispute — Pat Summitt accused UConn of improper conduct during the two schools' battle for recruit Maya Moore" — **confirmed accurate.** Summitt and Auriemma's teams both pursued 2007 five-star recruit Maya Moore; UConn won the recruitment (with a secondary NCAA violation attached, no penalty assessed), and the combination of that dispute and Auriemma's public remarks is what's commonly cited as why Summitt stopped scheduling UConn from the late 2000s until the series resumed in 2020. (Sources: ESPN "Geno Auriemma, UConn, Pat Summitt and Tennessee: A timeline"; the-boneyard.com.)
+- **`9c2de16a` (2026-09-13 slot 4, Dalton Knecht path):** Correct answer "Northeastern JC and Northern Colorado" — **confirmed accurate** (Northeastern Junior College in Sterling, CO, then two seasons at Northern Colorado before his final-season transfer to Tennessee). The new distractor "Eastern Arizona College and Weber State" (option C) — **confirmed a real but wrong JC/mid-major pair**, not Knecht's actual path, and no longer self-eliminating like the old "no transfer" option. (Sources: Yahoo Sports, 247Sports, Wikipedia.)
+- **`87810114` (2026-09-13 slot 5, Kiffin):** "December 2008" + beating-Florida framing — **confirmed accurate.** Kiffin's introductory presser was Dec. 1, 2008; the widely mocked line was about "singing Rocky Top all night long ... after we beat Florida," not about recruiting. The corrected question text now matches the real quote. (Source: ESPN "Trash talk, mattress fires and a flying projector.")
+- **`d9188989` (2026-09-14 slot 4, Summitt undefeated-team comparisons):** All three replacement distractors verified as real, factually accurate undefeated national-championship teams — Baylor women's basketball went 40-0 and won the 2011-12 title; Indiana men's basketball went 32-0 and won the 1975-76 title; Texas women's basketball went 34-0 and won the 1985-86 title (still the only NCAA women's title in program history). Correct answer (UConn) unchanged. No issues.
+- **`5786a59c` (2026-09-14 slot 5, Grant Williams DPOY):** Correct answer Grant Williams — confirmed he was a 2019 Naismith Defensive Player of the Year Award semifinalist, consistent with "significant national defensive recognition ... consideration." Distractors Josiah-Jordan James, Santiago Vescovi, and Jahmai Mashack — confirmed all three are real Rick Barnes-era Tennessee players, not self-eliminating. No issues.
+- **`b7af270e` (2026-09-12 slot 3, full replacement — Athletic Director):** New question "Who is Tennessee's current Athletic Director, hired in 2021?" correct answer Danny White — **confirmed accurate** (hired Jan. 21, 2021, from UCF). Distractors John Currie, Dave Hart, and Phillip Fulmer are all real former Tennessee ADs — plausible, not self-eliminating. Short-answer style matches David's stated preference. No issues.
+- **`ab788adf` (2026-09-12 poll, recurring "beat GT by" format):** Reused format/options ("They won't beat GT" / "1-9 points" / "10-19 points" / "20+ points") — this is an intentional, recurring poll template per David; not a new issue, no factual claims to verify, options are distinct and non-overlapping. No issues.
+
+### Other facts checked this run (not previously flagged, verified while reviewing new/in-window rows)
+- `92eae7d5` (2026-09-12 slot 4, R.A. Dickey): Drafted 18th overall by the Texas Rangers in 1996, missing UCL discovered on physical, bonus reduced from $810k to $75k — confirmed accurate (SABR bio, Bleacher Report).
+- `77b1d141` (2026-09-15 slot 4, Chris Lofton): 431 career three-pointers, SEC's all-time record — confirmed accurate ("SEC's all-time 3-point king," per utsports.com/247Sports).
+- `c61cd010` (2026-09-15 slot 5): UConn leads all of Division I women's basketball in titles (11, vs. Tennessee's 8) — consistent with well-established record; no contradicting sources found.
+
+No other new distractor-quality, meta-commentary, difficulty-mismatch, or factual-accuracy issues were found in the 2026-09-12 through 2026-09-15 window. Sources checked this run: ESPN, the-boneyard.com, Yahoo Sports, 247Sports, Wikipedia, SABR, Bleacher Report, utsports.com, news.utk.edu, rockytopinsider.com.
+**Status:** ⏳ pending review — the two actionable items above (bc0c60b5 distractor/style, 09-15 poll gap) await David's action; informational notes are for awareness only.
