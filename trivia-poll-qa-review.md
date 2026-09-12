@@ -115,3 +115,12 @@
 
 None of the above changes any of the 15 pending fixes from the run above — they're still outstanding and unapplied. No new issues were found in this pass. Sources checked: Baseball America, UTSports.com, Wikipedia (Tennessee women's swimming and diving; 2022 Tennessee Volunteers baseball team), MLB.com/press release on the 2024 draft, ESPN/Forbes on Catchings' retirement stats, and 247Sports on Neyland Stadium attendance.
 **Status:** ⏳ pending review — all outstanding items above remain unresolved pending David's action
+
+## 2026-09-01 — run summary (second follow-up pass)
+- Checked: trivia 2026-09-01 to 2026-09-04 (20 rows, 5 slots × 4 days), polls 2026-09-01 to 2026-09-04 (3 rows — 09-04 still missing)
+- Issues found: 0 new
+- What changed this run: re-queried both tables directly from Supabase (`trivia_questions` and `daily_polls`, same date-range filters as the agent spec). Row-for-row content is byte-identical to the two passes already logged above for 2026-09-01 — same 20 trivia ids/text/options, same 3 poll ids/text/options, no rows added, removed, or edited since the last pass. All 15 previously-logged issues are still present and unresolved in the live data (spot-checked their ids against the current query results — no drift). The 2026-09-04 `daily_polls` gap is also unchanged: still 0 rows.
+- New-row review: the rows not already covered by an existing finding (`d678abb6` 09-01/3, `8b1597c9` 09-01/5, `a7b10f7c` 09-02/2, `e198aa96` 09-02/4, `0b2025d6` 09-03/1, `9e317532` 09-04/2, `f8f5815b` 09-04/1, and polls `99efd6e7` 09-01 and `3066d701` 09-02) were re-run against the §32/§33 checklist (scope, hedge answers, meta-commentary, distractor plausibility, difficulty-vs-slot, duplicates, category accuracy for trivia; clarity/single-topic, distinct options, bias, duplicates, category mix for polls). No new defects found — options are distinct and plausible, no meta-commentary or non-answer distractors, categories match content, and no additional duplicates beyond the already-noted 1998-topic overlap on 09-01 (informational only, no change proposed).
+- No web search was needed this pass — no new factual claims appeared versus the prior pass, and the previously-unverified claims were already resolved with sources in the run above.
+- Per the agent guardrails, no writes were made to `trivia_questions` or `daily_polls`. This file is the only file touched.
+**Status:** ⏳ pending review — all 15 previously-logged issues remain outstanding and unapplied; 2026-09-04 poll gap remains open
