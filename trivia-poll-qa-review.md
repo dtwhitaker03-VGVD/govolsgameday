@@ -115,3 +115,59 @@
 
 None of the above changes any of the 15 pending fixes from the run above — they're still outstanding and unapplied. No new issues were found in this pass. Sources checked: Baseball America, UTSports.com, Wikipedia (Tennessee women's swimming and diving; 2022 Tennessee Volunteers baseball team), MLB.com/press release on the 2024 draft, ESPN/Forbes on Catchings' retirement stats, and 247Sports on Neyland Stadium attendance.
 **Status:** ⏳ pending review — all outstanding items above remain unresolved pending David's action
+
+## 2026-09-09 — run summary
+- Checked: trivia 2026-09-09 to 2026-09-12 (20 rows, 5 slots × 4 days), polls 2026-09-09 to 2026-09-12 (3 rows found — 2026-09-12 has no poll scheduled)
+- Issues found: 6 (2 new factual issues, 1 new question-design issue, 1 new scheduling gap, 2 carried-forward issues from the prior pass on 2026-09-11 content that remain unresolved)
+- Independent verification of David's 2026-09-09/09-10 manual edits: see "Verified fixes" section below — 5 of 6 check out cleanly; 1 (Elite Eight count) checks out as *entered* but has been overtaken by events since it was written.
+
+**Verified fixes (David's direct edits, checked independently this run):**
+- `3d90e41c` (2026-09-09 slot 2, SEC commissioner): Greg Sankey has held the role since 2015, succeeding Mike Slive — confirmed. Distractors Bill Hancock (a real former commissioner, of the Big 12/BCS) and Jim Delany (a real former Big Ten commissioner) are legitimate plausible names now. **Resolved, no further issue.**
+- `0caa8be2` (2026-09-09 slot 4, Heisman winners): Tennessee has never produced a Heisman Trophy winner (Peyton Manning's 1997 runner-up finish is the closest) — confirmed. "Zero" is correct and the question/options are now clean. **Resolved, no further issue.**
+- `230b0c07` (2026-09-10 slot 3, Kim Caldwell): Caldwell's system (pace, high three-point volume, analytics-driven) is a well-documented departure from the Summitt-era post-up/defense identity — confirmed. The new distractor D ("a return to a slower, more traditional post-up-focused offense") is a real, plausible, non-self-eliminating option. **Resolved, no further issue.**
+- `3164cb4d` (2026-09-10 slot 5, SEC football championships): Confirmed 13 SEC titles for Tennessee (1938, 1939, 1940, 1946, 1951, 1956, 1967, 1969, 1985, 1989, 1990, 1997, 1998 — most recent 1998), matching option B. This is a genuinely different, larger number (16) that plausibly reflects total conference titles across pre-SEC eras, so it isn't a scope violation or a self-eliminating distractor — it's a real, close, defensible wrong answer. **Resolved, no further issue.**
+- `c34a730a` (2026-09-10 poll, "How much will TN beat GT by?"): Clear, single-topic, four distinct non-overlapping outcome bands, no leading/biased phrasing. **Resolved, no further issue.**
+- `6ffeaf02` (2026-09-09 slot 1, Elite Eight count): **Only partially resolved — see new issue below.** The hedge ("A small handful of times") is gone, which fixes the original defect, but the specific number now baked in ("Three times") has since become stale.
+
+### trivia_questions.6ffeaf02-6c48-49cc-a93a-92ce4f2c51bf — 2026-09-09 / slot 1 — correct answer is now factually stale (Elite Eight count undercounts by one)
+**Current:** "Tennessee reached its first-ever Elite Eight in 2010. How many times has the program reached the Elite Eight overall through the mid-2020s?" A "Once", B "Three times" (correct), C "Five times", D "Nine times"
+**Suggested fix:** Update option B (and correct_answer framing) to "Four times" — Tennessee reached the Elite Eight in 2010, 2024, 2025, **and 2026** (a 95-62 regional-final loss to Michigan in March 2026), per UTSports.com and Wikipedia. The "2010/2024/2025 → three times" count was accurate when written but the 2026 NCAA Tournament has since occurred (this question is scheduled to air 2026-09-09, after that tournament concluded). Alternatively, if the intent is to freeze the question at a specific historical cutoff, rephrase to something unambiguous like "...through the 2025 tournament?" so a fan checking today's actual count isn't marked wrong.
+**Reason:** §32 factual accuracy — verified via web search (utsports.com regional-final recap, Wikipedia 2025–26 Tennessee Volunteers basketball team page) that a fourth Elite Eight appearance happened in March 2026, before this question's scheduled air date. "Three times" is provably wrong as of today for a fan following the current season. This was explicitly flagged for independent verification and does not hold up — it should not be treated as resolved.
+**Status:** ⏳ pending review
+
+### trivia_questions.92eae7d5-2274-4d93-aff2-262a050611d8 — 2026-09-12 / slot 4 — correct answer is a Vanderbilt player, not a Tennessee player (scope violation + factual error)
+**Current:** "Which Tennessee pitcher's rookie season included a deep American League Championship Series run with the Tampa Bay Rays in 2008?" A "Todd Helton", B "R.A. Dickey", C "Luke Hochevar", D "David Price" (correct)
+**Suggested fix:** Full replacement recommended. David Price played college baseball at **Vanderbilt** (led the Commodores to their first SEC regular-season and tournament titles, won the 2007 Golden Spikes Award there), not Tennessee — he was only born in Murfreesboro, TN. The Rays/2008-ALCS clue (win in Game 2, save in Game 7 vs. Boston) is accurate for Price, but he's the wrong school. None of the other three options fit the clue as real Tennessee alternates either: Todd Helton's MLB career was with the Colorado Rockies, R.A. Dickey's Rays stint was in 2013 (not 2008, and he wasn't on that ALCS roster), and Luke Hochevar played only for the Kansas City Royals. I could not identify an actual Tennessee-alum pitcher who fits the 2008 Rays ALCS clue, so I'm not proposing a patched correct answer — recommend the content team draft a different verifiable Tennessee baseball fact for this slot (hard / Vol Baseball History) rather than reuse this clue.
+**Reason:** §32 Vol/SEC-scope + factual accuracy — the question asserts a Tennessee affiliation for a player who is in fact a well-known Vanderbilt Commodore, which is both wrong and, if run as-is, would be an in-conference-rival misattribution reaching Tennessee fans as their own program's trivia.
+**Status:** ⏳ pending review — flagged high priority (this is a new question that has never aired)
+
+### trivia_questions.e1db8359-7c57-4af1-a51f-320992b3c83c — 2026-09-11 / slot 4 — question gives away its own answer; confusing two-fact framing
+**Current:** "Ray Mears' 1966-67 team won the program's first SEC regular-season title of his tenure. In which decade did Tennessee win its very first SEC basketball championship, outright, in 1935-36?" A "1980s", B "1960s", C "1950s", D "1930s" (correct)
+**Suggested fix:** Drop the embedded year from the question stem — e.g. "Tennessee won its first-ever outright SEC basketball championship several decades before Ray Mears' 1966-67 regular-season title. In which decade did that first title come?" or simplify to one fact per question (either ask about Mears' era or the 1935-36 title, not both, with the target year never stated outright when it's also the thing being asked).
+**Reason:** §32 meta-commentary/answer-leakage — as written, the question literally states "1935-36" and then asks only which *decade* that falls in, so it's solvable by simple arithmetic with zero Tennessee basketball knowledge required. That's a hard difficulty-mismatch failure (labeled "hard" but trivially easy) as well as confusing construction, since the Ray Mears sentence introduces a second, unrelated fact (1966-67) that is never actually asked about.
+**Status:** ⏳ pending review
+
+### daily_polls — no row scheduled for 2026-09-12 — scheduling gap
+**Current:** `SELECT ... WHERE active_date = '2026-09-12'` returns 0 rows. Confirmed via `SELECT active_date, count(*) ... GROUP BY active_date` for 2026-09-08 through 2026-09-13: rows exist for 09-08, 09-09, 09-10, 09-11, and 09-13, but 09-12 is missing.
+**Suggested fix:** N/A (no existing row/content to patch) — flagging the gap, same class of issue as the 2026-09-04 gap logged 2026-09-01. Not proposing an `active_date` value myself per the "never touch active_date" guardrail.
+**Reason:** In-scope date (today + 3) has no poll queued, unlike trivia_questions which has full 5-slot coverage for all 4 days in this window.
+**Status:** ⏳ pending review — operational gap, no row to fix
+
+### Carried forward, still unresolved — trivia_questions.cd1d1634-911f-4720-97e1-71d5b14eb1a9 — 2026-09-11 / slot 3 — self-eliminating distractor
+**Current:** "Tennessee and UConn stopped playing each other for roughly a decade beginning in the mid-to-late 2000s, before the series resumed in 2020. What is commonly cited as the underlying cause?" A "A stadium capacity issue", B "A reported dispute between the two programs over scheduling and other issues" (correct), C "Not applicable, they never had a rivalry", D "An NCAA mandate banning the rivalry"
+**Suggested fix:** Replace C with a real, plausible-but-wrong reason (e.g. "A disagreement over which network would broadcast the games" or a specific named non-cause), since "they never had a rivalry" directly contradicts the premise stated in the question itself and is trivially eliminable.
+**Reason:** §32 self-eliminating distractor. Verified this run: the Tennessee–UConn women's basketball hiatus (2007–2020) is real and is commonly attributed to a reported falling-out between the two staffs, not any of the absurd alternatives offered. This row has not been touched since it was originally noted; still open.
+**Status:** ⏳ pending review
+
+### Carried forward, still unresolved — daily_polls.9b73b6c2-da9d-4261-afcb-320b9c36a111 — 2026-09-11 — factual error misattributes the 2016 Hail Mary comeback to the wrong opponent
+**Current:** "What is the greatest win in Tennessee football history?" A "1998 National Championship", B "1986 Sugar Bowl", C "2016 comeback vs Alabama", D "2022 Alabama upset"
+**Suggested fix:** Change option C to "2016 comeback vs Georgia". Verified via web search: on 2016-10-01, Joshua Dobbs hit Jauan Jennings on a 43-yard Hail Mary on the final play to beat Georgia 34-31 in Athens — this is the famous 2016 "Hail Mary" comeback, and it was against Georgia, not Alabama. (Option D, "2022 Alabama upset," is a separate, correctly-attributed real event — Tennessee's 52-49 win over Alabama in 2022 — and stays as-is.)
+**Reason:** §33 factual accuracy — the question as currently written credits Alabama with a signature Georgia win, which is a real factual error in a widely-remembered game, not a matter of opinion. This row has not been touched since it was originally noted; still open.
+**Status:** ⏳ pending review
+
+### General note — thematic overlap, informational only
+- 2026-09-12 slot 1 (Pat Summitt hired at 22) and slot 5 (Pat Summitt's exact career record at retirement) both center on Pat Summitt — two distinct facts (hiring age vs. final record), not a duplicate, but flagging the same-day thematic concentration for awareness, consistent with the informational note logged 2026-09-01.
+**Status:** ⏳ pending review (informational only, not counted in issue total)
+
+Sources checked this run: UTSports.com (2026 Elite Eight recap), Wikipedia (Tennessee Volunteers basketball; Tennessee Volunteers football; David Price; Peerless Price; Dylan Sampson), Pro-Football-Reference (Peerless Price draft), 247Sports/On3/Rocky Top Insider (Dylan Sampson single-season rushing record), SEC Sports/ESPN/WBIR (2016 Tennessee–Georgia Hail Mary game).
+**Status:** ⏳ pending review — all items above remain unresolved pending David's action
