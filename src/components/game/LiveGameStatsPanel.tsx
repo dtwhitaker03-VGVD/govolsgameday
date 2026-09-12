@@ -39,6 +39,10 @@ export interface LiveGame {
   tn_rushing_tds: number | null;
   tn_receiving_tds: number | null;
   tn_turnovers_forced: number | null;
+  home_first_downs: number | null;
+  away_first_downs: number | null;
+  home_possession_time: string | null;
+  away_possession_time: string | null;
 }
 
 interface TeamStatRow {
@@ -46,15 +50,6 @@ interface TeamStatRow {
   homeVal: string | number | null;
   awayVal: string | number | null;
   danger?: boolean; // bold red if awayVal (opponent) > 0
-}
-
-// One row per (team, stat_type) from ncaa_scoring_rankings — see
-// scoring-rankings-sync, which syncs NCAA.com's Scoring Offense/Defense
-// team stat pages daily.
-interface ScoringStat {
-  team: string;
-  stat_type: 'offense' | 'defense';
-  points_per_game: number;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -90,7 +85,6 @@ interface LiveGameStatsPanelProps {
 
 export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
   const [game, setGame] = useState<LiveGame>(initialGame);
-  const [scoringStats, setScoringStats] = useState<ScoringStat[]>([]);
   const [showPreview, setShowPreview] = useState(false);
 
   // When the parent resolves a different active game, sync local state so this
@@ -98,19 +92,6 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
   useEffect(() => {
     setGame(initialGame);
   }, [initialGame.id]);
-
-  // Each team's season-long national Scoring Offense/Defense (points per
-  // game) — context stats, not this-game box score numbers, so they're
-  // fetched once per matchup rather than over the live Realtime channel below.
-  useEffect(() => {
-    const season = new Date().getFullYear();
-    supabase
-      .from('ncaa_scoring_rankings')
-      .select('team, stat_type, points_per_game')
-      .eq('season', season)
-      .in('team', [initialGame.home_team, initialGame.away_team])
-      .then(({ data }) => setScoringStats((data as ScoringStat[]) ?? []));
-  }, [initialGame.home_team, initialGame.away_team]);
 
   // Subscribe to Realtime updates for this specific game row.
   // Dependency on game.id means the channel automatically re-attaches when the
@@ -156,19 +137,9 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
       ? `${ordinal(game.down)} & ${game.distance} — ${yardlineStr(game.yardline)}`
       : null;
 
-  // Each team's own season scoring numbers — Scoring Offense shows a team's
-  // own points-per-game, Scoring Defense shows its own points-allowed-per-
-  // game, same "each side shows its own stat" shape as Rushing/Passing Yards.
-  const findScoringStat = (team: string, statType: 'offense' | 'defense') =>
-    scoringStats.find((s) => s.team === team && s.stat_type === statType)?.points_per_game;
-  const homeOffensePpg = findScoringStat(game.home_team, 'offense');
-  const awayOffensePpg = findScoringStat(game.away_team, 'offense');
-  const homeDefensePpg = findScoringStat(game.home_team, 'defense');
-  const awayDefensePpg = findScoringStat(game.away_team, 'defense');
-
   const statRows: TeamStatRow[] = [
-    { label: 'Scoring Offense', homeVal: homeOffensePpg?.toFixed(1) ?? '—', awayVal: awayOffensePpg?.toFixed(1) ?? '—' },
-    { label: 'Scoring Defense', homeVal: homeDefensePpg?.toFixed(1) ?? '—', awayVal: awayDefensePpg?.toFixed(1) ?? '—' },
+    { label: 'First Downs', homeVal: game.home_first_downs ?? '—', awayVal: game.away_first_downs ?? '—' },
+    { label: 'Time of Poss.', homeVal: game.home_possession_time ?? '—', awayVal: game.away_possession_time ?? '—' },
     { label: 'Rushing Yards', homeVal: game.home_rushing_yards ?? '—', awayVal: game.away_rushing_yards ?? '—' },
     { label: 'Passing Yards', homeVal: game.home_passing_yards ?? '—', awayVal: game.away_passing_yards ?? '—' },
     { label: 'Total Yards', homeVal: tnYards ?? '—', awayVal: oppYards ?? '—' },
@@ -246,11 +217,11 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
 
         {/* Team stat rows. justify-content: center (used here previously)
             overflows a too-tall flex child equally upward AND downward
-            instead of just downward — with Scoring Offense/Defense added,
-            7 rows no longer reliably fit the card's fixed height, and
-            centering pushed the top rows up into the scoreboard strip
-            above instead of just scrolling (DashboardCard's body already
-            provides overflow-y-auto for exactly this case). */}
+            instead of just downward — with 7 rows, they no longer reliably
+            fit the card's fixed height, and centering pushed the top rows
+            up into the scoreboard strip above instead of just scrolling
+            (DashboardCard's body already provides overflow-y-auto for
+            exactly this case). */}
         <div className="flex-1 min-h-0 flex flex-col">
           <div className="grid grid-cols-[1fr_auto_1fr] text-[9px] lg:text-xs text-vgd-muted uppercase tracking-wider pb-0.5 lg:pb-1 border-b border-white/[0.06] flex-shrink-0">
             <span className="text-right">{shortTeamName(game.home_team)}</span>
