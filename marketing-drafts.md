@@ -334,3 +334,61 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-09-12 — Game day invite: play the Live Drive Picks
+
+- Trigger: on-demand — David said it's game day and asked for an
+  exciting post inviting people to the site specifically to play the
+  live game predictor during tonight's game.
+- Real data: re-checked `live_games` for this exact game the moment of
+  writing — still `status = 'pregame'`, kickoff 2026-09-12 23:00 UTC
+  (7:00 PM ET tonight), so "game day" / "kickoff tonight" is accurate
+  right now. Re-pulled `game_previews` too (freshly fetched today,
+  17:55 UTC) to confirm nothing changed: No. 18 Tennessee (1-0) at
+  Georgia Tech (0-1), ESPN, Bobby Dodd Stadium. Reused the real
+  `game_leaderboard` fact from Wednesday's poll canvas (Tiberious,
+  1,961 points, Furman game) as a competitive hook pointing at
+  tonight's leaderboard rather than re-querying a stat that hasn't
+  changed since then.
+- Subject/feature: this one is a feature invite, not a matchup
+  breakdown — it explains and promotes "Live Drive Picks" (the site's
+  real live, in-game drive-by-drive prediction feature, same naming
+  used in the very first intro post), with a real 3-step "how it
+  works" explainer (sign in, pick each drive's outcome in the window,
+  climb the live leaderboard) grounded in the actual product mechanic
+  described in this repo's own architecture notes (`drive_predictions`,
+  `open_drive_window`), not invented.
+- Design: same magazine-poster system as the rest of this week's
+  batch (masthead, Permanent Marker accent line, dense info blocks),
+  but with the bigger hero-number energy of the Tuesday countdown
+  canvas brought back in — a giant "GAME DAY" headline over a
+  starburst/glow treatment — since this is the highest-energy moment
+  of the week and reads as more of an event than a stat breakdown.
+  Checked locally against a render before publishing; closed a small
+  layout gap that showed up on the first pass (moved the "free to
+  play" tag down to sit closer to the leaderboard strip) before
+  shipping.
+- Canvas: https://claude.ai/code/artifact/25566779-28ce-4808-b0f2-b971e68c5af0
+- Status: ⏳ pending review
+
+### Post copy — 2026-09-12
+
+  ```
+  🏈 IT'S GAME DAY, VOL NATION 🏈
+
+  Tennessee heads to Atlanta tonight to take on Georgia Tech — kickoff
+  7:00 PM ET on ESPN.
+
+  Watching isn't enough. Play Live Drive Picks at GoVolsGameDay.com and
+  call the outcome of every single drive as it happens — touchdown,
+  field goal, punt, turnover — for points in real time.
+
+  Last week's #1 predictor put up 1,961 points against Furman. Think
+  you've got what it takes to top it tonight?
+
+  Sign in free before kickoff. New picks every drive, all game long.
+
+  #GoVols #TennesseeFootball #GameDay #BeatGeorgiaTech
+  ```
+
+- Status: ⏳ pending review (copy drafted, not yet approved or posted)
