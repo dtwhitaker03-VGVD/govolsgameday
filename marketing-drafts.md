@@ -334,3 +334,72 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-09-12 — Game day hype (no site invite)
+
+- Trigger: on-demand — David wanted a second, more general game-day
+  post: pure excitement about tonight's game itself, explicitly NOT an
+  invite to the site (that angle is already covered by today's earlier
+  "Live Drive Picks" post). This one carries only the page's own
+  identity in the masthead/footer — no "play now," no URL, no feature
+  pitch anywhere on it.
+- Real data: same fresh check as the other post today — `live_games`
+  still `status = 'pregame'`, kickoff 2026-09-12 23:00 UTC (7:00 PM ET
+  tonight), No. 18 Tennessee (1-0) at Georgia Tech (0-1), ESPN, Bobby
+  Dodd Stadium. Reused the two verified historical facts from
+  Wednesday's countdown canvas rather than re-deriving them: Tennessee
+  leads the all-time series 25-17-2, and this is the first meeting
+  since Tennessee's 42-41 2OT win in 2017 (sources cited in that
+  canvas's log entry above) — that history is the emotional hook for
+  this piece ("six years in the making"). Also reused the real Furman
+  recap score (56-9) from `live_games` as season-form context.
+- Design: same magazine/energy system as today's other post (starburst
+  + glow behind a giant hero, Permanent Marker accent), but the copy is
+  entirely stakes/hype: "TONIGHT." hero, the matchup, the series-history
+  stakes strip, season form, and a big closing rally line ("ONE TEAM.
+  ONE ROAR.") with hashtags instead of a URL. Checked locally against a
+  render before publishing — no layout gaps.
+- Canvas: https://claude.ai/code/artifact/4f5d631b-8fd1-422d-a61b-01c3572ec79b
+- Status: ⏳ pending review
+
+### Update — swap the rally line (2026-09-12)
+
+- David didn't like "ONE TEAM. ONE ROAR." — not how Vol fans actually
+  talk — and asked for "Vols by Fiddy!" instead (real Vol fan
+  shorthand, not something to invent a substitute for).
+- Swapped the two-line rally treatment for that single line, bumped
+  the size up slightly since it's shorter, and nudged it down a touch
+  to stay centered in the same space. Checked locally before
+  publishing — still no overlap or gaps.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/4f5d631b-8fd1-422d-a61b-01c3572ec79b
+- Status: ⏳ pending review
+
+### Update — fixed text wrapping/overlap in the exported image (2026-09-12)
+
+- David sent a screenshot of the Facebook post composer with the
+  exported PNG loaded: several lines had reflowed onto an extra line
+  versus how the canvas looked in this session's own checks, most
+  visibly the "LET'S GO VOLS" footer line wrapping to two lines and
+  overlapping the hashtag line under it, and the series-history strip
+  wrapping.
+- Root cause: the canvas editor's PNG export runs in a different
+  render environment than the local check used before publishing, and
+  didn't have the same web fonts available, so text fell back to a
+  much wider substitute font and no longer fit on one line where the
+  design assumed Anton's condensed glyph widths.
+- Fix: added `white-space: nowrap` to every short line that's meant to
+  stay on one line (masthead, matchup, kickoff details, hero, rally
+  line, footer wordmark and hashtags — all comfortably narrower than
+  the 1080px frame even in a generic fallback font), and rebuilt the
+  series-history strip as two intentional short lines in a
+  flexible-height box instead of one long sentence that depended on
+  wrapping predictably.
+- Verified the fix properly this time: rendered the canvas twice
+  locally, once with the real fonts and once with all web fonts
+  stripped entirely (forcing the worst-case fallback substitution) —
+  confirmed no wrapping, overlap, or clipping in either case before
+  publishing.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/4f5d631b-8fd1-422d-a61b-01c3572ec79b
+- Status: ⏳ pending review
