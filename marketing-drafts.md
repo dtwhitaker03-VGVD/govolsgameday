@@ -374,3 +374,32 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/4f5d631b-8fd1-422d-a61b-01c3572ec79b
 - Status: ⏳ pending review
+
+### Update — fixed text wrapping/overlap in the exported image (2026-09-12)
+
+- David sent a screenshot of the Facebook post composer with the
+  exported PNG loaded: several lines had reflowed onto an extra line
+  versus how the canvas looked in this session's own checks, most
+  visibly the "LET'S GO VOLS" footer line wrapping to two lines and
+  overlapping the hashtag line under it, and the series-history strip
+  wrapping.
+- Root cause: the canvas editor's PNG export runs in a different
+  render environment than the local check used before publishing, and
+  didn't have the same web fonts available, so text fell back to a
+  much wider substitute font and no longer fit on one line where the
+  design assumed Anton's condensed glyph widths.
+- Fix: added `white-space: nowrap` to every short line that's meant to
+  stay on one line (masthead, matchup, kickoff details, hero, rally
+  line, footer wordmark and hashtags — all comfortably narrower than
+  the 1080px frame even in a generic fallback font), and rebuilt the
+  series-history strip as two intentional short lines in a
+  flexible-height box instead of one long sentence that depended on
+  wrapping predictably.
+- Verified the fix properly this time: rendered the canvas twice
+  locally, once with the real fonts and once with all web fonts
+  stripped entirely (forcing the worst-case fallback substitution) —
+  confirmed no wrapping, overlap, or clipping in either case before
+  publishing.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/4f5d631b-8fd1-422d-a61b-01c3572ec79b
+- Status: ⏳ pending review
