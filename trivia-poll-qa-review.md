@@ -115,3 +115,78 @@
 
 None of the above changes any of the 15 pending fixes from the run above — they're still outstanding and unapplied. No new issues were found in this pass. Sources checked: Baseball America, UTSports.com, Wikipedia (Tennessee women's swimming and diving; 2022 Tennessee Volunteers baseball team), MLB.com/press release on the 2024 draft, ESPN/Forbes on Catchings' retirement stats, and 247Sports on Neyland Stadium attendance.
 **Status:** ⏳ pending review — all outstanding items above remain unresolved pending David's action
+
+## 2026-09-04 — run summary
+- Checked: trivia 2026-09-04 to 2026-09-07 (20 rows, 5 slots × 4 days), polls 2026-09-04 to 2026-09-07 (4 rows — the 09-04 gap flagged in the 09-01 run is now filled)
+- Issues found: 9 new (8 content issues + 1 informational thematic-overlap note); plus 1 previously-flagged item carried forward as unverified rather than resolved (09-04 slot 4)
+- 2026-09-04 fixes (made directly by David, outside this subagent) verified independently this run — see confirmations below.
+- 2026-09-05 and 2026-09-06 have not been touched since the 2026-09-01 run; their previously-logged issues (in the section above, dated 2026-09-01) remain outstanding and are not repeated here. 2026-09-07 is newly in scope this run.
+
+### 2026-09-04 fixes — verification of David's edits
+All 5 trivia slots and the poll for 2026-09-04 were reviewed against §32/§33 and, where the fix introduced a new factual claim, checked against a web search.
+
+- **Slot 1 (Nkamhoua)** — unchanged, confirmed still clean, no new issue.
+- **Slot 2 (Georgia record)** — "Tennessee's all-time record against Georgia is 23-30-2" — **confirmed accurate.** Multiple sources (Yahoo Sports, Winsipedia) state Georgia leads the series 30-23-2 (Georgia's wins-losses-ties); expressed from Tennessee's side that is 23-30-2, matching the row exactly, and the "(Georgia leads)" framing is correct. Distractors (27-26-2 / 33-20-2 / 28-25-1) are all plausible win-loss-tie totals in the same range (54-55 total games) — not self-eliminating. **Resolved, no issue.**
+- **Slot 3 (Shriners Showdown)** — **confirmed accurate.** The 2024 Shriners Children's College Showdown was held at Globe Life Field Feb 16-18, 2024; Tennessee beat Texas Tech 6-2 on Feb 16 (ESPN, FloBaseball, Texas Tech's own site). The "#18 Texas Tech" ranking is defensible: Baseball America's 2024 preseason Top 25 had Texas Tech at No. 18 (Texas Tech's own site headline at game time used a different poll, D1Baseball's No. 21 — both numbers exist in circulation depending on which preseason poll is cited, so "#18" is not an error, just one of two legitimate contemporaneous rankings). **Resolved, no issue.**
+- **Slot 4 (international student-athletes)** — **could not verify.** Searched for an official UT Athletics or NCAA figure for "about 50 international student-athletes arrive at Tennessee each year, across all sports" and found no source stating this number (or any comparable figure) explicitly. This isn't confirmed wrong — it's simply unconfirmable with the tools available this run. Per the guardrail against proposing confident fixes for unverifiable claims, this is being flagged as **uncertain, not corrected**, rather than carried forward as resolved. Distractor set (5 / 50 / 150 / 300) is otherwise well-formed (no self-elimination, plausible spread). Recommend the content team either confirm this figure against a UT Athletics/international-student-services source before it airs, or swap in a fact you can source with confidence.
+- **Slot 5 (Pat Summitt co-author)** — "Not applicable" replaced with "John Feinstein" — **resolved.** Feinstein is a real, well-known sports author known for co-writing books with coaches (e.g., Bob Knight), making him a plausible-but-wrong distractor rather than a non-answer. Correct answer Sally Jenkins (co-author of *Reach for the Summit* and *Sum It Up*) is accurate.
+- **Poll (new 09-04 row)** — "What will the Vols record be this year?" (8-5 / 9-4 / 12-2 / 16-0) — **resolved**, gap is filled. Options are distinct, non-overlapping, not leading, and no factual claims to verify. No duplicate elsewhere in window.
+
+**2026-09-04 is now fully resolved except slot 4, which is flagged uncertain (unverifiable numeric claim) rather than confirmed clean.**
+
+### trivia_questions.0d245c5d-d1d2-45c6-8f0b-db69836e9033 — 2026-09-05 / slot 2 — meta-commentary in distractor
+**Current:** "Which Tennessee coach's teams were especially known for elite defensive rankings nationally during his tenure?" A "Bruce Pearl, known more for offense and energy" (wrong), B "Don DeVoe", C "Ray Mears", D "Rick Barnes" (correct)
+**Suggested fix:** Replace option A with just "Bruce Pearl" — drop the parenthetical-style editorializing clause.
+**Reason:** §32 prohibits meta-commentary bleeding into option text. "known more for offense and energy" tells the test-taker why A is wrong, which is both a giveaway and a self-elimination issue — the same defect flagged repeatedly in the 2026-09-01 run (e.g. `f422496d`, `08ef515f`).
+**Status:** ⏳ pending review
+
+### trivia_questions.c0dc66dd-0241-4fec-b597-eba580e35f36 — 2026-09-05 / slot 3 — correct answer repeats a claim UT's own archive labels a myth
+**Current:** "Tennessee's checkerboard end zone design was inspired by the clock tower atop which campus building?" ... C "Ayres Hall" (correct)
+**Suggested fix:** Flagging for verification/replacement rather than proposing a confident fix — recommend either dropping this question or rewriting it around the actual sourced history (the checkerboard was adopted in 1964 under coach Doug Dickey, who said he got the idea from a magazine ad; Neyland-era motivational rhetoric about "reaching the checkerboard" on Ayres Hall's tower predates and is separate from the actual design decision).
+**Reason:** §32 factual accuracy. UT's own library archive (Volopedia, volopedia.lib.utk.edu) has an entry titled "Myth—Checkerboard end zones were adopted to mirror the checkerboard design on Ayres Hall," explicitly debunking this as a popular myth, not the actual design origin. The question states the myth as settled fact.
+**Status:** ⏳ pending review — flagged as uncertain/likely-incorrect (source directly contradicts the premise)
+
+### trivia_questions.ee9c3e59-33da-4d60-b692-1c56001a34e7 — 2026-09-05 / slot 4 — wrong seed number
+**Current:** "To reach the 2010 Elite Eight, Tennessee upset which #1 seed in the Sweet 16, winning 76-73?" A "Ohio State" (correct)
+**Suggested fix:** Change "which #1 seed" to "which #2 seed" in the question text (option A "Ohio State" and the 76-73 score are correct as-is).
+**Reason:** §32 factual accuracy. Ohio State was the #2 seed in the Midwest Region in the 2010 NCAA tournament (confirmed via 247Sports/Ohio State's own tournament history coverage), not a #1 seed. The result itself (Tennessee 76-73, first-ever Elite Eight appearance) is accurate and doesn't need to change.
+**Status:** ⏳ pending review
+
+### trivia_questions.95da837e-c366-4c42-8e12-b62242b28a7d — 2026-09-06 / slot 2 — question stem gives away the answer + weak distractor
+**Current:** "Grant Williams scored a team-high total in Tennessee's 2019 Sweet 16 overtime loss to Purdue. Did Tennessee ultimately win that game?" A "The game ended in a tie", B "No, Purdue won in overtime despite Williams' strong performance" (correct), C "Tennessee won in double overtime", D "Yes, Tennessee won in regulation"
+**Suggested fix:** Rewrite the stem so it doesn't already state the outcome — e.g. drop "loss to Purdue" from the setup (just "...in Tennessee's 2019 Sweet 16 overtime game against Purdue") — or better, convert to a real 4-option question about a distinct fact from that game (e.g. Williams' point total) rather than a yes/no wrapped as 4 options. Also replace option A ("tie") — not possible in an elimination tournament game, self-eliminating.
+**Reason:** §32 — the question stem itself already says "loss to Purdue," so "Did Tennessee ultimately win?" is answered by the premise before the reader even looks at the options. This is the same yes/no-dressed-as-4-options pattern flagged repeatedly in the 2026-09-01 run (e.g. `4bc04229`, `c3440429`), plus a self-eliminating "tie" option.
+**Status:** ⏳ pending review
+
+### trivia_questions.024a94ee-08c9-41a8-848a-a78b853ffd05 — 2026-09-06 / slot 4 — factual error: wrong class year
+**Current:** "Which Tennessee player's breakout sophomore season, in 2018-19, coincided with the program's first #1 ranking?" A "Sophomores are ineligible", B "No sophomore has ever started for Tennessee", C "Grant Williams' sophomore breakout coincided with the team's rise to #1" (correct), D "Only seniors play meaningful minutes"
+**Suggested fix:** Change "sophomore" to "junior" in both the question stem and option C (Grant Williams enrolled 2016-17; 2017-18 was his sophomore breakout/first SEC Player of the Year season, and 2018-19 — when Tennessee reached #1 for the first time — was his junior year). Also replace the absurd/self-eliminating options A/B/D with real plausible names of other Tennessee players from that era (e.g. Admiral Schofield, Jordan Bone).
+**Reason:** §32 factual accuracy — multiple sources (UTSports, 247Sports, Rocky Top Talk) confirm Williams was a two-time SEC Player of the Year, sophomore in 2017-18 and junior in 2018-19; 2018-19 was not his sophomore year. Also a structural issue: options A/B/D are nonsensical non-answers (self-eliminating), and correct answer C just restates the question — same "yes/no or restated-question dressed as 4 options" pattern flagged elsewhere in this file.
+**Status:** ⏳ pending review
+
+### General note — Grant Williams thematic overlap on 2026-09-06
+**Current:** trivia 2026-09-06 slot 2 (Grant Williams' 2019 Sweet 16 game vs. Purdue) and slot 4 (Grant Williams' breakout season) both center on Grant Williams on the same date.
+**Suggested fix:** No hard duplicate — different facts (a specific game vs. a season/ranking milestone) — but consider spacing same-player questions further apart within a day when scheduling; two of five slots on one date both keying off the same player is a notable concentration.
+**Reason:** §32 duplicate/near-duplicate check — judged not a violation, but flagging for awareness, consistent with the informational note logged in the 2026-09-01 run for the 1998-season overlap.
+**Status:** ⏳ pending review (informational only)
+
+### trivia_questions.72c5d746-3288-46fd-90ee-b8c31450144c — 2026-09-07 / slot 1 — broken True/False structure
+**Current:** "...True or false?" A "False, baseball has a separate mascot", B "Baseball has no mascot", C "True" (correct), D "Not applicable"
+**Suggested fix:** Restructure as a genuine 2-option True/False (option_a "True", option_b "False", option_c/option_d null, correct_answer "A"), or convert to a standard 4-option factual question.
+**Reason:** Same recurring structural defect flagged multiple times in this file (`a221e816`, `c3440429`, `4bc04229`) — no clean "False" option is actually offered; the other three options are absurd/non-parallel rather than a real alternative.
+**Status:** ⏳ pending review
+
+### trivia_questions.02c9eaf9-8527-44c1-8555-ba86a373372b — 2026-09-07 / slot 3 — hedge/non-answer as the correct answer (severe)
+**Current:** "Tennessee and Vanderbilt... Has this rivalry included postseason (NCAA Tournament) meetings in recent years?" A "It's plausible given both programs' postseason frequency, though the exact matchup history should be checked against official NCAA brackets" (correct), B "They have never met in the postseason", C "Not applicable", D "They are barred from meeting in the postseason due to conference rules"
+**Suggested fix:** Full replacement recommended (same category "Vol Baseball History", same slot 3/medium difficulty). The correct answer needs to be a single defensible fact (e.g. a specific year/round Tennessee and Vanderbilt met in an NCAA regional/super regional, if verifiable), not an instruction to go check elsewhere. Not proposing specific replacement text without being able to confirm an exact tournament meeting.
+**Reason:** §32 explicitly prohibits hedge/non-answers as the correct answer — option A tells the reader to go verify it themselves rather than stating a fact, which is a direct violation. C "Not applicable" is also a non-answer distractor (recurring pattern). This is one of the more severe issues in this run.
+**Status:** ⏳ pending review — flagged as uncertain on replacement content, but the current row is confirmed broken as-is
+
+### trivia_questions.af17891c-7852-42dd-94e8-0475cdc5db24 — 2026-09-07 / slot 5 — vague yes/no framing + unverified "multiple winners" claim
+**Current:** "Tennessee has had multiple SEC Sixth Man of the Year winners provide key bench scoring under Rick Barnes. Is this award given annually by the conference?" A "Only starters are eligible", B "The award doesn't exist in the SEC", C "Yes, it is an annual SEC honor" (correct), D "No Tennessee player has won this award"
+**Suggested fix:** Convert to a real 4-option factual question (e.g. "Which Tennessee player won SEC Sixth Man of the Year under Rick Barnes?" with real player-name options) rather than a yes/no wrapped as 4 options. Separately, **flag for verification**: I could only confirm one Tennessee SEC Sixth Man of the Year under Barnes (Lamonté Turner, co-winner, 2018) — I could not confirm the premise that Tennessee has had "multiple" winners under Barnes. Recommend the content team verify the full winner list before this airs; if only one, the premise itself needs correcting, not just the options.
+**Reason:** Same yes/no-dressed-as-4-options structural pattern flagged repeatedly above, plus options A/B/D are self-eliminating (A contradicts the question's own premise of "bench scoring"; B and D are trivially false to anyone aware the question is being asked at all). The "multiple winners" premise is unverified, not confirmed accurate.
+**Status:** ⏳ pending review — flagged as uncertain (unverified "multiple" claim) in addition to the structural issue
+
+Sources checked this run: Yahoo Sports and Winsipedia (Georgia-Tennessee series record), ESPN/FloBaseball/Texas Tech Athletics/Baseball America (2024 Shriners Children's College Showdown and preseason rankings), UT Volopedia library archive (checkerboard end zone origin), 247Sports/Ohio State Athletics (2010 NCAA tournament seeding), UTSports/247Sports/Rocky Top Talk (Grant Williams class year and awards), Wikipedia/Chattanoogan/UTSports (Todd Helton jersey number), Sports-Reference/Wikipedia (Robert Neyland career record — confirmed accurate, 173-31-12 over 21 seasons, no issue), Sports-Reference (SEC Sixth Man of the Year), UTSports/SwimCloud (Allan Jones Aquatic Center), WBIR/CBS Sports/UTSports (Kim Caldwell hire, confirms 09-07 poll accurate).
+**Status:** ⏳ pending review — all items above remain unresolved pending David's action, except the 2026-09-04 items explicitly marked resolved
