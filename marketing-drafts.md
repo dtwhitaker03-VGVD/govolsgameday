@@ -361,3 +361,16 @@ either posts it himself or asks for changes first.
   render before publishing — no layout gaps.
 - Canvas: https://claude.ai/code/artifact/4f5d631b-8fd1-422d-a61b-01c3572ec79b
 - Status: ⏳ pending review
+
+### Update — swap the rally line (2026-09-12)
+
+- David didn't like "ONE TEAM. ONE ROAR." — not how Vol fans actually
+  talk — and asked for "Vols by Fiddy!" instead (real Vol fan
+  shorthand, not something to invent a substitute for).
+- Swapped the two-line rally treatment for that single line, bumped
+  the size up slightly since it's shorter, and nudged it down a touch
+  to stay centered in the same space. Checked locally before
+  publishing — still no overlap or gaps.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/4f5d631b-8fd1-422d-a61b-01c3572ec79b
+- Status: ⏳ pending review
