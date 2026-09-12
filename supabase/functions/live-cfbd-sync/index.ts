@@ -124,6 +124,11 @@ interface TeamStats {
   passingYards: number;
   turnovers: number;
   timeoutsUsedThisHalf: number;
+  // Not derivable from the /live/plays feed used below — only ever come
+  // from CFBD's /games/teams box score (see fetchOfficialTeamStats), so
+  // these stay null until that endpoint has something to report.
+  firstDowns: number | null;
+  possessionTime: string | null;
 }
 
 function halfOf(period: number | null | undefined): number {
@@ -153,7 +158,7 @@ function computeTeamStats(live: LiveGame, teamName: string): TeamStats {
     }
   }
 
-  return { rushingYards, passingYards, turnovers, timeoutsUsedThisHalf };
+  return { rushingYards, passingYards, turnovers, timeoutsUsedThisHalf, firstDowns: null, possessionTime: null };
 }
 
 interface OfficialTeamStats {
@@ -202,6 +207,17 @@ function findOfficialStat(
   return Number.isFinite(n) ? n : null;
 }
 
+// possessionTime comes back as "mm:ss" (e.g. "30:15"), not a number —
+// findOfficialStat's parseFloat would mangle it, so read it as text instead.
+function findOfficialStatRaw(
+  teams: OfficialTeamStats[],
+  teamName: string,
+  category: string
+): string | null {
+  const team = teams.find((t) => t.team === teamName);
+  return team?.stats.find((s) => s.category === category)?.stat ?? null;
+}
+
 function resolveTeamStats(
   pbpStats: TeamStats,
   officialTeams: OfficialTeamStats[] | null,
@@ -211,12 +227,16 @@ function resolveTeamStats(
   const rushingYards = findOfficialStat(officialTeams, teamName, "rushingYards");
   const passingYards = findOfficialStat(officialTeams, teamName, "netPassingYards");
   const turnovers = findOfficialStat(officialTeams, teamName, "turnovers");
+  const firstDowns = findOfficialStat(officialTeams, teamName, "firstDowns");
+  const possessionTime = findOfficialStatRaw(officialTeams, teamName, "possessionTime");
   return {
     rushingYards: rushingYards ?? pbpStats.rushingYards,
     passingYards: passingYards ?? pbpStats.passingYards,
     turnovers: turnovers ?? pbpStats.turnovers,
     // Not present in the box-score stats — timeouts stay play-by-play derived.
     timeoutsUsedThisHalf: pbpStats.timeoutsUsedThisHalf,
+    firstDowns: firstDowns ?? pbpStats.firstDowns,
+    possessionTime: possessionTime ?? pbpStats.possessionTime,
   };
 }
 
@@ -321,6 +341,10 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
       away_turnovers: awayStats.turnovers,
       home_timeouts_remaining: Math.max(0, 3 - homeStats.timeoutsUsedThisHalf),
       away_timeouts_remaining: Math.max(0, 3 - awayStats.timeoutsUsedThisHalf),
+      home_first_downs: homeStats.firstDowns,
+      away_first_downs: awayStats.firstDowns,
+      home_possession_time: homeStats.possessionTime,
+      away_possession_time: awayStats.possessionTime,
       updated_at: new Date().toISOString(),
     })
     .eq("id", game.id);
