@@ -115,3 +115,48 @@
 
 None of the above changes any of the 15 pending fixes from the run above — they're still outstanding and unapplied. No new issues were found in this pass. Sources checked: Baseball America, UTSports.com, Wikipedia (Tennessee women's swimming and diving; 2022 Tennessee Volunteers baseball team), MLB.com/press release on the 2024 draft, ESPN/Forbes on Catchings' retirement stats, and 247Sports on Neyland Stadium attendance.
 **Status:** ⏳ pending review — all outstanding items above remain unresolved pending David's action
+
+## 2026-09-08 — run summary
+- Checked: trivia 2026-09-08 to 2026-09-11 (20 rows, 5 slots × 4 days), polls 2026-09-08 to 2026-09-11 (4 rows)
+- Issues found: 4 new
+- Context: this run follows a 2026-09-07 pass (referenced by the task, not present as a dated section in this file) plus several rows David edited directly by hand since then. Each hand-edit was independently re-verified against the live DB rather than assumed correct — see verification notes below.
+
+### David's hand-edits — independently reverified
+- **trivia_questions.2450363a-a0ef-453d-a976-663806d0bb12 (2026-09-08 slot 5, Todd Helton 2000 season)** — CONFIRMED applied and correct. `option_b`/`option_c` now read "Home runs"/"Triples" (previously "Saves"/"Strikeouts"). Verified: Helton hit .372/42 HR/147 RBI/2 3B in 2000, leading the NL in AVG and RBI (`correct_answer` D = "Batting average and RBI"); 42 HR was well short of the NL lead and 2 triples is negligible — both are now non-self-eliminating, factually-grounded distractors for a position player. **Resolved.**
+- **trivia_questions.9cda3391-a7ca-4d18-a378-b300e5454479 (2026-09-10 slot 1, stadium opening)** — CONFIRMED applied and correct. Question now reads "In what year did Tennessee's home stadium, originally called Shields-Watkins Field, first open (later renamed Neyland Stadium in 1962)?", `correct_answer` B = 1921. This fully replaces the prior SEC-division question that duplicated 2026-09-08 slot 1, and the 1921/1962 facts check out (Shields-Watkins Field opened 1921; renamed Neyland Stadium in 1962). **Resolved**, and the cross-day duplicate with 09-08 slot 1 is gone.
+- **daily_polls "most heartbreaking loss in Tennessee football history" (2026-09-08)** — **COULD NOT VERIFY / BLOCKER.** The row currently scheduled for `daily_polls.active_date = '2026-09-08'` (id `0e29a73e-0f9a-47d2-b823-6b938f1de09b`) is "How many total TDs will Faizon Brandon have?" — unrelated content, not the "heartbreaking loss" poll at all. I searched the full `daily_polls` table for any row matching "heartbreaking" and found exactly one: id `7b82921e-760f-49a0-9a84-09888ed17c8b`, `active_date = 2026-11-03`, and it's about **baseball** ("most heartbreaking loss in Tennessee baseball history," options: 2022 Notre Dame Super Regional / 2021 CWS opening-round exit / 2023 CWS loss to LSU / 2019 Auburn Super Regional loss) — no Georgia, no Texas A&M, no football angle at all. I also searched for any poll option containing "Texas A&M" or "2016 Georgia" and found no football "heartbreaking loss" poll anywhere in the table, in or out of scope. **I cannot confirm this described fix exists in the database as stated — flagging for David to double-check which row/date this edit actually landed on** (possibly a different table, a session that didn't persist, or a mismatched description). Not logging a proposed fix since I can't locate the row to evaluate.
+
+### Previously-flagged issues still open (2026-09-09, per the 09-07 pass referenced in the task — unchanged since, independently reconfirmed against current DB content)
+- `trivia_questions` 2026-09-09 slot 1 (id `6ffeaf02-6c48-49cc-a93a-92ce4f2c51bf`) — hedge correct answer "A small handful of times" for Elite Eight appearance count, plus self-eliminating distractors ("Zero times ever" contradicts the question's own premise that 2010 was the first Elite Eight; "Every year since 2000" and "Over 20 times" are absurd for a program with one Elite Eight appearance in this era). Still unresolved.
+- `trivia_questions` 2026-09-09 slot 2 (id `3d90e41c-e8fb-487f-82f8-ac45a716f216`) — non-answer distractors to a "who" question: "The commissioner role was eliminated," "Not applicable," "False, the SEC has no commissioner" are not names of people and are self-eliminating on format alone. Still unresolved.
+- `trivia_questions` 2026-09-09 slot 4 (id `0caa8be2-80e4-4f2e-938a-35b47d596c04`) — broken True/False structure (only one option is "True," no clean "False" option) plus meta-commentary bleeding into option A: "Only Tennessee players have won the Heisman within the SEC (false — no Tennessee player has won it)" literally tells the test-taker the option is false inside the option text. Still unresolved.
+
+### trivia_questions.230b0c07-7bbf-4e9d-b34c-259dd79c4f57 — 2026-09-10 / slot 3 — non-answer distractor
+**Current:** "Kim Caldwell's coaching style... represented what kind of departure from the traditional Lady Vols basketball identity?" A "A shift toward a modern, up-tempo, analytics-driven offensive system" (correct), B "No change at all from the Summitt era", C "An even more defense-first, slow-tempo system", D "Not applicable"
+**Suggested fix:** Replace D "Not applicable" with a real, plausible-but-wrong description of a coaching philosophy, e.g. "A return to a run-heavy, post-up-focused offense."
+**Reason:** §32 — "Not applicable" is a non-answer, self-eliminating on format alone (same recurring pattern flagged in prior runs, e.g. 2026-09-03/09-04 True/False items and the SEC commissioner question above).
+**Status:** ⏳ pending review
+
+### trivia_questions.3164cb4d-0856-4a3b-922f-9d74ecdcdc68 — 2026-09-10 / slot 5 — rival-team-specific question, out of Vol/SEC scope
+**Current:** "Vanderbilt's baseball program won its first College World Series championship in which year, defeating Virginia?" A "2020", B "2005", C "1995", D "2014" (correct)
+**Suggested fix:** Full replacement recommended (same category "SEC Knowledge," same slot 5/hard difficulty) with a question that is SEC-wide or Tennessee-specific rather than a deep dive into a single rival program's own history — e.g. an SEC Championship Game/standings fact involving Tennessee, in the style of "Who won the 2018 SEC Championship game?"
+**Reason:** §32 explicitly requires Vol/SEC scope, "never rival-team-specific," using the gut-check example "NOT OK: Who was Alabama's starting QB in 2018?" This question is entirely about Vanderbilt's own program history with no Tennessee or SEC-wide angle — the same category of violation as that example. (The underlying fact itself — Vanderbilt beat Virginia to win its first CWS title in 2014 — is accurate; this is a scope issue, not a factual-accuracy issue.)
+**Status:** ⏳ pending review
+
+### trivia_questions.cd1d1634-911f-4720-97e1-71d5b14eb1a9 — 2026-09-11 / slot 3 — self-eliminating distractor contradicts the question's own premise
+**Current:** "Tennessee and UConn stopped playing each other for roughly a decade... What is commonly cited as the underlying cause?" A "A stadium capacity issue", B "A reported dispute between the two programs over scheduling and other issues" (correct), C "Not applicable, they never had a rivalry", D "An NCAA mandate banning the rivalry"
+**Suggested fix:** Replace C with a real plausible-but-wrong cause, e.g. "A disagreement over television broadcast rights."
+**Reason:** §32 — option C directly contradicts the question stem, which already states the two teams "stopped playing each other" and the series "resumed in 2020," i.e. a rivalry demonstrably existed. This is eliminable without any Tennessee/UConn knowledge, purely from internal contradiction with the question text.
+**Status:** ⏳ pending review
+
+### daily_polls.9b73b6c2-da9d-4261-afcb-320b9c36a111 — 2026-09-11 — factual error: Tennessee did not have a "2016 comeback" win over Alabama
+**Current:** "What is the greatest win in Tennessee football history?" A "1998 National Championship", B "1986 Sugar Bowl", C "2016 comeback vs Alabama", D "2022 Alabama upset"
+**Suggested fix:** Replace option C with "2016 comeback vs Georgia" (the actual 2016 comeback — Tennessee trailed and won 34-31 on Joshua Dobbs' 43-yard Hail Mary to Jauan Jennings as time expired, October 1, 2016).
+**Reason:** §33 factual accuracy. Verified via web search: Tennessee lost to Alabama 49-10 on October 15, 2016 (no comeback, no win) — [ESPN box score](https://www.espn.com/college-football/game/_/gameId/400869028/alabama-tennessee). The actual famous 2016 fourth-quarter comeback win was against Georgia — [SEC Sports recap](https://www.secsports.com/article/17688353/tennessee-stuns-georgia-hail-mary-win-34-31). This is the same "2016 Georgia" fact pattern David already corrected in the 09-08 trivia poll's option C this week, just surfacing here in a different poll — worth double-checking other rows for the same mix-up while reviewing.
+**Status:** ⏳ pending review — high confidence, sourced above
+
+### General note — 09-08 poll hand-edit could not be located (see blocker above)
+**Current:** N/A — see "David's hand-edits — independently reverified" section above for full detail.
+**Suggested fix:** N/A — need David to confirm which row/date the "heartbreaking loss" football poll edit actually applies to before any further QA of it.
+**Reason:** Guardrail — "if you're not confident a proposed fix is actually correct... log it as flagged with the uncertainty stated plainly." Here the uncertainty is about the row's existence/location, not a factual claim, but the same principle applies: not proposing a fix for content I can't locate.
+**Status:** ⏳ blocked — needs David's input
