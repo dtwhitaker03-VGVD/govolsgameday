@@ -115,3 +115,82 @@
 
 None of the above changes any of the 15 pending fixes from the run above — they're still outstanding and unapplied. No new issues were found in this pass. Sources checked: Baseball America, UTSports.com, Wikipedia (Tennessee women's swimming and diving; 2022 Tennessee Volunteers baseball team), MLB.com/press release on the 2024 draft, ESPN/Forbes on Catchings' retirement stats, and 247Sports on Neyland Stadium attendance.
 **Status:** ⏳ pending review — all outstanding items above remain unresolved pending David's action
+
+## 2026-09-05 — run summary
+- Checked: trivia 2026-09-05 to 2026-09-08 (20 rows, 5 slots × 4 days), polls 2026-09-05 to 2026-09-08 (4 rows, full coverage — the 09-04 scheduling gap noted in the earlier pass is now out of this run's window and no longer checked)
+- Issues found: 9 new
+- Previously-flagged items for 2026-09-01 through 09-04 are out of this run's 3-day scope and were not re-checked; they remain as logged above.
+
+### David's 2026-09-05 fixes — independently re-verified, all four now resolved
+David edited all 5 trivia rows for 2026-09-05 directly in conversation since the last logged pass (which predates this file's first 2026-09-05 coverage — there is no prior dated entry for 09-05 to compare against, so this section documents first-time verification of the current row content, per his summary of what changed):
+- **Slot 1** (`df9458f8-9e11-4de2-a32e-b7b087141e57`, Allan Jones Aquatic Center → Swimming and diving): confirmed clean, no issues.
+- **Slot 2** (`0d245c5d-d1d2-45c6-8f0b-db69836e9033`): option A now reads simply "Bruce Pearl" with no meta-commentary — confirmed trimmed as described. Question ("elite defensive rankings" → Rick Barnes) checks out; Barnes' Tennessee teams are widely known for top-tier national defensive rankings. **Resolved.**
+- **Slot 3** (`c0dc66dd-0241-4fec-b597-eba580e35f36`): now reads "Which Tennessee coach introduced the checkerboard end zones in 1964?" correct answer Doug Dickey, distractors Robert Neyland / Phillip Fulmer / Johnny Majors — **independently verified via WebSearch: confirmed accurate.** Dickey became head coach in 1964 and introduced the orange-and-white checkerboard end zone design that year (debuted Oct. 10, 1964 vs. Boston College), per UTSports.com, Wikipedia, and Saturday Down South. All three distractors are real, plausible Tennessee coaches — no self-eliminating options. **Resolved, no remaining concerns.**
+- **Slot 4** (`ee9c3e59-33da-4d60-b692-1c56001a34e7`): now reads "#2 seed" (was "#1 seed"). **Independently verified via WebSearch: confirmed accurate.** Tennessee was the #6 seed and beat #2-seed Ohio State 76-73 in the 2010 Sweet 16 (Midwest Region, March 26, 2010) en route to the Elite Eight, per ESPN box score and NCAA.com tournament records. **Resolved.**
+- **Slot 5** (`48d5a693-7ca7-4672-a231-6c4e3fe5912d`, SEC Championship location → Atlanta): unchanged, confirmed still clean. The earlier low-priority "too easy for a hard slot" note from a prior pass still applies as an observation only — no content fix was requested and none is proposed here.
+- Poll `d6d1e48a-46c5-4f22-abf5-21149b416de3` (2026-09-05, "What would a Vol basketball national championship mean to you?"): unchanged, confirmed still clean.
+
+### trivia_questions.95da837e-c366-4c42-8e12-b62242b28a7d — 2026-09-06 / slot 2 — question stem gives away its own answer
+**Current:** Q: "Grant Williams scored a team-high total in Tennessee's 2019 Sweet 16 overtime loss to Purdue. Did Tennessee ultimately win that game?" A "The game ended in a tie", B "No, Purdue won in overtime despite Williams' strong performance" (correct), C "Tennessee won in double overtime", D "Yes, Tennessee won in regulation"
+**Suggested fix:** Rewrite as a substantive fact question that doesn't restate its own answer, e.g. "How many points did Grant Williams score in Tennessee's 2019 Sweet 16 overtime loss to Purdue?" with his real point total as the correct answer and plausible nearby point totals as distractors. If keeping an outcome-based question, drop "loss to Purdue" from the stem so the outcome isn't pre-revealed.
+**Reason:** The stem already states it was a "loss," so asking "did Tennessee ultimately win?" answers itself — trivially guessable with zero basketball knowledge. Also a yes/no frame with narrative-filler options rather than parallel factual answers, similar to the broken True/False pattern logged in the 2026-09-01 run.
+**Status:** ⏳ pending review
+
+### trivia_questions.024a94ee-08c9-41a8-848a-a78b853ffd05 — 2026-09-06 / slot 4 — two factual errors (class year, "first" ranking claim)
+**Current:** Q: "Which Tennessee player's breakout sophomore season, in 2018-19, coincided with the program's first #1 ranking?" A "Sophomores are ineligible", B "No sophomore has ever started for Tennessee", C "Grant Williams' sophomore breakout coincided with the team's rise to #1" (correct), D "Only seniors play meaningful minutes"
+**Suggested fix:** Two corrections needed: (1) 2018-19 was Grant Williams' **junior** season, not sophomore — he was a sophomore in 2017-18; (2) it was **not** the program's first-ever #1 ranking — Tennessee had previously been ranked #1 in 2008, so 2018-19 was Tennessee's first #1 ranking *since 2008*. Suggested rewrite: "Which Tennessee player's breakout junior season, in 2018-19, coincided with the program's first #1 ranking since 2008?" correct answer "Grant Williams", with real player names as distractors (e.g. Admiral Schofield, Jordan Bone, Lamonte Turner) instead of the current meta-statement options.
+**Reason:** §32 factual accuracy — verified via WebSearch (CBS Sports 2018-19 game coverage confirms junior season; multiple sources confirm Tennessee's prior #1 ranking was in 2008). Also carries the same non-parallel/self-eliminating distractor defect as other flagged rows (options are eligibility statements, not player names).
+**Status:** ⏳ pending review — high confidence on both factual corrections; recommend prioritizing given this airs in 1 day (2026-09-06)
+
+### trivia_questions.72c5d746-3288-46fd-90ee-b8c31450144c — 2026-09-07 / slot 1 — broken True/False structure
+**Current:** "...True or false?" A "False, baseball has a separate mascot", B "Baseball has no mascot", C "True" (correct), D "Not applicable"
+**Suggested fix:** Restructure as a genuine 2-option True/False (option_a "True", option_b "False", option_c/option_d null, correct_answer "A"), or convert to a standard 4-option factual question with real plausible distractors about Vol mascots/traditions.
+**Reason:** Same structural defect logged repeatedly in the 2026-09-01 run (e.g. `a221e816`, `c3440429`, `4bc04229`) — no clean "False" option is ever offered; the other three are narrative filler/non-answers.
+**Status:** ⏳ pending review
+
+### trivia_questions.02c9eaf9-8527-44c1-8555-ba86a373372b — 2026-09-07 / slot 3 — hedge/non-answer as the correct answer
+**Current:** Q: "...Has this rivalry included postseason (NCAA Tournament) meetings in recent years?" A "It's plausible given both programs' postseason frequency, though the exact matchup history should be checked against official NCAA brackets" (correct), B "They have never met in the postseason", C "Not applicable", D "They are barred from meeting in the postseason due to conference rules"
+**Suggested fix:** Full replacement recommended. The correct answer as written literally tells the player to go verify elsewhere rather than stating a fact. Replace with a specific, checkable question, e.g. naming an actual year Tennessee and Vanderbilt baseball met in the NCAA Tournament as the correct answer, with other plausible years as distractors. I did not confirm a specific matchup/year in this pass — recommend the content team source one concrete meeting before publishing rather than guessing.
+**Reason:** This is the exact "no hedge/non-answers as the correct answer" violation called out explicitly in the QA checklist §32 — not a borderline case.
+**Status:** ⏳ pending review — high priority; airs in 2 days (2026-09-07)
+
+### trivia_questions.b8b28be3-2577-44da-80cf-32017be7a682 — 2026-09-07 / slot 4 — minor: implausible distractor
+**Current:** Options A "Around 50", B "Around 90", C "Around 250", D "173" (correct)
+**Suggested fix:** Replace A ("Around 50") with a closer, more plausible figure (e.g. "Around 140").
+**Reason:** Correct answer verified accurate via WebSearch — Robert Neyland's career record was 173-31-12 across 21 seasons. "Around 50" wins over 21 seasons at a major program is implausibly low and easily eliminated without any real knowledge. Low priority.
+**Status:** ⏳ pending review — low priority
+
+### trivia_questions.af17891c-7852-42dd-94e8-0475cdc5db24 — 2026-09-07 / slot 5 — meta/structural question, not a substantive fact test
+**Current:** Q: "...Is this award given annually by the conference?" A "Only starters are eligible", B "The award doesn't exist in the SEC", C "Yes, it is an annual SEC honor" (correct), D "No Tennessee player has won this award"
+**Suggested fix:** Replace with a genuine, checkable trivia fact — e.g. name an actual Tennessee SEC Sixth Man of the Year winner and ask which player won it, with real Tennessee players as distractors — instead of a meta yes/no question about the award's existence/frequency.
+**Reason:** Same structural pattern as other flagged rows — the "correct" answer is a statement about award mechanics rather than a substantive fact, and the distractors are absurd/non-parallel (not real player names or plausible facts).
+**Status:** ⏳ pending review
+
+### trivia_questions.2450363a-a0ef-453d-a976-663806d0bb12 — 2026-09-08 / slot 5 — minor: self-eliminating distractor
+**Current:** Options A "Stolen bases", B "Saves", C "Strikeouts", D "Batting average and RBI" (correct)
+**Suggested fix:** Replace B "Saves" with a plausible hitting stat Helton didn't lead the NL in that year (e.g. "Home runs").
+**Reason:** "Saves" is a pitching stat and self-eliminating for a question about a first baseman's batting season. Underlying fact confirmed accurate via WebSearch — Helton led the NL in batting average (.372) and RBI (147) in 2000. Low priority.
+**Status:** ⏳ pending review — low priority
+
+### daily_polls.a94a824a-1843-435d-9faa-3a4ef7454e11 — 2026-09-06 — overlapping/non-exclusive options
+**Current:** "What is the best Vol football game you personally attended?" A "Alabama game", B "Florida game", C "A bowl game", D "A night game at Neyland"
+**Suggested fix:** Make the four options mutually exclusive — e.g. replace D with something that can't overlap with A-C (such as "A game against another SEC East rival"), or otherwise ensure no single real game could satisfy two of the four options at once.
+**Reason:** §33 — options must be distinct/non-overlapping. A fan's favorite Alabama or Florida game could easily also be "a bowl game" or "a night game at Neyland," so respondents can't cleanly pick one.
+**Status:** ⏳ pending review
+
+### daily_polls.6ed3438a-b297-46e8-8753-d690aa575cdc — 2026-09-07 — non-parallel hedge option
+**Current:** "What is the best Lady Vols basketball season since Pat Summitt?" A "A Holly Warlick season", B "A Kellie Harper season", C "A Kim Caldwell season", D "The program is still rebuilding"
+**Suggested fix:** Replace D with a genuine parallel option (a specific season/coach-tenure choice), or drop to 3 options (set option_d to null) since A/B/C already form a complete, parallel set of the three post-Summitt coaches.
+**Reason:** §33 — D is an opinion/hedge statement, not parallel in kind to A/B/C (each of which names "a season under coach X"); it's a non-answer similar to the "Not applicable" pattern flagged in prior trivia rows.
+**Status:** ⏳ pending review
+
+### Verified clean — no issues found
+- `060c925f` (2026-09-06 slot 1, volleyball as fall sport): accurate, no issue.
+- `5b7bd78c` (2026-09-06 slot 3, Deon Grant / 1998 secondary): verified via WebSearch — Grant started at free safety as a sophomore in 1998, had a key interception in the OT win over Florida, and went on to a 12-year NFL career (Panthers/Jaguars/Seahawks/Giants). Accurate.
+- `9d6f33a0` (2026-09-06 slot 5, Todd Helton #3 first retired number): verified via WebSearch — Helton's #3 was retired by Tennessee baseball on Jan. 30, 2008, confirmed as the first number the program ever retired. Accurate.
+- `9b43a18e` (2026-09-07 slot 2, Chamique Holdsclaw / 1997-98 team): accurate — Holdsclaw was the acknowledged star of the 39-0 title team. (Minor aside: Tamika Catchings, listed as a distractor, was actually a freshman role player on that same roster, but Holdsclaw remains the unambiguous correct "star" — not treated as an issue.)
+- `acc835b5`, `bcc84f0c`, `a5666ce8`, `a51e8763` (2026-09-08 slots 1-4: SEC East, Zeigler steals record, Summitt's 2000 Naismith induction, 2001 LSU SEC Championship Game): all verified via WebSearch, all accurate.
+- Poll `0e29a73e` (2026-09-08, "most heartbreaking loss"): all four options (2001 LSU, 2015 Arkansas, 2016 Georgia, 2019 Georgia State) check out as real, well-documented Tennessee losses; the 2019 Georgia State date in particular was double-checked (confirmed 2019, not 2018) since it read as a plausible off-by-one-year risk. No issue.
+
+Sources checked this run: UTSports.com, Wikipedia (Doug Dickey, 1964 Tennessee Volunteers football team, Robert Neyland, Deon Grant, Todd Helton), ESPN (2010 Tennessee-Ohio State box score), NCAA.com (2010 tournament bracket/records), CBS Sports (2018-19 Tennessee basketball game coverage), Saturday Down South (Zakai Zeigler steals record; Tennessee checkerboard history), Bleacher Report / Rocky Top Talk / WATE (2019 Georgia State upset).
+**Status:** ⏳ pending review — all 9 new items above remain unresolved pending David's action
