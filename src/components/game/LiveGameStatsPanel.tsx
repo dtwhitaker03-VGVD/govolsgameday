@@ -39,10 +39,6 @@ export interface LiveGame {
   tn_rushing_tds: number | null;
   tn_receiving_tds: number | null;
   tn_turnovers_forced: number | null;
-  home_first_downs: number | null;
-  away_first_downs: number | null;
-  home_possession_time: string | null;
-  away_possession_time: string | null;
 }
 
 interface TeamStatRow {
@@ -138,8 +134,6 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
       : null;
 
   const statRows: TeamStatRow[] = [
-    { label: 'First Downs', homeVal: game.home_first_downs ?? '—', awayVal: game.away_first_downs ?? '—' },
-    { label: 'Time of Poss.', homeVal: game.home_possession_time ?? '—', awayVal: game.away_possession_time ?? '—' },
     { label: 'Rushing Yards', homeVal: game.home_rushing_yards ?? '—', awayVal: game.away_rushing_yards ?? '—' },
     { label: 'Passing Yards', homeVal: game.home_passing_yards ?? '—', awayVal: game.away_passing_yards ?? '—' },
     { label: 'Total Yards', homeVal: tnYards ?? '—', awayVal: oppYards ?? '—' },
@@ -217,11 +211,10 @@ export function LiveGameStatsPanel({ initialGame }: LiveGameStatsPanelProps) {
 
         {/* Team stat rows. justify-content: center (used here previously)
             overflows a too-tall flex child equally upward AND downward
-            instead of just downward — with 7 rows, they no longer reliably
-            fit the card's fixed height, and centering pushed the top rows
-            up into the scoreboard strip above instead of just scrolling
-            (DashboardCard's body already provides overflow-y-auto for
-            exactly this case). */}
+            instead of just downward, pushing the top rows up into the
+            scoreboard strip above if they don't all fit the card's fixed
+            height — flex-col + DashboardCard's own overflow-y-auto lets it
+            scroll downward instead. */}
         <div className="flex-1 min-h-0 flex flex-col">
           <div className="grid grid-cols-[1fr_auto_1fr] text-[9px] lg:text-xs text-vgd-muted uppercase tracking-wider pb-0.5 lg:pb-1 border-b border-white/[0.06] flex-shrink-0">
             <span className="text-right">{shortTeamName(game.home_team)}</span>

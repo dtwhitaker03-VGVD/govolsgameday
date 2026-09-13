@@ -175,6 +175,17 @@ interface OfficialTeamStats {
 // feed, so treat it as the source of truth whenever it's available and only
 // fall back to the play-by-play sum (e.g. very early in a game, before
 // CFBD's box-score aggregation has anything to report) when it isn't.
+//
+// /games/teams is a postgame aggregation endpoint — for a game still in
+// progress it has nothing to report yet, but instead of an empty result for
+// an unmatched gameId, CFBD has been observed silently ignoring the filter
+// and returning a DIFFERENT game for the same team (confirmed live on the
+// 2026-09-12 GT/Tennessee game: querying gameId=401856681 for Georgia Tech
+// came back with game 401856776, a Georgia Tech/Colorado game; querying the
+// same gameId for Tennessee came back with game 401856666, the Tennessee/
+// Furman game from a prior week). The response's own game id must be
+// checked against the one requested before trusting it as this game's box
+// score, or a live game can silently get another game's stats.
 async function fetchOfficialTeamStats(
   apiKey: string,
   cfbdGameId: number,
@@ -188,7 +199,8 @@ async function fetchOfficialTeamStats(
     );
     if (!res.ok) return null;
     const data = await res.json();
-    const teams = data?.[0]?.teams;
+    if (data?.[0]?.id !== cfbdGameId) return null;
+    const teams = data[0]?.teams;
     return Array.isArray(teams) ? (teams as OfficialTeamStats[]) : null;
   } catch {
     return null;
