@@ -115,3 +115,89 @@
 
 None of the above changes any of the 15 pending fixes from the run above — they're still outstanding and unapplied. No new issues were found in this pass. Sources checked: Baseball America, UTSports.com, Wikipedia (Tennessee women's swimming and diving; 2022 Tennessee Volunteers baseball team), MLB.com/press release on the 2024 draft, ESPN/Forbes on Catchings' retirement stats, and 247Sports on Neyland Stadium attendance.
 **Status:** ⏳ pending review — all outstanding items above remain unresolved pending David's action
+
+## 2026-09-13 — run summary
+- Checked: trivia 2026-09-13 to 2026-09-16 (20 rows, 5 slots × 4 days), polls 2026-09-13 to 2026-09-16 (3 rows — 2026-09-15 still missing)
+- Issues found: 9 (plus 3 informational notes below)
+- David personally edited `trivia_questions.bc0c60b5` (2026-09-13 slot 2) directly between passes — verified independently, see resolved item below, not re-flagged.
+- WebSearch was available this run; all factual claims below were checked against live sources rather than assumed.
+
+### trivia_questions.bc0c60b5-1c5a-419f-820f-2a0b35f533e0 — 2026-09-13 / slot 2 — RESOLVED (David's direct edit confirmed correct)
+**Current:** correct_answer C = "ESPN/ABC (SEC Network)"; distractor D = "CBS Sports Network"
+**Verification:** Confirmed accurate independently. SEC media rights as of the mid-2020s are held under the ESPN/ABC deal (2024-2034), with games also carried on SEC Network — matches "ESPN/ABC (SEC Network)". "CBS Sports Network" is a real, plausible-but-wrong distractor (CBS over-the-air broadcast, not "CBS Sports Network," held the prior SEC package through 2023), and it is no longer self-eliminating the way the old "No broadcast partnership exists" option was. Also matches David's short-answer style preference.
+**Status:** ✅ resolved — David's edit confirmed correct, no further action needed
+
+### trivia_questions.e76daed0-c91c-40dd-9907-82c7a2da0f3e — 2026-09-15 / slot 3 — distractors are also factually true (more than one defensible correct answer)
+**Current:** Q: "Jeremy Pruitt, Tennessee's head coach from 2018-2020, previously served as defensive coordinator at which powerhouse program?" A "LSU", B "Florida State", C "Alabama" (correct), D "Georgia"
+**Suggested fix:** Reword the stem to disambiguate, e.g. "Immediately before taking the Tennessee job, Pruitt was defensive coordinator at which program?" (keeps correct_answer C "Alabama", his 2016-17 stop right before Tennessee). Alternatively, if a stem rewrite isn't wanted, swap B and/or D for a program Pruitt never coached at (LSU already works as a safe distractor).
+**Reason:** Verified via search: Pruitt was defensive coordinator at Florida State (2013, national title season), Georgia (2014-2015), AND Alabama (2016-2017) before taking the Tennessee job in 2018 — so options B and D are also true statements, not false distractors. Only "immediately prior to Tennessee" uniquely singles out Alabama. As worded, a well-informed fan could correctly argue for B or D too, which breaks the single-defensible-correct-answer rule.
+**Status:** ⏳ pending review
+
+### trivia_questions.c61cd010-452d-487e-871c-50cb65397d99 — 2026-09-15 / slot 5 — self-eliminating distractors (question stem gives away 3 of 4 options)
+**Current:** Q: "As of the mid-2020s, no current SEC member's women's basketball program has more NCAA titles than Tennessee's eight. Which non-SEC program leads all of Division I women's basketball in titles?" A "LSU", B "Kentucky", C "Alabama", D "UConn" (correct)
+**Suggested fix:** Replace A/B/C with non-SEC programs that are plausible-but-wrong (e.g. "Stanford", "USC", "Old Dominion") so all four options are actually the type of answer the question asks for (a non-SEC program).
+**Reason:** §32 — LSU, Kentucky, and Alabama are all current SEC members, and the question stem explicitly says it wants a *non-SEC* program. A test-taker can eliminate A/B/C purely from the stem, with zero basketball knowledge — a self-eliminating-distractor problem, just engineered via the stem rather than the option text. (Underlying fact checked and accurate: UConn leads all NCAA D-I women's basketball with more titles than Tennessee's 8.)
+**Status:** ⏳ pending review
+
+### trivia_questions.c901f3ae-d324-4ec4-8c72-30188af3a87c — 2026-09-16 / slot 3 — factual/timeline error: the injury did not threaten his senior season
+**Current:** Q: "Which injury threatened to end Zakai Zeigler's senior season before an NCAA eligibility waiver became a major storyline?" A "A broken wrist", B "A torn ACL" (correct), C "A shoulder injury", D "A concussion"
+**Suggested fix:** Reword the stem, e.g. "Which injury, suffered during Zeigler's sophomore season, later fueled his push for a fifth year of eligibility?" — keep correct_answer B "A torn ACL" (the injury type itself is right; only the "senior season" timing claim is wrong).
+**Reason:** Verified via search (on3.com, CBS Sports, Yahoo Sports): Zeigler tore his ACL on February 28, 2023, during his **sophomore** season — he went on to play out his junior (2023-24) and senior (2024-25) seasons on the recovered knee without further injury. The 2025 eligibility-waiver lawsuit sought a *fifth* season specifically because that sophomore-year injury cost him development time, not because anything threatened his senior year. As written, the stem misstates which season was actually in jeopardy.
+**Status:** ⏳ pending review
+
+### trivia_questions.5786a59c-53e6-4323-8bf2-5666b890a5f8 — 2026-09-14 / slot 5 — correct answer is defensible but weaker than an available distractor
+**Current:** Q: "Which Tennessee player earned significant national defensive recognition, including Naismith Defensive Player of the Year consideration, during the Rick Barnes era?" A "Josiah-Jordan James", B "Santiago Vescovi", C "Jahmai Mashack", D "Grant Williams" (correct)
+**Suggested fix:** Not proposing a confident swap — flagging for David's judgment. If the intent is "the player with the most significant/notable Naismith DPOY recognition," consider changing correct_answer to C "Jahmai Mashack" instead.
+**Reason:** Verified via search: Grant Williams was a **semifinalist** (one of 10) for the 2019 Naismith DPOY award — real, but a lower tier of "consideration." Jahmai Mashack was an actual **finalist** (one of 4) in 2025, part of the first time two teammates (Mashack and Zakai Zeigler) were finalists in the award's history — a more clearly "significant" national defensive honor. Both are technically true "received consideration" statements, so this isn't a clean-cut factual error, but the stem's emphasis on "significant" recognition fits Mashack better than the marked-correct Williams. Flagging as uncertain per guardrails rather than proposing a confident fix.
+**Status:** ⏳ pending review — flagged as uncertain
+
+### trivia_questions.4a4911bc-eb72-4e7c-9011-3de3e1231e28 — 2026-09-14 / slot 3 — vague/unverifiable premise in question stem
+**Current:** Q: "Which Tennessee coach's introductory remarks upon hiring emphasized a 'toughness and defense first' program identity that has largely held true?" A "Rick Barnes" (correct), B "Buzz Peterson", C "Cuonzo Martin", D "Bruce Pearl"
+**Suggested fix:** Reword to a more concretely verifiable claim, e.g. "Which Tennessee coach is best known for building his program's identity around toughness and defense?" — drops the specific "introductory press conference" framing, which isn't something I could verify against an actual quote or transcript.
+**Reason:** Could not verify that Barnes' specific introductory remarks upon hiring (2015) explicitly stated a "toughness and defense first" identity — this reads as a retrospective characterization of his tenure rather than a checkable fact about a specific press conference. The general premise (Barnes teams are known for toughness/defense) is fair and well-supported; the "introductory remarks" framing risks being an invented specific. Flagging per guardrails rather than confirming or rejecting outright.
+**Status:** ⏳ pending review — flagged as uncertain (unverified specific claim)
+
+### trivia_questions.d9188989-3e3a-48b0-b25c-efde5c21b3e5 — 2026-09-14 / slot 4 — style: long descriptive-phrase answer
+**Current:** correct_answer B = "UConn's various undefeated championship seasons"
+**Suggested fix:** Shorten to "UConn" per David's standing preference for 1-3 word/name/number answers; if a specific season is wanted for precision, name one (e.g. "UConn (2002)") rather than the vaguer "various."
+**Reason:** Style check per David's standing preference — trivia answers should generally be short names/numbers/years, not full descriptive phrases. Separately (not proposing a change): "often compared in retrospective media coverage" is a soft/subjective framing rather than a single crisp fact — defensible given how commonly Summitt's 1997-98 team and UConn's dynasty are discussed together, but borderline in the same way as some items flagged in the 2026-09-01 pass.
+**Status:** ⏳ pending review — style note
+
+### trivia_questions.9c2de16a-6f71-42db-bb98-b865f83f3d6d — 2026-09-13 / slot 4 — style: long compound answer + inconsistent option formatting
+**Current:** correct_answer D = "Northeastern JC and Northern Colorado"; distractors A "Kentucky (SEC)" and B "Duke (ACC)" carry parenthetical conference tags that C/D don't.
+**Suggested fix:** Consider shortening the correct answer (e.g. "Northern Colorado" alone, if the JC leg is secondary to the point of the question); drop the "(SEC)"/"(ACC)" parentheticals from A/B so all four options are formatted consistently.
+**Reason:** Style note — correct answer is longer/more compound than David's preferred short format. Separately, the parenthetical conference tags appearing on only two of four options are a minor formatting inconsistency worth tidying (not meta-commentary, but it makes those two options visually stand out). Underlying facts verified accurate via search: Knecht played Northeastern Junior College (2019-21) then Northern Colorado (2021-23) before transferring to Tennessee.
+**Status:** ⏳ pending review — style note
+
+### trivia_questions.77b1d141-f54e-4497-a49c-42dfdc87fd75 — 2026-09-15 / slot 4 — style: long phrase answer
+**Current:** correct_answer C = "#1 all-time in the SEC"
+**Suggested fix:** Shorten to "#1 in the SEC" or just "#1", matching David's short-answer preference.
+**Reason:** Style note per David's standing preference. Underlying fact verified accurate: Chris Lofton's 431 career three-pointers is the SEC career record (per UT Sports and other sources).
+**Status:** ⏳ pending review — style note
+
+### trivia_questions.af5ddaa4-822a-46ee-9d27-cbf81ac1ed35 — 2026-09-16 / slot 1 — minor: absurd/self-eliminating distractors (low priority given easy slot)
+**Current:** A "Fencing", B "Football" (correct), C "Rowing", D "Cricket"
+**Suggested fix:** Replace with real sports the SEC is also known for but isn't "most associated with" (e.g. "Baseball", "Basketball", "Track and Field") so the question isn't solvable on vibes alone. Low priority — slot 1 is meant to be easy, so some trivial-ness is tolerable.
+**Reason:** §32 distractor-quality — fencing/rowing/cricket aren't sports the SEC is generally associated with at all, so they're eliminable with zero actual trivia knowledge. Same low-priority pattern as the WNBA "Over 20,000" item flagged in the 2026-09-01 pass.
+**Status:** ⏳ pending review — low priority
+
+### General note — 2026-09-16 slot 5 answer format (informational only)
+**Current:** trivia_questions.9c01701f (2026-09-16 slot 5) correct_answer B = "1936, 1941, 1943, 1979, and 2022" (verified accurate — these are Tennessee men's basketball's five actual SEC Tournament title years).
+**Suggested fix:** No change required — a five-year list is inherent to what this question asks ("in which years did these titles come") and can't be shortened to 1-3 words without changing the question itself.
+**Reason:** Style-guideline check only — noted as a reasonable exception since numbers/years are explicitly within David's stated allowance, even as a list of five.
+**Status:** ⏳ pending review (informational only)
+
+### daily_polls — no row scheduled for 2026-09-15 — scheduling gap still open
+**Current:** `SELECT ... WHERE active_date = '2026-09-15'` returns 0 rows. Polls exist for 2026-09-13, 09-14, 09-16 only.
+**Suggested fix:** N/A (no existing row to patch) — this gap was first flagged in the 2026-09-12 pass and remains unfilled. Recommend scheduling a poll for 2026-09-15 before that date arrives.
+**Reason:** In-scope date has no poll queued; carried over from the prior pass, still unresolved.
+**Status:** ⏳ pending review — operational gap, carried over from 2026-09-12 pass
+
+### Poll content check — 2026-09-13, 2026-09-14, 2026-09-16 — no issues found
+**Current:** All three scheduled polls checked against §33 — "best Vol basketball season" (2026-09-13), "best Vol baseball road series atmosphere" (2026-09-14), "best single season performance in Tennessee football history" (2026-09-16).
+**Suggested fix:** N/A
+**Reason:** Each is a clear, single-topic, opinion-style question with 4 distinct, non-overlapping, non-leading options; every season/award/ranking referenced in the options was checked and is factually real (2007-08 and 2018-19 #1 rankings, 2010 Elite Eight, 2022 SEC Tournament title, Manning's 1997 season, Jamal Lewis's 1999 season, Eric Berry's 2009 season, Hooker's 2022 season). No duplicate/near-duplicate poll found in the window.
+**Status:** ✅ no issue
+
+**Sources checked this run:** 247Sports, UTSports.com, Wikipedia (Dalton Knecht, Jahmai Mashack, Jeremy Pruitt, SEC men's basketball tournament, 1936/1943 SEC tournament pages), on3.com and CBS Sports/Yahoo Sports (Zakai Zeigler ACL/eligibility lawsuit coverage), NBA.com draft profile, rockytopinsider.com and utsports.com (Grant Williams 2019 Naismith DPOY watch list/semifinalist status).
+**Status:** ⏳ pending review — all items above remain unresolved pending David's action, except the resolved 2026-09-13 slot 2 item and the two "no issue" checks noted above
