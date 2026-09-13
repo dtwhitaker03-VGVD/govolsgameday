@@ -30,13 +30,13 @@ function getServiceClient() {
 
 interface TeamStatEntry { category: string; stat: string }
 interface GameTeamStatsTeam { team: string; homeAway: "home" | "away"; points: number | null; stats: TeamStatEntry[] }
-interface GameTeamStatsEntry { teams: GameTeamStatsTeam[] }
+interface GameTeamStatsEntry { id: number; teams: GameTeamStatsTeam[] }
 
 interface PlayerStatAthlete { name: string; stat: string }
 interface PlayerStatType { name: string; athletes: PlayerStatAthlete[] }
 interface PlayerStatCategory { name: string; types: PlayerStatType[] }
 interface GamePlayerStatsTeam { team: string; categories: PlayerStatCategory[] }
-interface GamePlayerStatsEntry { teams: GamePlayerStatsTeam[] }
+interface GamePlayerStatsEntry { id: number; teams: GamePlayerStatsTeam[] }
 
 function normalize(s: string): string {
   return s.trim().toLowerCase();
@@ -50,6 +50,41 @@ async function cfbdGet(path: string, apiKey: string): Promise<{ ok: true; data: 
   } catch (err) {
     return { ok: false, message: `Network error fetching ${path}: ${String(err)}` };
   }
+}
+
+// CFBD's /games/teams and /games/players are postgame aggregation endpoints
+// — for a game not yet in that dataset, CFBD has been observed silently
+// ignoring the gameId filter and returning a DIFFERENT game for the queried
+// team instead of an empty result (confirmed live against the 2026-09-12
+// Georgia Tech/Tennessee game: querying gameId=401856681 for Georgia Tech
+// came back with game 401856776, a Georgia Tech/Colorado game). Every
+// lookup below (score/yards, TN's rushing/receiving TDs, opponent
+// turnovers, prop auto-grading) must be run against a response confirmed to
+// be the actual requested game, or it silently corrupts real scoring with
+// another game's numbers.
+function entriesMatchGame<T extends { id: number }>(entries: T[], cfbdGameId: number): T[] | null {
+  return entries[0]?.id === cfbdGameId ? entries : null;
+}
+
+interface ScheduleGame { id: number; week: number }
+
+// The gameId filter being unreliable (see above) rules out querying
+// /games/teams and /games/players by gameId directly. /games (the plain
+// schedule endpoint, not the box-score ones) was confirmed live to return
+// every one of a team's games for the season with correct ids and week
+// numbers, so resolve the real week from there and query the box-score
+// endpoints by week instead — confirmed live to return the right game once
+// the week is known.
+async function resolveWeek(
+  apiKey: string,
+  cfbdGameId: number,
+  season: number,
+  team: string
+): Promise<number | null> {
+  const result = await cfbdGet(`/games?year=${season}&team=${encodeURIComponent(team)}`, apiKey);
+  if (!result.ok) return null;
+  const games = result.data as ScheduleGame[];
+  return games.find((g) => g.id === cfbdGameId)?.week ?? null;
 }
 
 // Final score + total yards per team, straight from /games/teams — CFBD's
@@ -313,35 +348,49 @@ Deno.serve(async (req: Request) => {
     // game, not just a Tennessee one (e.g. an admin test game).
     const season = new Date(game.kickoff_time).getUTCFullYear();
     const teamParam = encodeURIComponent(game.home_team);
-    const [teamsResult, playersResult] = await Promise.all([
-      cfbdGet(`/games/teams?gameId=${game.cfbd_game_id}&year=${season}&team=${teamParam}`, apiKey),
-      cfbdGet(`/games/players?gameId=${game.cfbd_game_id}&year=${season}&team=${teamParam}`, apiKey),
-    ]);
+    const week = await resolveWeek(apiKey, game.cfbd_game_id, season, game.home_team);
 
-    if (teamsResult.ok) {
-      teamsData = teamsResult.data as GameTeamStatsEntry[];
-      tnTurnoversForced = findTurnoversForced(teamsData);
-      if (tnTurnoversForced === null) warnings.push("Could not find opponent turnovers stat in CFBD /games/teams response.");
-
-      const pointsAndYards = findTeamPointsAndYards(teamsData);
-      homePoints = pointsAndYards.homePoints;
-      awayPoints = pointsAndYards.awayPoints;
-      homeYards = pointsAndYards.homeYards;
-      awayYards = pointsAndYards.awayYards;
-      if (homePoints === null || awayPoints === null) warnings.push("Could not find final score in CFBD /games/teams response — left live_games score untouched.");
-      if (homeYards === null || awayYards === null) warnings.push("Could not find total yards in CFBD /games/teams response — left live_games yards untouched.");
+    if (week === null) {
+      warnings.push("Could not resolve this game's week from CFBD's schedule — final score/yards and rushing/receiving TDs/turnovers-forced won't be updated from CFBD.");
     } else {
-      warnings.push(teamsResult.message);
-    }
+      const [teamsResult, playersResult] = await Promise.all([
+        cfbdGet(`/games/teams?week=${week}&year=${season}&team=${teamParam}`, apiKey),
+        cfbdGet(`/games/players?week=${week}&year=${season}&team=${teamParam}`, apiKey),
+      ]);
 
-    if (playersResult.ok) {
-      playersData = playersResult.data as GamePlayerStatsEntry[];
-      tnRushingTds = sumCategoryTds(playersData, "rushing");
-      tnReceivingTds = sumCategoryTds(playersData, "receiving");
-      if (tnRushingTds === null) warnings.push("Could not find TN rushing TDs in CFBD /games/players response.");
-      if (tnReceivingTds === null) warnings.push("Could not find TN receiving TDs in CFBD /games/players response.");
-    } else {
-      warnings.push(playersResult.message);
+      if (teamsResult.ok) {
+        teamsData = entriesMatchGame(teamsResult.data as GameTeamStatsEntry[], game.cfbd_game_id);
+        if (!teamsData) {
+          warnings.push("CFBD /games/teams returned a different game than requested — ignored to avoid corrupting scoring with another game's stats.");
+        } else {
+          tnTurnoversForced = findTurnoversForced(teamsData);
+          if (tnTurnoversForced === null) warnings.push("Could not find opponent turnovers stat in CFBD /games/teams response.");
+
+          const pointsAndYards = findTeamPointsAndYards(teamsData);
+          homePoints = pointsAndYards.homePoints;
+          awayPoints = pointsAndYards.awayPoints;
+          homeYards = pointsAndYards.homeYards;
+          awayYards = pointsAndYards.awayYards;
+          if (homePoints === null || awayPoints === null) warnings.push("Could not find final score in CFBD /games/teams response — left live_games score untouched.");
+          if (homeYards === null || awayYards === null) warnings.push("Could not find total yards in CFBD /games/teams response — left live_games yards untouched.");
+        }
+      } else {
+        warnings.push(teamsResult.message);
+      }
+
+      if (playersResult.ok) {
+        playersData = entriesMatchGame(playersResult.data as GamePlayerStatsEntry[], game.cfbd_game_id);
+        if (!playersData) {
+          warnings.push("CFBD /games/players returned a different game than requested — ignored to avoid corrupting scoring with another game's stats.");
+        } else {
+          tnRushingTds = sumCategoryTds(playersData, "rushing");
+          tnReceivingTds = sumCategoryTds(playersData, "receiving");
+          if (tnRushingTds === null) warnings.push("Could not find TN rushing TDs in CFBD /games/players response.");
+          if (tnReceivingTds === null) warnings.push("Could not find TN receiving TDs in CFBD /games/players response.");
+        }
+      } else {
+        warnings.push(playersResult.message);
+      }
     }
   }
 
