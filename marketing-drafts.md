@@ -321,6 +321,39 @@ either posts it himself or asks for changes first.
 - Canvas: https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
 
+## 2026-09-14 — Final score recap
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Subject: Tennessee 45, Georgia Tech 24 (Sept 12, 2026, Tennessee on the
+  road) — pulled straight from `live_games` (`status = 'calculated'`,
+  `updated_at` 2026-09-13, within the 2-3 day freshness window and not
+  yet covered by any recap post; every prior entry on this game was
+  hype/countdown, not the result). Total yards TN 447 / GT 356, also
+  from `live_games`. The "2-0 THIS SEASON" pill is a direct read of the
+  two `calculated` rows currently in `live_games` (Furman 56-9, Georgia
+  Tech 45-24), both Tennessee wins — not a stat pulled from any
+  season-record column, since none exists in the schema. Top-predictor
+  spotlight from `game_leaderboard` joined to `profiles` for the
+  Georgia Tech `game_id`: **Tiberious**, 1,375 total game points (925
+  pregame + 450 drive), with **MrMasterMind14** second at 1,144 — real
+  usernames, real point splits, no invented box-score detail beyond
+  what `live_games`/`game_leaderboard` actually carry.
+- Design note: dense magazine-style single artboard — masthead strip
+  (logo lockup + red "FINAL" pill/date) over a divider, a hero
+  score block (orange TN "45" vs. muted GT "24", Anton numerals, one
+  Permanent Marker hype line "Road win. Still rolling." tilted beneath
+  it, context pills), then two stacked panel blocks: a total-yards bar
+  comparison and a top-predictor spotlight with point-breakdown chips
+  and the runner-up line, closing on a thin CTA footer. Anton + Inter +
+  one Permanent Marker accent line per this week's direction; diagonal
+  end-zone stripe motif and a radial glow behind the score; GVGD
+  monogram + wordmark lockup matches `Header.tsx`. No photos — pure
+  typography/color/motif. Verified with the required two-pass local
+  render (real Google Fonts, then fonts stripped to fallback) before
+  publishing — no wrapping, overlap, or overflow in either pass.
+- Canvas: https://claude.ai/code/artifact/27adde31-01e5-4ebe-b194-018cc63d24c9
+- Status: ⏳ pending review
+
 ### Update — cleanup pass (2026-09-11)
 
 - David flagged the "1" bleeding into "DAY LEFT" below it, the dark card
