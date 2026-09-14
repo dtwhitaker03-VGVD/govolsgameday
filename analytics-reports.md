@@ -17,3 +17,10 @@
 - Checked `cloudflare_analytics_snapshots` on 2026-09-07: the table still has only one row total, `period_end = 2026-08-30`. There is no row for the 2026-08-31–2026-09-06 week that should have landed via Monday's `invoke_cloudflare_analytics_report()` pg_cron run.
 - Per the reporting guardrails, no dashboard was built against missing data — this is a placeholder log entry only. No new numbers to report this week.
 - Action needed: confirm the pg_cron job / `cloudflare-analytics-report` edge function ran and populated a row for this period; re-run this report once it exists.
+
+## 2026-09-07 to 2026-09-13 — weekly report
+- Dashboard: https://claude.ai/code/artifact/bc5869ca-c203-4bb7-a12b-32623fd80ea8
+- Requests: 10,715 · Page views: 5,248 · Visitors: 632 · Cache hit: 54.0%
+- New signups: 0 · Pre-game predictions: 2 · Live predictor: 2 (27 total picks submitted across those 2 participants, from `drive_predictions`)
+- Traffic quality: Requests are up sharply vs. the last recorded week, but the increase is concentrated almost entirely in one day — Sep 8 logged 6,887 requests (64% of the week) from just 119 uniques (~58 req/unique vs. 4–8 on every other day), France was the top source country (6,319 requests, 59% of total, 3x the US), redirect codes made up 42% of requests, cache hit rate fell from 68.6% to 54.0%, and total bytes transferred stayed essentially flat (176.8 MB → 177.2 MB) despite the request spike — consistent with an automated path-scanning sweep, not organic growth. Threats blocked (16) stayed in line with the prior week (18), so nothing here tripped Cloudflare's WAF as malicious.
+- Note: the Aug 31–Sep 6 week is still missing from `cloudflare_analytics_snapshots` (the pg_cron gap first flagged 2026-09-07, reconfirmed 2026-09-11 in PR #158) — this row picked back up with the following week (Sep 7–13), so the comparison above is to Aug 24–30, roughly 2.5 weeks prior, not an adjacent week. The missing week has not been backfilled.
