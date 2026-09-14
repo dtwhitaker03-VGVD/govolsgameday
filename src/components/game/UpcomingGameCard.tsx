@@ -48,14 +48,15 @@ interface Countdown {
   total: number;
 }
 
-// Matches the relevant slice of game-preview-sync's parsed ESPN content —
-// CFBD's own season-stats endpoint doesn't expose points/yards allowed
-// (see cfbd-data's buildTeamStats), so Scoring/Total Defense (and, this
-// early in the season, often Scoring Offense too) stay "—" from that
-// source. The Game Preview scrape already carries each team's national
-// rank in these categories (the "(19th)" in "56 points per game (19th)"),
-// so it doubles as the stat source here — this card shows that rank
-// rather than the raw per-game number.
+// Matches the relevant slice of game-preview-sync's parsed ESPN content.
+// CFBD's own season-stats endpoint doesn't expose points/yards allowed at
+// all (see cfbd-data's buildTeamStats), so Scoring/Total Defense (and,
+// this early in the season, often Scoring Offense too) stay "—" from that
+// source regardless. Total Offense IS available from CFBD directly, but
+// as a raw season yardage total rather than a rank, which read oddly next
+// to the other three rows' national ranks — the Game Preview scrape's
+// rank (the "(19th)" in "56 points per game (19th)") is used for all four
+// categories instead, so the whole comparison table reads consistently.
 interface PreviewStatBlock {
   overall?: string;
   scoring?: string;
@@ -231,8 +232,6 @@ export function UpcomingGameCard() {
     </span>
   ) : null;
 
-  const fmt = (v: number | null) => (v == null ? '—' : v % 1 === 0 ? v.toString() : v.toFixed(1));
-
   const findKeyStats = (team: string) => previewKeyStats.find((ks) => ks.team === team);
   const tnKeyStats = findKeyStats('Tennessee');
   const oppKeyStats = data ? findKeyStats(data.opponent.name) : undefined;
@@ -243,6 +242,8 @@ export function UpcomingGameCard() {
   const oppScoringDefRank = parseRank(oppKeyStats?.defense.scoring) ?? data?.opponent.stats.scoringDefense?.rank ?? null;
   const tnTotalDefRank = parseRank(tnKeyStats?.defense.overall) ?? data?.tennessee.stats.totalDefense?.rank ?? null;
   const oppTotalDefRank = parseRank(oppKeyStats?.defense.overall) ?? data?.opponent.stats.totalDefense?.rank ?? null;
+  const tnTotalOffRank = parseRank(tnKeyStats?.offense.overall) ?? data?.tennessee.stats.totalOffense?.rank ?? null;
+  const oppTotalOffRank = parseRank(oppKeyStats?.offense.overall) ?? data?.opponent.stats.totalOffense?.rank ?? null;
 
   const headerExtra = fetchState === 'ok' && data ? (
     <button
@@ -327,8 +328,8 @@ export function UpcomingGameCard() {
             />
             <StatRow
               label="Total Off"
-              tnValue={fmt(data.tennessee.stats.totalOffense?.value ?? null)}
-              oppValue={fmt(data.opponent.stats.totalOffense?.value ?? null)}
+              tnValue={ordinal(tnTotalOffRank)}
+              oppValue={ordinal(oppTotalOffRank)}
             />
             <StatRow
               label="Scoring Def"
