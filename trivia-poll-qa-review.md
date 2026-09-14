@@ -115,3 +115,70 @@
 
 None of the above changes any of the 15 pending fixes from the run above — they're still outstanding and unapplied. No new issues were found in this pass. Sources checked: Baseball America, UTSports.com, Wikipedia (Tennessee women's swimming and diving; 2022 Tennessee Volunteers baseball team), MLB.com/press release on the 2024 draft, ESPN/Forbes on Catchings' retirement stats, and 247Sports on Neyland Stadium attendance.
 **Status:** ⏳ pending review — all outstanding items above remain unresolved pending David's action
+
+## 2026-09-14 — run summary
+- Checked: trivia 2026-09-14 to 2026-09-17 (20 rows, 5 slots × 4 days), polls 2026-09-14 to 2026-09-17 (3 rows present — 2026-09-15 still missing)
+- Issues found: 7 new
+- Note on log continuity: this run was briefed on "2026-09-12" and "2026-09-13" QA passes as the immediately-prior run, but no such dated sections exist in this file — the most recent entry prior to today is the 2026-09-01 follow-up pass above. Logging that discrepancy rather than fabricating entries for runs I have no record of. The 2026-09-15 poll gap and the slot-5 (Grant Williams/Mashack) uncertainty were independently re-verified against the live database regardless of that gap in the log.
+
+### Verification of David's two direct edits (2026-09-14 slots 3 & 4) — both confirmed resolved
+- **Slot 3** (`4a4911bc-eb72-4e7c-9011-3de3e1231e28`): Now reads "Which Tennessee coach is best known for building his program's identity around toughness and defense?" with options Rick Barnes (correct) / Buzz Peterson / Cuonzo Martin / Bruce Pearl. Confirmed: the unverifiable "introductory press conference" claim is gone, all four options are real Tennessee head coaches, and "toughness and defense" as Barnes' program identity is a well-documented, verifiable premise (his teams' defensive rankings and "MTXE" ethos are widely reported). No remaining issue.
+- **Slot 4** (`d9188989-3e3a-48b0-b25c-efde5c21b3e5`): Options are now single school names — Baylor / UConn (correct) / Indiana / Texas — confirmed shortened per David's standing style preference. Underlying premise (Summitt's 1997-98 undefeated team compared in retrospective coverage to UConn's later perfect seasons) is a defensible, commonly-made comparison. No remaining issue.
+- **Slot 5** (`5786a59c-53e6-4323-8bf2-5666b890a5f8`, Grant Williams vs. Jahmai Mashack DPOY-consideration question): unchanged since the last pass, as expected — David is still deciding between the two. Not re-flagged as newly broken; noting status as still open/undecided per his instruction.
+
+### daily_polls — 2026-09-15 — scheduling gap still open
+**Current:** `SELECT ... WHERE active_date = '2026-09-15'` returns 0 rows. Polls exist for 2026-09-14, 2026-09-16, 2026-09-17 only.
+**Suggested fix:** N/A — no row to patch. Flagging again so a poll gets scheduled for 2026-09-15 before that date arrives.
+**Reason:** Same in-scope gap flagged in prior passes; confirmed still unfilled as of this run.
+**Status:** ⏳ pending review — operational gap, no row to fix
+
+### trivia_questions.77b1d141-f54e-4497-a49c-42dfdc87fd75 — 2026-09-15 / slot 4 — distractor contradicts the question's own stated premise
+**Current:** Q: "Chris Lofton's Tennessee career three-point makes total, 431, ranks him where among all-time SEC leaders?" Options: A "Middle of the pack", B "He never attempted a three-pointer", C "#1 all-time in the SEC" (correct), D "Outside the top 500"
+**Suggested fix:** Replace B with a plausible-but-wrong ranking claim, e.g. "Top 10, but not #1" or "3rd all-time in the SEC".
+**Reason:** §32 distractor quality — B is self-eliminating by direct contradiction: the question stem itself states Lofton made 431 threes, so "He never attempted a three-pointer" can't be true. The underlying fact (431 makes, #1 all-time in the SEC) was verified via web search (247Sports "Lofton Named an SEC Legend") and is accurate — no factual-accuracy issue, only the distractor.
+**Status:** ⏳ pending review
+
+### trivia_questions.99775082-b58c-4bf4-a91d-748694863a01 — 2026-09-15 / slot 2 — minor difficulty-mismatch note
+**Current:** "Which Tennessee athletic administrator served as Athletic Director from 2017 to 2021 and was also the head coach of the 1998 national championship football team?" (Phillip Fulmer, correct) — labeled `easy`.
+**Suggested fix:** No content change proposed; consider relabeling `difficulty` to `medium` given the two-fact connection required (AD tenure years + linking to the 1998 coaching staff).
+**Reason:** §32 "difficulty matches slot position" (slot 2 = Easy/Medium) — this leans more medium than easy. Underlying facts verified accurate (Fulmer was AD Dec. 2017–Jan. 2021, head coach of the 1998 title team). Low priority.
+**Status:** ⏳ pending review — minor/informational
+
+### trivia_questions.c7b87c28-ae01-4ce7-850a-4386ce8a2ec6 — 2026-09-16 / slot 2 — absurd/self-eliminating distractor + style violation
+**Current:** Options include D "Tennessee has never won an SEC title" (correct answer C, Rod Delmonico)
+**Suggested fix:** Replace D with a plausible-but-wrong coach name, e.g. "Larry Simcox" or another real former Tennessee baseball coach.
+**Reason:** §32 — D is obviously false to any fan and self-eliminating on its face, and it's also a long descriptive phrase rather than a short 1-3 word answer, contrary to David's standing style preference. Underlying fact verified accurate: Delmonico led Tennessee to its first SEC regular-season and tournament titles in 1993 (three straight, 1993-95).
+**Status:** ⏳ pending review
+
+### trivia_questions.c901f3ae-d324-4ec4-8c72-30188af3a87c — 2026-09-16 / slot 3 — timeline/framing inaccuracy
+**Current:** "Which injury threatened to end Zakai Zeigler's senior season before an NCAA eligibility waiver became a major storyline?" A "A broken wrist", B "A torn ACL" (correct), C "A shoulder injury", D "A concussion"
+**Suggested fix:** Reword the stem to remove the "senior season" claim — e.g. "Which injury did Zakai Zeigler suffer in 2023 that later became central to his NCAA eligibility-waiver lawsuit seeking a fifth season?" — or otherwise decouple the injury's timing from "senior season."
+**Reason:** §32 factual accuracy. Verified via web search: Zeigler's ACL tear happened in March 2023, ending that season (his second year, not his senior season) — he was a semifinalist for Naismith DPOY that year and missed the rest of the season/postseason. The NCAA eligibility-waiver lawsuit was a separate, later storyline (filed 2025, dropped July 2025) arguing that injury should count toward a bonus fifth season. As worded, the question implies the ACL tear happened during/threatened his senior season, which conflates two different points in his career. The correct answer (torn ACL) itself is right — this is a stem-wording accuracy issue, not a wrong-answer issue.
+**Status:** ⏳ pending review — recommend a wording fix, not a full replacement
+
+### trivia_questions.9c01701f-3252-40a9-922e-84bf818fc081 — 2026-09-16 / slot 5 — style note (long-answer format)
+**Current:** Correct answer (B) is "1936, 1941, 1943, 1979, and 2022" — a 5-item list.
+**Suggested fix:** No accuracy fix needed (verified correct via web search — Tennessee men's basketball's five SEC Tournament titles are exactly those years). If a shorter-answer format is wanted, consider reframing the question to ask for a single fact (e.g. "What year did Tennessee win its most recent SEC Tournament title?" → "2022") rather than requiring the full five-year list as the answer.
+**Reason:** Applying David's standing style preference (trivia answers should generally be short 1-3 words/names/numbers) as a check per this run's instructions — flagging as a style note even though the content itself is accurate and not broken.
+**Status:** ⏳ pending review — style note only, no accuracy issue
+
+### trivia_questions.c9fca09b-1541-48f7-9789-327be49f47dd — 2026-09-17 / slot 2 — factual error (wrong year) + meta-commentary in options
+**Current:** "Which coach was hired in 2023 to lead the Lady Vols after Kellie Harper's departure?" A "Mickie DeMoss (returning)", B "Kim Caldwell" (correct), C "Holly Warlick (returning)", D "Pat Summitt (deceased, not applicable)"
+**Suggested fix:** Change "2023" to "2024" in the question stem. Also strip the parentheticals from A, C, and D so they just read "Mickie DeMoss", "Holly Warlick", and a real alternate name instead of "Pat Summitt (deceased, not applicable)" (replace D entirely with a plausible real candidate, e.g. "Niele Ivey").
+**Reason:** §32 factual accuracy — verified via web search: Kellie Harper was fired April 1, 2024, and Kim Caldwell was hired April 7, 2024 — not 2023. This is a hard date error, not a rounding/approximation issue. Separately, §32 prohibits meta-commentary bleeding into option text — "(returning)" and "(deceased, not applicable)" both editorialize/give away information rather than reading as clean answer options, the same pattern flagged repeatedly in prior passes.
+**Status:** ⏳ pending review
+
+### trivia_questions.09d96289-6029-4a1f-b22c-f6794566481d — 2026-09-17 / slot 4 — broken True/False structure (recurring pattern)
+**Current:** "...True or false?" A "No Lady Vol has ever left early for the WNBA Draft", B "True" (correct), C "Early entry is banned by the NCAA", D "Not applicable"
+**Suggested fix:** Restructure as a genuine 2-option True/False (option_a "True", option_b "False", option_c/option_d null, correct_answer "A"), or convert to a standard 4-option factual question naming specific Lady Vols who left early (e.g. Candace Parker's class-year status, or another named underclassman) with real plausible distractors.
+**Reason:** Same structural defect logged multiple times in the 2026-09-01 passes (`a221e816`, `c3440429`, `4bc04229`) — no clean "False" option is offered; the other three options are a non-answer ("Not applicable"), an absurd/self-eliminating claim (NCAA doesn't ban early entry — it's a normal, common path), and a strawman. This pattern keeps recurring in newly-generated content and may be worth a systemic fix on the generation side, not just this one row.
+**Status:** ⏳ pending review
+
+### trivia_questions.0ba5eb78-a2d1-4cc4-afef-c8e8ad66bb15 — 2026-09-17 / slot 5 — distractors contradict the question's own premise
+**Current:** "Tennessee and Alabama have played annually almost every year since the 1930s-40s. Approximately how many times have the two programs met all-time?" A "Around 10 times", B "It was interrupted every decade, fewer than 20 meetings", C "They have never once played", D "Over 100 times" (correct)
+**Suggested fix:** Replace A, B, and C with plausible-but-wrong totals closer to the real number, e.g. "Around 75 times", "Around 90 times", "Around 60 times".
+**Reason:** §32 — the question stem itself states the teams have played "annually almost every year since the 1930s-40s," which already rules out A, B, and C by simple arithmetic (that's roughly 85-95 years of near-annual meetings, obviously more than 20 and obviously not zero) before the reader needs any real knowledge. Underlying fact verified via web search: Alabama leads the all-time series 60-40-7 across 108 meetings — "Over 100 times" is accurate.
+**Status:** ⏳ pending review
+
+**Sources checked this run:** 247Sports (Lofton SEC Legend / SEC threes record), Yahoo Sports (Rod Delmonico Tennessee/FSU ties), Wikipedia (1993-95 SEC baseball tournaments; 1979 SEC men's basketball tournament; UConn Huskies women's basketball), UConn Today (12th title, April 2025), WBIR/ESPN/CBS Sports/WVLT (Kim Caldwell hire, April 2024), ESPN/247Sports/On3/Outkick (Zakai Zeigler ACL tear, March 2023), Winsipedia/Yahoo Sports (Tennessee-Alabama all-time series, 108 meetings), UTSports.com (Casey Clausen 2001 season).
+**Status:** ⏳ pending review — all items above are proposals only; no writes made to `trivia_questions` or `daily_polls`.
