@@ -115,3 +115,99 @@
 
 None of the above changes any of the 15 pending fixes from the run above — they're still outstanding and unapplied. No new issues were found in this pass. Sources checked: Baseball America, UTSports.com, Wikipedia (Tennessee women's swimming and diving; 2022 Tennessee Volunteers baseball team), MLB.com/press release on the 2024 draft, ESPN/Forbes on Catchings' retirement stats, and 247Sports on Neyland Stadium attendance.
 **Status:** ⏳ pending review — all outstanding items above remain unresolved pending David's action
+
+## 2026-09-15 — run summary
+- Checked: trivia 2026-09-15 to 2026-09-18 (20 rows, 5 slots × 4 days), polls 2026-09-15 to 2026-09-18 (4 rows, full coverage)
+- Issues found: 14 (2 factual-accuracy errors, 8 distractor-quality/structural issues, 3 style notes, 1 informational poll-mix note)
+- Verification note on David's manual fixes to 2026-09-15: re-checked all four independently rather than assuming.
+  - `e76daed0` (slot 3, Jeremy Pruitt DC): **Clean.** Pruitt was Alabama's DC in 2016-17 immediately before becoming Tennessee HC in 2018 — "Alabama" (C) is accurate, all four options are real programs, no distractor issues.
+  - `77b1d141` (slot 4, Chris Lofton three-pointers): **Factually clean**, verified via web search — Lofton's 431 made 3-pointers is still the SEC's all-time career record (Chaz Lanier broke Tennessee's *single-season* record in 2025, not Lofton's career/SEC record, so "#1 all-time in the SEC" remains accurate). Logging a minor style-only note below (see entry 1).
+  - `c61cd010` (slot 5, UConn/women's basketball titles): **Factually clean.** UConn's 11 NCAA titles vs. Tennessee's 8 is accurate. Logging a soft category note below (see entry 2) — not a hard error.
+  - `5b513ef1` (2026-09-15 poll, Kennesaw State): row now exists and is well-formed (4 distinct, non-overlapping point-margin options, no leading bias). Game-outcome/schedule claims for a Sept. 2026 game are not independently verifiable via search and are treated as out of scope for fact-checking, consistent with this being a standard prediction-poll format.
+- Sources checked this run: Wikipedia/Knoxville News Sentinel/Knox TN Today (Tennessee's six claimed national titles), CBS Sports/Wikipedia/WBIR (Kim Caldwell hire date), Rivals/Wikipedia (Tennessee SEC Tournament title years), Yahoo Sports/Wikipedia (Rod Delmonico's SEC titles), CBS Sports/WATE/247Sports (Zakai Zeigler ACL timeline), UTSports/247Sports/On3 (Chris Lofton vs. Chaz Lanier 3-point records).
+
+### trivia_questions.77b1d141-f54e-4497-a49c-42dfdc87fd75 — 2026-09-15 / slot 4 — style: correct answer is a long phrase, not short
+**Current:** option_b "#5 all-time in the SEC", option_c "#1 all-time in the SEC" (correct)
+**Suggested fix:** Shorten to "5th in SEC" and "#1 in SEC" (or similar 2-3 word phrasing) to match David's short-answer style preference.
+**Reason:** §32 style preference — correct answers/options should generally be 1-3 words; "#1 all-time in the SEC" is a 5-word phrase. Low priority, factual content is accurate.
+**Status:** ⏳ pending review
+
+### trivia_questions.c61cd010-452d-487e-871c-50cb65397d99 — 2026-09-15 / slot 5 — soft category note: question is mostly about a non-SEC team
+**Current:** Category "SEC Knowledge"; question asks which program (UConn, not an SEC school) holds the most NCAA women's basketball titles, more than Tennessee's eight.
+**Suggested fix:** No confident fix proposed — flagging for awareness only. Consider whether "Lady Vols History" (since the fact is anchored on Tennessee's own title count) fits better than "SEC Knowledge" (since the correct answer, UConn, isn't an SEC program). Could reasonably be argued either way.
+**Reason:** §32 category-accuracy check — the correct answer being a non-SEC program is a mild mismatch for the "SEC Knowledge" label.
+**Status:** ⏳ pending review — informational, low confidence
+
+### trivia_questions.af5ddaa4-822a-46ee-9d27-cbf81ac1ed35 — 2026-09-16 / slot 1 — self-eliminating distractors
+**Current:** "The SEC's overall athletic reputation is most commonly associated with dominance in which sport...?" A "Fencing", B "Football" (correct), C "Rowing", D "Cricket"
+**Suggested fix:** Replace Fencing/Rowing/Cricket with sports that are actually part of the SEC-dominance conversation (e.g. "Basketball", "Baseball", "Gymnastics") so all four options are plausible in context, rather than sports nobody would associate with SEC prestige talk.
+**Reason:** §32 — distractors are trivially eliminable on their face; a test-taker needs zero Vol/SEC knowledge to answer. Correct answer itself is accurate but framed a bit softly ("most commonly associated," "frequent talking point") — defensible as general knowledge, not flagging separately.
+**Status:** ⏳ pending review
+
+### trivia_questions.c7b87c28-ae01-4ce7-850a-4386ce8a2ec6 — 2026-09-16 / slot 2 — self-eliminating/non-answer distractor
+**Current:** "Which Tennessee coach's teams won the program's first SEC regular-season and tournament titles of the modern era, in the 1990s?" A "Todd Raleigh", B "Tony Vitello", C "Rod Delmonico" (correct), D "Tennessee has never won an SEC title"
+**Suggested fix:** Replace D with a real, plausible-but-wrong Tennessee baseball coach name so all four options are answers of the same type. I don't have a verified name to propose with confidence — recommend the content team pick a real former/predecessor Tennessee baseball coach.
+**Reason:** §32 — D directly contradicts the question's own premise (which presupposes Tennessee won such titles), making it a giveaway non-answer rather than a plausible distractor.
+**Status:** ⏳ pending review — flagged as uncertain on exact replacement name
+**Verification:** Correct answer confirmed accurate — Rod Delmonico led Tennessee to three straight SEC regular-season and tournament titles, 1993-95, the program's first of the modern (post-1990s realignment) era.
+
+### trivia_questions.c901f3ae-d324-4ec4-8c72-30188af3a87c — 2026-09-16 / slot 3 — factual error: wrong season attributed to the injury
+**Current:** "Which injury threatened to end Zakai Zeigler's senior season before an NCAA eligibility waiver became a major storyline?" A "A broken wrist", B "A torn ACL" (correct), C "A shoulder injury", D "A concussion"
+**Suggested fix:** Change "senior season" to "sophomore season" in the question text (e.g. "Which injury did Zakai Zeigler suffer during his sophomore season that later fueled a major NCAA eligibility-waiver storyline?").
+**Reason:** Verified via web search — Zeigler tore his ACL on Feb. 28, 2023, during his **sophomore** season (missing the season's remainder), not his senior season. The eligibility-waiver lawsuit (seeking a 5th year) came later, in 2025, after his actual senior season — but the injury itself did not occur in his senior year as the question states. Correct answer (torn ACL) is right; only the season label is wrong. §32 factual-accuracy failure.
+**Status:** ⏳ pending review
+
+### trivia_questions.9c01701f-3252-40a9-922e-84bf818fc081 — 2026-09-16 / slot 5 — style: correct answer is a long list, not short
+**Current:** correct answer (option_b) "1936, 1941, 1943, 1979, and 2022"
+**Suggested fix:** No strong alternative proposed — a 5-year list is hard to compress below the 1-3 word style guideline for this type of fact. Flagging as a low-priority style exception rather than an error.
+**Reason:** §32 style preference note. **Verification:** confirmed accurate via web search — Tennessee has exactly 5 men's basketball SEC Tournament titles, in 1936, 1941, 1943, 1979, and 2022; no factual-accuracy issue.
+**Status:** ⏳ pending review — informational only
+
+### trivia_questions.c9fca09b-1541-48f7-9789-327be49f47dd — 2026-09-17 / slot 2 — factual error (wrong hire year) + meta-commentary/tasteless distractors
+**Current:** "Which coach was hired in 2023 to lead the Lady Vols after Kellie Harper's departure?" A "Mickie DeMoss (returning)", B "Kim Caldwell" (correct), C "Holly Warlick (returning)", D "Pat Summitt (deceased, not applicable)"
+**Suggested fix:** (1) Change "hired in 2023" to "hired in 2024" in the question text. (2) Strip the parenthetical "(returning)" from options A and C — they should just read "Mickie DeMoss" and "Holly Warlick". (3) Replace option D entirely with a real, plausible candidate name (e.g. another coach who was reportedly considered in the search) rather than invoking a deceased coach as a joke/non-answer.
+**Reason:** Verified via web search — Kim Caldwell was hired April 7, 2024 (following Kellie Harper's departure after the 2023-24 season), not 2023; this is a hard factual error. Separately, §32 prohibits meta-commentary bleeding into option text (the "(returning)" and "(deceased, not applicable)" asides are giveaways), and invoking a deceased former coach as a non-answer option is in poor taste for this context.
+**Status:** ⏳ pending review
+
+### trivia_questions.09d96289-6029-4a1f-b22c-f6794566481d — 2026-09-17 / slot 4 — broken True/False structure + hedge/non-informative correct answer
+**Current:** "...True or false?" A "No Lady Vol has ever left early for the WNBA Draft", B "True" (correct), C "Early entry is banned by the NCAA", D "Not applicable"
+**Suggested fix:** Recommend full replacement with a standard 4-option factual question naming a specific real Lady Vol who left early for the WNBA Draft (and the year), giving a crisp, verifiable, non-generic correct answer — rather than restructuring as True/False, since "True" alone with no cited fact is not informative trivia content.
+**Reason:** Same recurring structural defect flagged repeatedly in the 2026-09-01 run (no genuine "False" option; other three are self-eliminating/absurd) — §32 self-eliminating distractors and no-hedge-answer rules both apply; "True" as a correct answer conveys no actual fact to the player.
+**Status:** ⏳ pending review
+
+### trivia_questions.0ba5eb78-a2d1-4cc4-afef-c8e8ad66bb15 — 2026-09-17 / slot 5 — self-eliminating distractor
+**Current:** "...Approximately how many times have the two programs met all-time?" A "Around 10 times", B "It was interrupted every decade, fewer than 20 meetings", C "They have never once played", D "Over 100 times" (correct)
+**Suggested fix:** Replace C with a plausible-but-wrong number range, e.g. "Around 50 times".
+**Reason:** §32 — option C directly contradicts the question's own stated premise ("played annually almost every year since the 1930s-40s"), making it an obvious giveaway rather than a real distractor. Correct answer verified reasonable — Tennessee-Alabama have met over 100 times all-time.
+**Status:** ⏳ pending review
+
+### trivia_questions.9d690cec-73dc-488a-a35a-059eff6f7acd — 2026-09-18 / slot 1 — self-eliminating distractors
+**Current:** "Which Tennessee forward was named a consensus first-team All-American on the program's 2018-19 #1-ranked team?" A "LeBron James", B "Grant Williams" (correct), C "Michael Jordan", D "Kobe Bryant"
+**Suggested fix:** Replace the NBA-legend distractors with real Tennessee players from that same 2018-19 team, e.g. "Admiral Schofield", "Jordan Bone", "Lamonte Turner".
+**Reason:** §32 — any casual sports fan can eliminate three globally famous NBA legends who never played for Tennessee without any Vol-specific knowledge; undermines the question even at "easy" difficulty. Correct answer (Grant Williams, 2018-19 consensus first-team All-American) verified accurate.
+**Status:** ⏳ pending review
+
+### trivia_questions.585e3cc0-ba19-48ea-b0a5-ee4e25e04f7e — 2026-09-18 / slot 3 — hedge/non-answer correct answer + self-eliminating distractor
+**Current:** "...Roughly how often has Tennessee beaten Kentucky under Barnes?" A "Only in exhibition games", B "Never", C "On multiple occasions" (correct), D "Exactly once"
+**Suggested fix:** Recommend full replacement with a specific, verifiable fact (e.g. an actual head-to-head win count under Barnes, or a specific memorable game/date) as the correct answer, rather than the vague "on multiple occasions." I'm not proposing an exact number myself since I did not verify Tennessee's precise current record vs. Kentucky under Barnes this run — flag for verification before drafting a replacement.
+**Reason:** §32 explicitly bars hedge/non-answers as the correct answer — "on multiple occasions" is not a single defensible fact. Also, option B "Never" self-eliminates against the question's own premise (the stem already describes court-storming wins over Kentucky).
+**Status:** ⏳ pending review — flagged as uncertain (replacement fact not verified)
+
+### trivia_questions.bf157f44-5ae0-4634-88c0-4755b2875da2 — 2026-09-18 / slot 4 — non-answer/self-eliminating distractors
+**Current:** "...centered on which program?" A "No Tennessee sport has ever faced NCAA infractions", B "Not applicable", C "The Jeremy Pruitt-era football program" (correct), D "Every single Tennessee sport has faced major infractions"
+**Suggested fix:** Replace A, B, and D with real Tennessee program names that did *not* face major NCAA infractions (e.g. "Vol Baseball", "Lady Vols Basketball", "Vol Track & Field") so all four options are the same type of answer as the correct one. Also consider shortening the correct answer for style, e.g. "Football (Pruitt era)".
+**Reason:** §32 — three of four options are non-answers/absurd extremes rather than plausible programs, echoing the same "Not applicable"/absolutist-distractor pattern flagged repeatedly in the 2026-09-01 run.
+**Status:** ⏳ pending review
+
+### trivia_questions.cdd8083d-a6d1-40a6-98b1-46e66f1e78cb — 2026-09-18 / slot 5 — self-eliminating distractors (contradict the question's own premise)
+**Current:** "Tennessee's 1950 team also won a share of the national title... Which of Tennessee's six officially claimed championship years does 1950 belong alongside?" A "1950 was a losing season", B "Tennessee only claims 1998", C "No, only 1951 and 1998 are claimed", D "1938, 1940, 1951, 1967, and 1998" (correct)
+**Suggested fix:** Replace A/B/C with plausible-but-wrong year lists (e.g. swap in an unclaimed year, or a slightly different 5-year combination) rather than options that flatly deny the premise the question just stated.
+**Reason:** §32 — A, B, and C all directly contradict the question stem's own premise (that 1950 is one of six claimed titles), making them trivially eliminable rather than genuine distractors. **Verification:** correct answer confirmed accurate via web search — Tennessee officially claims six national titles: 1938, 1940, 1950, 1951, 1967, and 1998; D correctly lists the other five alongside 1950.
+**Status:** ⏳ pending review
+
+### daily_polls — informational: category mix skews heavily football this window
+**Current:** Of the 4 polls scheduled 2026-09-15 to 2026-09-18, 3 are football-themed (Kennesaw State prediction, best single-season performance, best safety) and 1 is basketball (best all-time Vol basketball player); none are baseball or Lady Vols themed.
+**Suggested fix:** No content-field fix proposed (this is a scheduling/mix observation, not a defect in any individual row) — flagging so the content team can balance upcoming poll topics toward baseball/Lady Vols per §33's category-mix guidance.
+**Reason:** §33 — appropriate category mix across Football/Basketball/Baseball/Lady Vols. All 4 individual polls are otherwise clean (clear, single-topic, distinct non-overlapping options, no leading bias, facts check out on the two verifiable claims below).
+**Verification:** Spot-checked the factual claims in the 2026-09-16 poll (Manning 1997, Lewis 1999, Berry 2009, Hooker 2022) against recollection — all four seasons are correctly attributed to each player's actual standout year; no discrepancies found.
+**Status:** ⏳ pending review — informational only
