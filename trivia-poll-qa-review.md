@@ -211,3 +211,53 @@ None of the above changes any of the 15 pending fixes from the run above — the
 **Reason:** §33 — appropriate category mix across Football/Basketball/Baseball/Lady Vols. All 4 individual polls are otherwise clean (clear, single-topic, distinct non-overlapping options, no leading bias, facts check out on the two verifiable claims below).
 **Verification:** Spot-checked the factual claims in the 2026-09-16 poll (Manning 1997, Lewis 1999, Berry 2009, Hooker 2022) against recollection — all four seasons are correctly attributed to each player's actual standout year; no discrepancies found.
 **Status:** ⏳ pending review — informational only
+## 2026-09-16 — run summary
+- Checked: trivia 2026-09-16 to 2026-09-19 (20 rows, 5 slots × 4 days), polls 2026-09-16 to 2026-09-19 (4 rows)
+- Issues found: 4 (all on 2026-09-19, the one date not touched by the earlier manual backlog cleanup)
+- Verification pass on the 09-16/09-17/09-18 rows David said were manually fixed earlier today: independently re-checked all 10 previously-flagged rows (09-16 slots 1-3; 09-17 slots 2, 4, 5; 09-18 slots 1, 3, 4, 5) fresh against the current DB content and, where applicable, live web search. **All 10 are now clean — no remaining issues found on any of them.** Detail below.
+- Web search was available this run; sources are cited per fact checked.
+
+### Verification of the 10 previously-fixed rows (all confirmed clean)
+- **09-16 slot 1** (SEC dominance sport): now reads with real-sport distractors (Basketball/Football/Hockey/Lacrosse, correct=Football). No longer self-eliminating; SEC football dominance is a well-established, defensible fact. Clean.
+- **09-16 slot 2** (Delmonico 1990s titles): verified — Rod Delmonico's Tennessee teams won the program's first SEC regular-season *and* tournament titles in 1993, 1994, and 1995 ([Rod Delmonico – Wikipedia](https://en.wikipedia.org/wiki/Rod_Delmonico), [1993 SEC Baseball Tournament – Wikipedia](https://en.wikipedia.org/wiki/1993_Southeastern_Conference_baseball_tournament)). Clean.
+- **09-16 slot 3** (Zeigler ACL): verified — Zeigler tore his ACL during his **sophomore** season (2022-23, vs. Arkansas) ([ESPN](https://www.espn.com/mens-college-basketball/story/_/id/35762381/tennessee-zakai-zeigler-miss-rest-season-torn-acl), [WATE](https://www.wate.com/sports/orange-and-white-nation/tennessee-basketball/zakai-zeigler-suffers-torn-acl-in-final-home-game-of-2023/)). Matches the question exactly. Clean.
+- **09-17 slot 2** (Kim Caldwell hire): 2024 hire after Kellie Harper's departure — well-established fact, no meta-commentary remains in options. Clean.
+- **09-17 slot 4** (Candace Parker): verified — Parker left Tennessee early as a redshirt junior (medical redshirt 2004-05) to enter the 2008 WNBA Draft, forgoing her senior year ([Wikipedia](https://en.wikipedia.org/wiki/Candace_Parker)). Standard 4-option structure now, no True/False artifacts. Clean.
+- **09-17 slot 5** (Tennessee-Alabama series count): verified — 108 all-time meetings ([Winsipedia](https://www.winsipedia.com/alabama/vs/tennessee)), so "Over 100 times" (correct) is accurate and no longer self-eliminating against the other options. Clean.
+- **09-18 slot 1** (Grant Williams All-American): 2018-19 consensus first-team All-American — well-established, distractors are real era-appropriate teammates now. Clean.
+- **09-18 slot 3** (Barnes vs. Kentucky): "Never" removed; correct answer "On multiple occasions" is accurate and no longer self-eliminating. **Style note (low priority, not a blocking issue):** "On multiple occasions" is a 3-word descriptive phrase rather than a single fact (name/number/year) — David's short-answer style preference would favor something crisper if this question is ever touched again, but it's not a correctness problem.
+- **09-18 slot 4** (Pruitt-era infractions): factually well-established (2020-21 NCAA infractions case centered on the Jeremy Pruitt football program); distractors are now real programs, not non-answers. Clean.
+- **09-18 slot 5** (1950 national title / six claimed titles): verified — Tennessee's six officially claimed national championship years are 1938, 1940, 1950, 1951, 1967, and 1998; correct option D ("1938, 1940, 1951, 1967, and 1998") is exactly the other five. Distractors are plausible wrong year-sets. Clean.
+
+### Issues found this run — all on 2026-09-19 (untouched by the earlier cleanup)
+
+### trivia_questions.efc5370a-85c2-468a-aab9-057195960fcd — 2026-09-19 / slot 2 — broken True/False structure, non-answer distractors
+**Current:** "Tennessee's Vitello-era recruiting classes have produced multiple Freshman All-American honorees. True or false?" A "Not applicable", B "True" (correct), C "False, never happened", D "The award doesn't exist"
+**Suggested fix:** Restructure as a genuine 2-option True/False (option_a "True", option_b "False", option_c/option_d null, correct_answer "A"), or convert to a standard 4-option factual question naming a specific Tennessee baseball Freshman All-American and asking for the year/position, with three other real plausible names/years as distractors.
+**Reason:** Same structural defect logged repeatedly in the 09-01–09-04 window (see entries above): the True/False framing never actually offers a clean opposing option — A, C, and D are all non-answers/self-eliminating rather than genuine "False" alternatives, so the question is trivially solvable by elimination alone. §32.
+**Status:** ⏳ pending review
+
+### trivia_questions.358a7490-ef53-4a1d-93f1-6b978be8863b — 2026-09-19 / slot 3 — self-eliminating, premise-contradicting distractors
+**Current:** "Oklahoma's 2024 move to the SEC brought which storied rivalry into the conference alongside Texas?" A "The Texas-Oklahoma \"Red River Rivalry\"" (correct), B "Not applicable", C "Oklahoma has no football rivalries", D "No new rivalries were added"
+**Suggested fix:** Replace B/C/D with three other real, plausible rivalry names (e.g., "The Bedlam Series (Oklahoma-Oklahoma State)", "The Oklahoma-Nebraska rivalry", "The Sooner-Longhorn Shootout" — pick three that sound parallel but aren't the one the question is actually asking about) rather than options that just deny the question's own premise.
+**Reason:** The question states as fact that a "storied rivalry" came into the conference; B, C, and D all contradict that premise directly, so a test-taker can eliminate all three without any real knowledge. Underlying fact (Red River Rivalry, Oklahoma-Texas, joined SEC 2024) is accurate — this is purely a distractor-quality issue. §32.
+**Status:** ⏳ pending review
+
+### trivia_questions.b51f5b58-037c-4140-91aa-da6dc05af9ea — 2026-09-19 / slot 4 — factual inaccuracy: tenure length wrong
+**Current:** "Rod Delmonico coached Tennessee baseball for approximately how many seasons?" A "3 seasons", B "5 seasons", C "Around 16 seasons (1990s into the 2000s)" (correct), D "30 seasons"
+**Suggested fix:** Change correct option to "Around 18 seasons (1990-2007)" (or "18 seasons") — verified Delmonico coached Tennessee from 1990 through 2007 inclusive, 18 seasons, 699-396 record ([Tennessee Athletics/X](https://x.com/Vol_Sports/status/2042721035087143286), [Rod Delmonico – Wikipedia](https://en.wikipedia.org/wiki/Rod_Delmonico)). "Around 16" undercounts by 2 full seasons (~11% off), which is a real factual-accuracy miss, not just an approximation.
+**Reason:** §32 factual accuracy — dates/tenure. Minor secondary note: this is the second question in the 3-day window centered on Rod Delmonico (see 09-16 slot 2, about his 1990s titles) — not a duplicate (different facts asked), but flagging the thematic repetition for awareness on future scheduling.
+**Status:** ⏳ pending review — verified via web search (see sources above), not just flagged as uncertain
+
+### trivia_questions.7816ebcd-d5b8-48e3-ace1-df39cdc44120 — 2026-09-19 / slot 5 — meta-commentary/explanation in correct-answer text + style violation
+**Current:** "Tennessee women's basketball has won more Olympic medals than any other Tennessee sport in program history, driven largely by athletes who competed under which legendary coach?" A "Tony Vitello", B "Rick Barnes", C "Josh Heupel", D "Pat Summitt, whose players and program produced the bulk of the 16 medals" (correct)
+**Suggested fix:** Trim option D to just "Pat Summitt" (matching the other three options' format: coach name only, no explanatory clause).
+**Reason:** §32 explicitly prohibits meta-commentary/draft reasoning bleeding into question or option text — the parenthetical clause on D restates and justifies the question's own premise, which is a giveaway (it's the only option with any extra text) and also violates David's short-answer style preference (names/numbers/years, 1-3 words) that the other three options already follow.
+**Status:** ⏳ pending review
+
+## Poll check — 2026-09-16 to 2026-09-19
+- Checked 4 rows (one per date). All four follow the site's established "who/what is the best ___" opinion-poll format (consistent with prior windows' polls), with 4 distinct, non-overlapping, factually-grounded options in each. No leading/biased phrasing, no duplicate or near-duplicate poll within the window, no factual errors found in the players/seasons named (Manning '97, Lewis '99, Berry '09, Hooker '22 on 09-16; Houston/Lofton/Williams/Ellis on 09-17; Berry/Grant/Griffin/Randolph as safeties on 09-18; Moore/Helton/Senzel/Lipscomb as infielders on 09-19 — Helton's inclusion as a 1B is accurate, he was a two-sport star who played first base for the Vols).
+- Category mix across this window: Football ×2 (09-16, 09-18), Basketball ×1 (09-17), Baseball ×1 (09-19), no Lady Vols poll scheduled in this 4-day window. Not flagging as a defect (can't judge the full rotation from 4 days), but noting for awareness since Lady Vols is one of the four expected categories.
+- Issues found: 0
+
+**Status:** ⏳ pending review
