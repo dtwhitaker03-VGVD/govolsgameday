@@ -334,3 +334,41 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-09-18 — Gameday countdown ("1 day," Kennesaw State)
+
+- Trigger: on-demand — David asked for a 1-day-out countdown post today
+  (2026-09-18), for the game happening tomorrow.
+- Subject: confirmed via `live_games` that the soonest `pregame` game is
+  Tennessee (home) vs. Kennesaw State, kickoff 2026-09-19 23:45 UTC
+  (7:45 PM EDT) — today really is 1 day out, so the "1 DAY" framing is
+  accurate. Checked open PRs first (`gh api .../pulls?state=open`) and
+  found none covering this game, so this isn't a duplicate. Stats pulled
+  from `game_previews` for this game (ESPN preview, fetched 2026-09-18
+  13:28 UTC): No. 15 Tennessee (2-0), Kennesaw State (1-1); Tennessee
+  offense averaging 542.5 yards/game (11th in FBS); both teams scoring on
+  100% of red-zone trips (an FBS-leading stat, real for Tennessee too,
+  not invented); last game summary confirms Tennessee's 45-24 win over
+  Georgia Tech on Sept 12. No betting line/spread used anywhere on the
+  graphic — `live_games` does have a current spread (TN -35.5) and total
+  (59.5) for this game, but per David's standing decision (see the
+  "remove betting line" update on the Sept 7 countdown entry above) all
+  Game Week/countdown graphics stay odds-free, so it was deliberately
+  left off.
+- Design note: reuses the approved "flare" countdown style from the
+  Sept 11 entry above (duotone offset-shadow hero numeral, conic
+  starburst glow, rotated red ribbon badge, plain/undecorated stat strip
+  with thin dividers per that entry's cleanup pass) rather than the
+  original flat Game Week template, since David preferred that version.
+  Matchup block, kickoff details (Sat, Sept 19, 7:45 PM ET, SEC Network),
+  three real stat call-outs, last-game context line, and a Permanent
+  Marker hype kicker ("One more day. Let's roll.") on the
+  `#0F172A`/`#162038`/`#FF8200`/`#D11919` palette with the diagonal
+  end-zone stripe motif and standard GVGD logo lockup. Ran the two-pass
+  local render check (real Google Fonts, then fonts stripped to force
+  fallback substitution) via headless Chromium before publishing — this
+  run the fallback pass actually substituted different fonts (not just a
+  no-op), and every `white-space: nowrap` line still rendered on one line
+  with no overlap or clipping in either pass.
+- Canvas: https://claude.ai/artifact/KvzYL24cwH7eXwyb212vKd
+- Status: ⏳ pending review
