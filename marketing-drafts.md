@@ -434,3 +434,22 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/artifact/KvzYL24cwH7eXwyb212vKd
 - Status: ⏳ pending review
+
+### Update — remove Week 4 tag, exported for download (2026-09-18)
+
+- David asked to drop the "WEEK 4" pill from the top-right of the
+  masthead (next to the "GAMEDAY EVE" ribbon) and wanted the graphic on
+  a canvas he could download from.
+- Removed the pill; the masthead's right side is now just the
+  "GAMEDAY EVE" ribbon. No other layout change — re-measured the
+  content flow after removing it and it still fills the 1080×1080 frame
+  exactly, so no other spacing needed adjusting.
+- Re-ran the two-pass local render check (real Google Fonts, then fonts
+  stripped to force fallback substitution) — both passes clean.
+- It was already published as a design canvas with download capability
+  enabled; also sent David a rendered PNG directly so he doesn't need
+  to use the canvas editor's Export button if he'd rather just grab the
+  file.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/artifact/KvzYL24cwH7eXwyb212vKd
+- Status: ⏳ pending review
