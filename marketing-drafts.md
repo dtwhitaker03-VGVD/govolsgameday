@@ -453,3 +453,15 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/artifact/KvzYL24cwH7eXwyb212vKd
 - Status: ⏳ pending review
+
+### Update — kicker line wording (2026-09-18)
+
+- David asked to change the hype kicker line from "One more day. Let's
+  roll." to "One More Day. Go Vols!"
+- Swapped the text only, no other layout change. Re-ran the two-pass
+  local render check (real Google Fonts, then fonts stripped to force
+  fallback substitution) since the new line is slightly longer — both
+  passes still render it on one line with no overlap or clipping.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/artifact/KvzYL24cwH7eXwyb212vKd
+- Status: ⏳ pending review
