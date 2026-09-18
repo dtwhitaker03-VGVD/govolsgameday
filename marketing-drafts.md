@@ -372,3 +372,37 @@ either posts it himself or asks for changes first.
   with no overlap or clipping in either pass.
 - Canvas: https://claude.ai/artifact/KvzYL24cwH7eXwyb212vKd
 - Status: ⏳ pending review
+
+### Update — denser, more exciting layout (2026-09-18)
+
+- David felt the original was "kinda boring" and asked for it to be more
+  dense and more exciting. Rebuilt the same subject/data (no new
+  Supabase pull needed — nothing had moved) into a magazine-style sports
+  broadcast graphic instead of the centered/sparse original.
+- Added: a side-by-side hero (numeral + matchup, instead of stacked
+  centered blocks) with circular rank/logo-style badges next to each
+  team; a computed "+34 AVG POINT MARGIN THIS SEASON" banner (real math
+  from live_games — Furman 56-9 is a 47-point margin, Georgia Tech 45-24
+  is a 21-point margin, averaging 34 — not a new stat pull, just an
+  honest derivation of numbers already logged); a "TALE OF THE TAPE"
+  three-row stat-bar comparison (offense/defense/scoring, both teams,
+  with FBS ranks) pulled from the same `game_previews` payload as the
+  original draft; three "WATCH FOR" player cards (Brandon passing,
+  Bishop rushing, Matthews receiving — all from that preview's
+  `teamLeaders`); and a "LOOKING AHEAD" teaser banner for the Sept 26
+  Texas game, also from `game_previews.nextGame`. Still odds-free — no
+  betting line anywhere, same standing guardrail as before.
+- Kept the diagonal stripe motif, GVGD logo lockup, Anton/Inter/Permanent
+  Marker pairing, and `#0F172A`/`#162038`/`#FF8200`/`#D11919` palette
+  unchanged; just filled the canvas edge-to-edge instead of leaving a
+  large empty gap in the lower half (measured the natural content flow
+  before finalizing sizes so nothing floats in dead space or gets
+  clipped by the fixed 1080×1080 frame).
+- Re-ran the two-pass local render check (real Google Fonts, then fonts
+  stripped to force fallback substitution) after the resize — both
+  passes still render every `white-space: nowrap` line on one line, no
+  overlap or clipping, despite the fallback pass again substituting
+  different fonts for Anton and Permanent Marker.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/artifact/KvzYL24cwH7eXwyb212vKd
+- Status: ⏳ pending review
