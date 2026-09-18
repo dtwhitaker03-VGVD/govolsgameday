@@ -406,3 +406,31 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/artifact/KvzYL24cwH7eXwyb212vKd
 - Status: ⏳ pending review
+
+### Update — Tennessee-only stats, drop Kennesaw State comparison (2026-09-18)
+
+- David liked the denser direction but didn't like the "Tale of the
+  Tape" comparison format and asked to focus on Tennessee's own stats
+  and leave Kennesaw State's numbers out of it entirely.
+- Replaced the three side-by-side comparison bars (which paired each TN
+  stat against the matching Kennesaw State number) with a "TENNESSEE BY
+  THE NUMBERS" 2x2 stat grid — same four real figures already sourced
+  from `game_previews` (542.5 offense YPG, 11th FBS; 50.5 scoring PPG,
+  13th FBS; 288.5 defense YPG allowed, 49th FBS; 100% red-zone scoring,
+  FBS-leading), just shown as standalone Tennessee callouts with no
+  opponent number or bar next to any of them. Kennesaw State's name/
+  record stays only in the matchup identification line at the top
+  (unavoidable — it's who the game is against) and nowhere else on the
+  graphic.
+- Trimmed margins/padding throughout (hero, banner, stat grid, watch-for
+  row, looking-ahead banner, footer) by a consistent amount to absorb
+  the height the old 3-row comparison block used to take up, so the
+  redesign still fills the 1080×1080 frame edge-to-edge with no dead
+  space — measured the natural content flow before finalizing (came out
+  to exactly 1080px).
+- Re-ran the two-pass local render check (real Google Fonts, then fonts
+  stripped to force fallback substitution) after the edit — both passes
+  clean, no wrapped or clipped lines.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/artifact/KvzYL24cwH7eXwyb212vKd
+- Status: ⏳ pending review
