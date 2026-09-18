@@ -261,3 +261,10 @@ None of the above changes any of the 15 pending fixes from the run above — the
 - Issues found: 0
 
 **Status:** ⏳ pending review
+
+## 2026-09-18 — run summary — BLOCKED, not completed
+- Attempted scope: trivia 2026-09-18 to 2026-09-21, polls 2026-09-18 to 2026-09-21
+- Issues found: N/A — **the run could not be performed.** The `mcp__Supabase__execute_sql` and `mcp__Supabase__list_tables` tools required by this agent's brief were not available in this session. The Supabase MCP server first reported a `CONNECT_TIMEOUT`; after retrying, the server reported as "connected" but explicitly does **not** offer either tool in this environment ("No such tool available ... Its MCP server 'Supabase' is connected but does not offer this tool here"). No fallback read-only path to `trivia_questions` / `daily_polls` was available (no direct DB credentials, no CLI in this environment).
+- No rows were read this run. No proposals are logged below because none were checked — this entry exists only so there is a record that the automated check did not happen today, per the "log the summary even when nothing to report" guidance, extended here to an outright tooling failure so the gap is visible rather than silent.
+- Action needed: re-run this check once the Supabase MCP connector is fixed/exposes `execute_sql`/`list_tables` for this project. Until then, 2026-09-20's 4 previously-logged pending issues (slots 1-3, 5) remain unverified and unfixed, and 2026-09-21 remains completely unreviewed.
+**Status:** ⏳ blocked — tooling unavailable, needs re-run
