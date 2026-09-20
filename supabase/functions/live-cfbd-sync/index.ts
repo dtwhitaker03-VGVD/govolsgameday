@@ -252,6 +252,37 @@ function resolveTeamStats(
   };
 }
 
+interface ScoreboardGame {
+  id: number;
+  status: string; // "scheduled" | "in_progress" | "completed" | ...
+  period: number | null;
+  clock: string | null;
+  homeTeam: { points: number | null };
+  awayTeam: { points: number | null };
+}
+
+// /live/plays can 400 with "No plays found for game" for a stretch after
+// real kickoff — confirmed live on the 2026-09-19 Kennesaw State game,
+// where /scoreboard already showed Tennessee up 7-0 in the 1st quarter
+// while /live/plays still had nothing, apparently because CFBD's
+// play-by-play ingestion lagged behind its own scoreboard feed. Unlike
+// /games/teams and /games/players, /scoreboard doesn't take a gameId
+// filter at all (confirmed live — it's silently ignored), so every
+// currently-relevant game is fetched and matched by id client-side.
+async function fetchScoreboardGame(apiKey: string, cfbdGameId: number): Promise<ScoreboardGame | null> {
+  try {
+    const res = await fetch(
+      "https://api.collegefootballdata.com/scoreboard",
+      { headers: { Authorization: `Bearer ${apiKey}` } }
+    );
+    if (!res.ok) return null;
+    const games = (await res.json()) as ScoreboardGame[];
+    return games.find((g) => g.id === cfbdGameId) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 type SupabaseClient = ReturnType<typeof getSupabaseClient>;
 
 interface GameRow {
@@ -282,8 +313,48 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
     .then(() => {});
 
   if (res.status === 400) {
-    // Game hasn't started yet — no plays available.
-    return { game_id: game.id, ok: true, skipped: "not started yet" };
+    // /live/plays has nothing yet. Usually this really does mean the game
+    // hasn't kicked off, but it can also mean CFBD's play-by-play ingestion
+    // is lagging behind its own scoreboard feed for a game that HAS already
+    // kicked off (see fetchScoreboardGame) — check before assuming pregame,
+    // so the site doesn't sit frozen on 0-0/pregame through real game action.
+    const scoreboardGame = await fetchScoreboardGame(apiKey, game.cfbd_game_id);
+    supabase
+      .from("cfbd_request_log")
+      .insert({ endpoint: "/scoreboard", status_code: scoreboardGame ? 200 : 0, source: "live-cfbd-sync" })
+      .then(() => {});
+
+    if (!scoreboardGame || scoreboardGame.status === "scheduled") {
+      return { game_id: game.id, ok: true, skipped: "not started yet" };
+    }
+
+    // Drive predictions still need real play-by-play data and stay
+    // unavailable until /live/plays catches up — this only keeps the
+    // visible scoreboard (score/quarter/clock) from lagging behind reality.
+    const homeScore = scoreboardGame.homeTeam.points ?? 0;
+    const awayScore = scoreboardGame.awayTeam.points ?? 0;
+    const newStatus = scoreboardGame.status === "completed" ? "final" : "live";
+    await supabase
+      .from("live_games")
+      .update({
+        status: newStatus,
+        home_score: homeScore,
+        away_score: awayScore,
+        current_quarter: scoreboardGame.period,
+        game_clock: scoreboardGame.clock,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", game.id);
+
+    return {
+      game_id: game.id,
+      ok: true,
+      status: newStatus,
+      homeScore,
+      awayScore,
+      source: "scoreboard_fallback",
+      note: "live/plays has no data yet — synced score/quarter/clock from /scoreboard only",
+    };
   }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
