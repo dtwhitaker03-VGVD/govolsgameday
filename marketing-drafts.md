@@ -321,6 +321,20 @@ either posts it himself or asks for changes first.
 - Canvas: https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
 
+### Update — cleanup pass (2026-09-11)
+
+- David flagged the "1" bleeding into "DAY LEFT" below it, the dark card
+  boxes around the three stats, and asked for the stats bigger and the
+  tiles straightened out.
+- Added clearance between the hero number and the "DAY LEFT" label,
+  dropped the stat tiles' dark background/border/shadow (now sit plain
+  on the background with thin dividers between them instead of boxes),
+  increased the stat number/label/sub-label sizes, and removed the
+  independent rotation on each stat tile so all three sit level.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
+- Status: ⏳ pending review
+
 ## 2026-09-22 — Final score recap
 
 - Trigger: scheduled (Mon/Wed/Fri)
@@ -382,16 +396,3 @@ either posts it himself or asks for changes first.
 - Canvas: https://claude.ai/artifact/PmPPGU7y3q4NYR8mMFfTg8
 - Status: ⏳ pending review
 
-### Update — cleanup pass (2026-09-11)
-
-- David flagged the "1" bleeding into "DAY LEFT" below it, the dark card
-  boxes around the three stats, and asked for the stats bigger and the
-  tiles straightened out.
-- Added clearance between the hero number and the "DAY LEFT" label,
-  dropped the stat tiles' dark background/border/shadow (now sit plain
-  on the background with thin dividers between them instead of boxes),
-  increased the stat number/label/sub-label sizes, and removed the
-  independent rotation on each stat tile so all three sit level.
-- Redeployed to the same canvas URL (no new artifact):
-  https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
-- Status: ⏳ pending review
