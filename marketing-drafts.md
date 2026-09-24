@@ -334,3 +334,65 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-09-22 — Final score recap
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Subject: Tennessee 42, Kennesaw State 9 (Fri, Sept 19, 2026, Neyland
+  Stadium) — pulled fresh from `live_games` (`status = 'calculated'`,
+  `updated_at` 2026-09-20 03:07 UTC, so 2-3 days old, still fresh).
+  Deliberately avoided repeating subjects already in flight: PR #175's
+  Georgia Tech recap (probable duplicate of closed PR #170, still
+  awaiting David's clarification — no new Georgia Tech recap made) and
+  PR #178's Kennesaw State countdown (that PR covered the pre-game
+  countdown for this same matchup; this is a brand-new angle — the
+  post-game recap — for a game nobody has recapped yet).
+- Content, all traced to real Supabase rows:
+  - Score and total yards straight from the `live_games` row for this
+    game (home Tennessee 42, away Kennesaw State 9; home_total_yards
+    446, away_total_yards 291).
+  - "VOLS ROLL TO 3-0" is a derived fact, not a stored column: computed
+    by checking all three `calculated` `live_games` rows to date
+    (Furman 56-9, at Georgia Tech 45-24, Kennesaw State 42-9) — all
+    three are Tennessee wins, so 3-0 is accurate as of this run.
+  - Top-predictor spotlight pulled from `game_leaderboard` filtered to
+    this game's `game_id`, sorted by `total_game_points` desc: real
+    username `Tiberious`, 857 total game points, 4-for-6 on live drive
+    picks (`drive_correct`/`drive_total`). No fabricated box-score
+    detail beyond what `live_games`/`game_leaderboard` actually have,
+    per the pillar's guardrail.
+  - Also checked `scraped_articles` (pillar 4) and `daily_polls`/
+    `trivia_questions` (pillar 3) before settling on this pillar: the
+    recap was the freshest, least-repeated, most complete real data
+    available this run (articles table's `published_at` is null across
+    the board and the rows are noisy 247Sports scrapes, not clean
+    recent headlines; the poll/trivia pillar was just used two days ago
+    for PR #179 and isn't as timely as a genuinely new final score).
+- Visual system matches the brand system used throughout this log:
+  `#0F172A` background, `#162038` panels, `#FF8200` orange / `#D11919`
+  red accents, Anton for headline/score/wordmark type, Inter for body,
+  diagonal end-zone-stripe motif + radial glow behind the score, GVGD
+  logo lockup. No stock photos, no fabricated player photos — pure
+  typography/color/motif, dense layout (scoreboard, yards comparison,
+  top-predictor card, footer CTA) to fill the 1080×1080 frame without
+  dead space, built from the `Design (canvas)` artifact type (contract
+  0.2.x, content under `project/Main.dc.html`, explicit
+  `project/canvas.json` seeded with the artboard's frame at exactly
+  `"w": 1080, "h": 1080`).
+- Verified the font-fallback wrapping bug flagged from recent runs
+  before publishing: extracted the exact `<style>` and board markup
+  from the published `Main.dc.html` (stripping the `<x-dc>`/
+  `support.js` runtime wrapper) into two standalone pages, rendered
+  both twice with headless Chromium via Playwright — once with the
+  real Anton/Inter Google Fonts (downloaded locally and relinked) and
+  once with the font `<link>` stripped entirely to force full fallback
+  substitution. Every label/headline/score element carries
+  `white-space: nowrap`; both passes came back clean (no
+  `scrollWidth`>`clientWidth` overflow, no multi-line `getClientRects()`
+  on any nowrap element). Also measured natural unclamped content
+  height in both passes (real fonts: 1075.8px; fallback: 1040px) —
+  both comfortably fit the fixed 1080px frame with no clipping and no
+  large dead-space gap at the bottom.
+- Canvas: https://claude.ai/artifact/PmPPGU7y3q4NYR8mMFfTg8
+- Status: ⏳ pending review
+
