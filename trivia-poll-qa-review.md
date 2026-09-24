@@ -385,5 +385,53 @@ Checked all 20 trivia rows across these three dates fresh against current DB con
   - **09-21** ("best Lady Vol basketball player of the 2000s"): Candace Parker, Shannon Bobbitt, Nicky Anosike, Alexis Hornbuckle — all Lady Vols who played in the 2000s, distinct, no bias. Clean (new review).
 - Category mix across this 4-day window: Football ×2 (09-18 player, 09-20 venue), Baseball ×1 (09-19), Lady Vols ×1 (09-21); no men's basketball poll in this window, consistent with the rotation noted as worth watching in earlier runs but not itself a defect over a 4-day slice.
 - Issues found: 0
+## 2026-09-19 — run summary
+- Checked: trivia 2026-09-19 to 2026-09-22 (20 rows, 5 slots × 4 days), polls 2026-09-19 to 2026-09-22 (4 rows, full coverage)
+- Issues found: 3 (0 factual errors, 1 difficulty-mismatch note, 1 style note, 1 poll-wording/clarity note). 2026-09-22 is newly in scope this run and was reviewed as fully unreviewed content.
+- Web search was available this run; sources cited per fact below.
+
+### Independent verification of everything David said was manually fixed earlier today
+Re-checked every row he listed fresh, not assuming any of it — **all confirmed factually accurate, no remaining issues on any of them:**
+- **09-19 slot 1** (Peyton Manning #16 retired 2005): confirmed.
+- **09-19 slot 2** (Drew Beam Freshman All-American): confirmed via web search — Beam earned Freshman All-American honors and SEC Freshman of the Year in 2022 ([On3](https://www.on3.com/teams/tennessee-volunteers/news/tennessee-vols-baseball-major-league-draft-drew-beam/), [UTSports](https://utsports.com/news/2023/4/16/baseball-rocky-top-spotlight-drew-beam)). Correct answer B accurate; no distractor issues (Burke/Moore/Dickey are all real hitters, not pitchers — clean, non-self-eliminating set).
+- **09-19 slot 5** (Lady Vols Olympic medalists under Summitt, answer 14): independently confirmed via web search — Summitt's program produced 14 Olympic Team members ([multiple sources](https://www.hoophall.com/hall-of-famers/pat-summitt) corroborate). Clean, appropriately hard for slot 5.
+- **09-20 slot 1** (Josh Richardson, 2015 Miami draft, two stints): confirmed via web search — 40th overall pick 2015, first stint 2015-2019, second stint 2023-2025, retired 2026 after 10 NBA seasons ([Wikipedia](https://en.wikipedia.org/wiki/Josh_Richardson), [Hot Hot Hoops](https://hothothoops.com/2026/07/30/former-miami-heat-guard-10-year-veteran-josh-richardson-retires/)). Factually clean — see difficulty note below (separate from a factual issue).
+- **09-20 slot 2** (Neyland/Shields-Watkins Field first game, 1921): confirmed. Clean, good replacement for the prior weak stadium question.
+- **09-20 slot 3** (Chamique Holdsclaw #23 retired): confirmed. Clean.
+- **09-20 slot 4** (John Currie AD, preceded Fulmer in 2017): confirmed, untouched and clean as noted.
+- **09-20 slot 5** (2024 CWS bracket format, best-of-three finals): confirmed via web search — 2024 MCWS Finals was a 3-game series (Texas A&M won G1, Tennessee won G2/G3 for the title) ([Bleacher Report](https://bleacherreport.com/articles/10125947-college-world-series-finals-2024-tennessee-beats-texas-am-to-win-1st-ncaa-title)), confirming men's CWS finals are best-of-three (option B). Clean.
+- **09-21 slot 1** (Barnes-era playing style = defense-first/physical): commonly-established characterization, not a hedge/non-answer; distractors are all plausible generic styles. Clean.
+- **09-21 slot 2** (Joe Milton III replaced injured Hooker, 2022): confirmed. Clean, untouched as noted.
+- **09-21 slot 3** (Naismith HOF Lady Vols trio — Holdsclaw, Parker, Catchings): confirmed via web search — Holdsclaw and Parker were both named to the Naismith Hall of Fame's Class of 2026 (announced April 2026, enshrined August 2026), and Catchings was already inducted in 2020 ([ESPN](https://www.espn.com/wnba/story/_/id/49593818/naismith-hall-fame-2026-class-candace-parker-elena-delle-donne-chamique-holdsclaw), [WVLT](https://www.wvlt.tv/2026/04/04/lvfls-candace-parker-chamique-holdsclaw-named-naismith-basketball-hall-fame/)). As of today (2026-09-19), all three are confirmed inductees and the other three options' non-included names (Bridgette Gordon, Nikki McCray, Kellie Harper) are not Naismith inductees as players. Correct answer C is accurate. Clean.
+- **09-21 slot 4** (Heupel national COY recognition after 2022): confirmed, untouched and clean as noted.
+- **09-21 slot 5** (Tennessee leads UT-Vandy baseball series by ~16 games): confirmed via web search — Tennessee leads the all-time series 188-172-2 through March 2026, a 16-win margin ([Winsipedia](https://www.winsipedia.com/tennessee/vs/vanderbilt)). Correct answer B accurate.
+
+### 2026-09-22 — newly in scope, reviewed fresh
+All 5 trivia rows check out factually clean:
+- Slot 1 (Thompson-Boling Arena hosts basketball): clean, good easy question with real-but-wrong-sport UT venues as distractors.
+- Slot 2 (2022 team, first-ever #1 overall national seed): clean.
+- Slot 3 (Trey Smith drafted by Chiefs, won Super Bowl): confirmed — Chiefs, SB LVII/LVIII. Clean.
+- Slot 4 (women's basketball = most all-time Olympic medals for UT, ahead of swimming/track): confirmed via web search — women's basketball 16 medals vs. men's swimming 10 and men's track 10 ([search aggregating UTSports Olympic medalist data](https://utsports.com/news/2012/8/8/Tennessee_s_All_Time_Olympic_Medalists)). Clean.
+- Slot 5 (Al Wilson wore #27): confirmed via web search ([Rivals/VolReport](https://tennessee.rivals.com/news/tennessee-football-jersey-countdown-no-27-al-wilson), [UTSports](https://utsports.com/news/2013/8/4/Vols_Jersey_Countdown_27)). Clean.
+
+The poll for 09-22 has a wording issue — see entry below.
+
+### trivia_questions.b51f5b58-037c-4140-91aa-da6dc05af9ea — 2026-09-19 / slot 4 — style: correct answer's parenthetical makes it stand out from distractors
+**Current:** correct option_c "18 seasons (1990-2007)"; other options are plain "3 seasons" / "5 seasons" / "30 seasons"
+**Suggested fix:** Shorten to just "18 seasons" to match the other three options' format.
+**Reason:** §32 style preference (short 1-3 word answers) plus a design "tell": the correct option is the only one carrying extra parenthetical detail, which makes it visually stick out from the other three and can let a test-taker guess correctly by length/specificity alone rather than knowledge. Underlying fact (Delmonico coached 1990-2007, 18 seasons) is accurate, not a factual issue.
+**Status:** ⏳ pending review
+
+### trivia_questions.5be91bb7-1244-49ff-8ca6-59363c893eb9 — 2026-09-20 / slot 1 — difficulty mismatch: labeled "easy" but requires fairly specific knowledge
+**Current:** difficulty "easy" — question asks about Josh Richardson's 2015 Miami draft *and* his two separate stints with Miami over a decade-long career.
+**Suggested fix:** Either relabel difficulty to "medium," or simplify the question stem to drop the "two separate stints" detail (e.g. just "Which Tennessee guard was drafted by the Miami Heat in 2015 and went on to a decade-long NBA career?") if it should stay an easy/slot-1 question.
+**Reason:** §32 — slot 1 should be the easiest question of the day. Knowing Richardson played at Tennessee and had an NBA career is reasonably easy; knowing the specific detail that he had two *separate* stints with Miami is a more advanced/medium-level fact. Not a factual error — the claim itself is accurate (verified above).
+**Status:** ⏳ pending review
+
+### daily_polls.d84e08e7-a12e-4646-a8ea-9b5afa182ffd — 2026-09-22 — clarity: one option is vague and non-parallel with the other three
+**Current:** "What is the best Vol basketball recruiting class in history?" A "A Tobias Harris class", B "A Chris Lofton era class", C "A recent Barnes class", D "The Grant Williams class"
+**Suggested fix:** Replace option C with a specific, named class in the same style as the others, e.g. "The 2021 signing class (Chandler, Springer, K. Johnson)" — flagged with uncertainty: I could not confidently verify which specific Barnes-era class is *the* strongest/most defensible pick (candidates include the 2021 five-star trio and the 2025 class with the program's highest-ranked recruit ever), so I'm not proposing that exact replacement with confidence. At minimum, "recent" should be replaced with a specific year/class before this airs, since it will read as stale/ambiguous by the time it's actually shown.
+**Reason:** §33 — options should be clear and non-overlapping; three options name specific players/classes while option C uses a vague relative term ("recent") with no named players, breaking parallel construction and becoming increasingly inaccurate as "recent" ages. Also a moving target for the "Barnes" identifier specifically, since Barnes has now had many recruiting classes.
+**Status:** ⏳ pending review — flagged with uncertainty on the exact replacement class
 
 **Status:** ⏳ pending review
