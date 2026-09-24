@@ -433,5 +433,82 @@ The poll for 09-22 has a wording issue — see entry below.
 **Suggested fix:** Replace option C with a specific, named class in the same style as the others, e.g. "The 2021 signing class (Chandler, Springer, K. Johnson)" — flagged with uncertainty: I could not confidently verify which specific Barnes-era class is *the* strongest/most defensible pick (candidates include the 2021 five-star trio and the 2025 class with the program's highest-ranked recruit ever), so I'm not proposing that exact replacement with confidence. At minimum, "recent" should be replaced with a specific year/class before this airs, since it will read as stale/ambiguous by the time it's actually shown.
 **Reason:** §33 — options should be clear and non-overlapping; three options name specific players/classes while option C uses a vague relative term ("recent") with no named players, breaking parallel construction and becoming increasingly inaccurate as "recent" ages. Also a moving target for the "Barnes" identifier specifically, since Barnes has now had many recruiting classes.
 **Status:** ⏳ pending review — flagged with uncertainty on the exact replacement class
+## 2026-09-23 — run summary
+- Checked: trivia 2026-09-23 to 2026-09-26 (20 rows, 5 slots × 4 days), polls 2026-09-23 to 2026-09-26 (3 rows found — 2026-09-24 has no poll scheduled)
+- Issues found: 9 (2 hard factual errors, 1 fabricated-premise question recommended for replacement, 1 ambiguous-premise question, 2 self-eliminating/"Not applicable"-style distractor issues, 1 distractor-quality note, 1 style/distractor-spread note, 1 poll scheduling gap)
+- Web search was available and used to verify every load-bearing factual claim below; sources cited inline.
+- Note on carried-over items from David's brief: 2026-09-19 slot 4 (Delmonico) and 2026-09-20 slot 1 (Josh Richardson) have both rolled fully out of the current 3-day scope window (today is 2026-09-23; window is 09-23–09-26) and were not re-reviewed per the guardrail against scanning outside scope. In passing, I confirmed 09-19 slot 4 now reads "18 seasons (1990-2007)" — consistent with the earlier fix — but did not do a full QA pass on either row since they're out of scope.
+- Verification of David's 09-23 fix: re-checked `81d859da` (slot 3, SEC venues) fresh. Now reads Bryant-Denny Stadium (Alabama) and Tiger Stadium (LSU) as the correct pair alongside Neyland — both real, comparably massive SEC stadiums, and all three distractor options (Georgia/Texas A&M, Vanderbilt/Mississippi State, Florida/Auburn) are equally plausible real-stadium pairs with no self-elimination. **Confirmed clean, no remaining issues.**
+
+### trivia_questions.e090a73e-ea5f-406c-984f-85377ac3d91f — 2026-09-24 / slot 1 — factual error: wrong transfer school
+**Current:** "Which Tennessee big man transferred in from Alabama-Birmingham and became a frontcourt piece in the mid-2020s?" (correct answer: Uros Plavsic)
+**Suggested fix:** Change "Alabama-Birmingham" to "Arizona State" in the question text.
+**Reason:** Verified via multiple sources — Uros Plavsic transferred to Tennessee from Arizona State (redshirt freshman there in 2018-19), not UAB ([UT Sports, May 2019](https://utsports.com/news/2019/5/21/mens-basketball-transfer-uros-plavsic-signs-with-vol-hoops.aspx), [ESPN](https://www.espn.com/mens-college-basketball/story/_/id/27989115/tennessee-uros-plavsic-miss-2019-20-season-waiver-denied), [AllForTennessee](https://allfortennessee.com/2019/05/18/tennessee-basketball-transfer-asu/)). The correct answer name (Plavsic) is right, but the premise/school named in the question stem is wrong — a hard factual-accuracy failure, not a distractor issue.
+**Status:** ⏳ pending review
+
+### trivia_questions.05130644-328c-4e31-a547-7dbe1114cb04 — 2026-09-25 / slot 4 — factual error: wrong record type attributed
+**Current:** "Which Don DeVoe-era standout of the early 1980s later set the program's single-game scoring record before Allan Houston, and went on to a long NBA three-point shooting career?" (correct answer: Dale Ellis)
+**Suggested fix:** Change "single-game scoring record" to "single-season scoring record" in the question text (e.g., "...later set the program's single-season scoring record, later broken by Allan Houston, and went on to..."). Correct answer name (Dale Ellis) stays the same.
+**Reason:** Verified via web search — Tennessee's single-**game** scoring record (51 points vs. Auburn, 1986-87) belongs to Tony White, not Dale Ellis, and has never been broken by Allan Houston (Houston's career-high single game was 43 points, per UT record-book coverage) ([Yahoo/Mike Strange, Tony White 51-point game](https://news.yahoo.com/happy-birthday-tennessee-basketballs-tony-100315202.html)). Ellis's actual distinguishing record is the single-**season** scoring record (724 points, 1981-82 or 1982-83), which Allan Houston did later break (806 points, 1990-91) ([UT Sports / Sports-Reference Tennessee leaders](https://www.sports-reference.com/cbb/schools/tennessee/men/leaders-and-records.html)). The question conflates "single-game" with "single-season," making the premise as written factually wrong even though the correct-answer name is right.
+**Status:** ⏳ pending review
+
+### trivia_questions.2ea5cbd7-c918-47db-a18d-d454dd6e67bd — 2026-09-25 / slot 5 — fabricated premise: Tee Martin was never Tennessee's interim head coach
+**Current:** "Tee Martin, the 1998 championship-winning quarterback, returned to Tennessee's coaching staff years later in what role, before serving as interim head coach in 2020?" (correct answer: A "Offensive coordinator/assistant coach")
+**Suggested fix:** Recommend full replacement of the question stem — drop the "before serving as interim head coach in 2020" clause entirely, since it isn't supported by any source and Tennessee did not have an interim head coach in 2020 (Jeremy Pruitt was HC the full season). A clean replacement in the same style: "Tee Martin, the 1998 championship-winning quarterback, returned to Tennessee's coaching staff in 2019 in what role?" with correct answer "Assistant head coach" or "Wide receivers coach" (both are accurate — he held both titles, 2019-2020). Not proposing to keep the current option set as-is since the premise itself needs to change; content team should also double check the option list still reads sensibly (Athletic Director / Strength coach / Defensive coordinator remain fine as plausible-but-wrong role distractors).
+**Reason:** Verified via web search — Jeremy Pruitt was Tennessee's head coach for the entirety of the 2020 season with no interim head coach at any point ([Wikipedia, 2020 Tennessee Volunteers football team](https://en.wikipedia.org/wiki/2020_Tennessee_Volunteers_football_team)); Tee Martin's actual role on return was Assistant Head Coach/WR coach 2019-2020, after which he left for the Baltimore Ravens ([Rocky Top Talk](https://www.rockytoptalk.com/2021/2/7/22270608/tennessee-vols-football-tee-martin-nfl-baltimore-ravens-receivers-coach), [Wikipedia, Tee Martin](https://en.wikipedia.org/wiki/Tee_Martin)). He was also never an interim HC at USC (Clay Helton held that role in 2015). §32 factual-accuracy failure — the correct-answer role itself is right, but the question's framing device is fabricated.
+**Status:** ⏳ pending review
+
+### trivia_questions.8e929a0d-4d1d-4947-bf21-67257e6fc7d8 — 2026-09-23 / slot 2 — distractor quality: two options aren't real Tennessee players
+**Current:** "Which Tennessee first baseman was inducted into the National Baseball Hall of Fame in 2024...?" A "A.J. Burnett", B "Luke Hochevar", C "Todd Helton" (correct), D "David Price"
+**Suggested fix:** Replace A.J. Burnett (went straight from high school to pro ball, never played college baseball at all — [Baseball-Reference](https://www.baseball-reference.com/players/b/burnea.01.shtml)) and David Price (pitched for **Vanderbilt**, a rival SEC school, not Tennessee — well-established) with two real Tennessee baseball alumni, e.g. other Vol pitchers/position players such as "R.A. Dickey" or a recent Vol like "Drew Gilbert."
+**Reason:** §32 distractor-quality — a knowledgeable Vol fan can eliminate Price on sight as a Vanderbilt player and Burnett as someone who never played college ball, without needing to know anything about Helton specifically. Luke Hochevar (real Tennessee pitcher) is a fine distractor and needs no change.
+**Status:** ⏳ pending review
+
+### trivia_questions.5ed7d309-0d54-41f4-9e54-615171af935d — 2026-09-23 / slot 5 — style: distractor spread too wide for "hard" slot
+**Current:** "Chamique Holdsclaw's Lady Vols career scoring average... closest to which per-game figure?" A "Around 2 ppg", B "Around 35 ppg", C "Around 5 ppg", D "Around 20 ppg" (correct)
+**Suggested fix:** Tighten the wrong options to numbers close enough to require real knowledge, e.g. "Around 15 ppg", "Around 18 ppg", "Around 23 ppg", rather than 2/5/35 which are trivially far off for a star player's career average.
+**Reason:** §32 difficulty-matches-slot — correct answer verified accurate (Holdsclaw averaged 20.4 ppg for her Tennessee career, per [Wikipedia](https://en.wikipedia.org/wiki/Chamique_Holdsclaw)), but the wide spread of the other three options makes this trivially solvable by elimination for a "hard" question. Low-to-medium priority style note, not a correctness error.
+**Status:** ⏳ pending review
+
+### trivia_questions.c4cae9ff-3e9f-4b20-b0f5-89599b88cdc9 — 2026-09-24 / slot 3 — "Not applicable" + self-eliminating, premise-contradicting distractors
+**Current:** "...which SEC school's marching band...is frequently cited alongside Tennessee's...?" A "LSU" (correct), B "Not applicable", C "No other SEC school has a marching band", D "Only Tennessee has a marching band"
+**Suggested fix:** Replace B/C/D with three other real SEC school names (e.g. "Alabama", "Ole Miss", "Auburn") so all four options are the same type of answer as the correct one.
+**Reason:** Same recurring structural pattern flagged repeatedly in prior runs (see 2026-09-01, 09-02, 09-03, 09-19 entries) — C and D flatly deny the question's own premise (making them trivially eliminable) and B is a non-answer. §32.
+**Status:** ⏳ pending review
+
+### trivia_questions.e20b5fb5-7128-43e7-bd1a-d399b48ac086 — 2026-09-24 / slot 4 — premise-contradicting distractor
+**Current:** "The Pat Summitt Foundation... focuses primarily on which cause?" A "Youth basketball scholarships only", B "Football safety research", C "Alzheimer's disease research and support" (correct), D "Not applicable, no such foundation exists"
+**Suggested fix:** Replace D with a plausible-but-wrong real-sounding focus area, e.g. "Coaching education programs."
+**Reason:** §32 — option D denies the question's own premise (the Foundation does exist), making it trivially eliminable rather than a genuine distractor. Correct answer verified accurate — the Pat Summitt Foundation, established after her 2011 early-onset Alzheimer's diagnosis, is Alzheimer's-focused.
+**Status:** ⏳ pending review
+
+### trivia_questions.f607b900-31d5-4cea-8474-9fb5566130c0 — 2026-09-25 / slot 2 — ambiguous premise: conflates mascot with rallying cry
+**Current:** "Auburn's mascot and rallying cry, distinct from Tennessee's traditions, is centered on which symbol?" A "A Tiger", B "A Volunteer", C "The War Eagle" (correct), D "A Bulldog"
+**Suggested fix:** No confident single fix proposed — flag for the content team to decide intent. Either (a) narrow the question to just the rallying cry ("Auburn's famous game-day rallying cry centers on which symbol?" → War Eagle), or (b) narrow it to just the mascot ("Auburn's official athletic mascot, Aubie, represents which animal?" → Tiger). As written, it asks about both "mascot and rallying cry" as if they point to one symbol, but Auburn's actual mascot is the Tiger (Aubie) while "War Eagle" is a separate battle-cry tradition centered on a live eagle — so option A has a real claim to being correct too.
+**Reason:** §32 — the question's own premise conflates two genuinely different Auburn traditions, creating a defensible case for two different "correct" answers rather than one single fact.
+**Status:** ⏳ pending review
+
+### daily_polls — no row scheduled for 2026-09-24 — scheduling gap
+**Current:** `SELECT ... WHERE active_date = '2026-09-24'` returns 0 rows; polls exist for 2026-09-23, 09-25, 09-26 only.
+**Suggested fix:** N/A (no existing row/content to patch) — flagging the gap so the content team can schedule a poll for 2026-09-24. Same class of issue as the 2026-09-04 gap logged in the first run of this log.
+**Reason:** In-scope date has no poll queued, while trivia_questions has full 5-slot coverage for all 4 days.
+**Status:** ⏳ pending review — operational gap, no row to fix
+
+### Rows checked and confirmed clean this run (no issues)
+- **09-23 slot 1** (Al Wilson, 1998 consensus All-American LB): accurate, real-player distractors, no issues.
+- **09-23 slot 3** (SEC venues): see verification note above — confirmed clean after David's fix.
+- **09-23 slot 4** (Chris Lofton cancer story): accurate, real-player distractors, no issues.
+- **09-24 slot 2** (Jeremy Pruitt shortest tenure among the four listed coaches): accurate.
+- **09-24 slot 5** (Pruitt-era NCAA violations, "Over 200"): verified accurate — NCAA found the program responsible for more than 200 individual violations, 18 Level I ([NCAA.org](https://www.ncaa.org/news/2024/3/8/media-center-infractions-appeals-committee-upholds-findings-for-former-tennessee-head-football-coach), [CBS Sports](https://www.cbssports.com/college-football/news/hundreds-of-ncaa-violations-land-tennessee-8m-fine-plus-six-year-show-cause-for-ex-coach-jeremy-pruitt/)). Minor style-only note: option A ("Zero — the case was dismissed") mildly contradicts the question's premise, consistent with the low-priority pattern noted elsewhere in this log; not logged as a separate blocking entry.
+- **09-25 slot 1** (orange for orange-out games): trivially accurate, fine for easy slot 1.
+- **09-25 slot 3** (Jaylen Wright, 2022 backfield): accurate, real-player distractors, no issues.
+- **09-26 slot 1** (John Fulkerson, five seasons all at Tennessee): accurate.
+- **09-26 slot 2** (2016 Georgia Hail Mary, final score 34-31): verified accurate.
+- **09-26 slot 3** (Allan Houston, all-time leading scorer): verified accurate.
+- **09-26 slot 4** (2016 home loss to South Carolina): verified accurate — unranked South Carolina upset then-#9 Tennessee at home in 2016.
+- **09-26 slot 5** (Nikki McCray-Penson & Carla McGhee, posthumous 2026 Naismith HOF honorees for the 1996 Olympic team): verified accurate via multiple current sources, including [UT Sports](https://utsports.com/news/2026/4/4/womens-basketball-2026-naismith-hall-of-fame-class-includes-four-lady-vols) and [NBC News on McCray-Penson's 2023 death](https://www.nbcnews.com/news/us-news/nikki-mccray-penson-olympic-gold-medalist-basketball-hall-famer-dies-5-rcna93111) — both named individuals and the posthumous framing check out.
+- **Poll 09-23** ("best Vol football offensive scheme"): clean — four distinct real coach/OC eras, no bias. Minor informational note: Cutcliffe was Fulmer's OC in the same era, so "Fulmer's pro style" and "Cutcliffe's passing scheme" overlap slightly in time period, though they're still describing different offensive minds/styles — not flagging as a defect.
+- **Poll 09-25** ("best Vol basketball player of the 1990s" — Houston/Allen/Harris/Black): all four verified as real Tennessee players from that era. Clean.
+- **Poll 09-26** ("best Vol football player of the 2020s so far" — Hooker/Smith/Tillman/Milton): all real 2020s Vol players, clean, no issues.
 
 **Status:** ⏳ pending review
