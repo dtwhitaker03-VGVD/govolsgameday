@@ -262,6 +262,177 @@ None of the above changes any of the 15 pending fixes from the run above — the
 
 **Status:** ⏳ pending review
 
+## 2026-09-17 — run summary
+- Checked: trivia 2026-09-17 to 2026-09-20 (20 rows, 5 slots × 4 days), polls 2026-09-17 to 2026-09-20 (4 rows, full coverage)
+- Issues found: 4 (all on 2026-09-20, the only date not covered by the prior manual backlog cleanup)
+- Web search was available this run; sources cited per fact checked.
+
+### Independent re-verification of 2026-09-17 through 2026-09-19 (rows David reported as manually fixed)
+Checked all 20 trivia rows across these three dates fresh against current DB content and live web search, not assuming the prior fixes held. **All 20 are clean — no remaining issues found.**
+
+- **09-17 slot 1** (Heath Shuler position): Quarterback — correct, well-known fact. Options are all real football positions, none self-eliminating. Clean.
+- **09-17 slot 2** (Kim Caldwell hire): 2024 hire after Kellie Harper's departure — accurate. No meta-commentary remains in options (Vic Schaefer / Kim Caldwell / Dawn Staley / Niele Ivey — four real, distinct coaches). Clean.
+- **09-17 slot 3** (Casey Clausen 2001 starting QB): Verified via web search — Clausen started and led Tennessee to the 2001 SEC East title and SEC Championship Game appearance (2,969 yds, 22 TD on the season) ([UTSports](https://utsports.com/news/2014/10/1/Casey_Clausen_Saturday_s_VFL_Legend_Of_Game), [Wikipedia](https://en.wikipedia.org/wiki/Casey_Clausen)). Accurate. Clean.
+- **09-17 slot 4** (Candace Parker, redshirt junior WNBA entry): Previously verified accurate; re-confirmed. Clean.
+- **09-17 slot 5** (Tennessee–Alabama all-time series count, updated today to exact "108 times"): Verified via web search — Winsipedia lists the series at 108 meetings (Alabama leads 60-40-7) ([Winsipedia](https://www.winsipedia.com/alabama/vs/tennessee)). "108 times" is exact and correct — this is a stronger, more defensible answer than the prior "Over 100 times" per David's request. Distractors (98 / 103 / 115) are now close, plausible numbers and no longer self-eliminating. Clean, well-formed question.
+- **09-18 slot 1** (Grant Williams 2018-19 All-American): Confirmed accurate; real 2018-19 teammates as distractors (Schofield, Bone, Bowden). Clean.
+- **09-18 slot 2** (Bill Battle, 1970 hire): Verified via web search — Battle was a Tennessee assistant under Doug Dickey from 1966-69 (part of the 1967 and 1969 SEC title staffs) and was elevated to head coach in 1970 when Dickey left for Florida ([Bill Battle – Wikipedia](https://en.wikipedia.org/wiki/Bill_Battle), UTSports obituary). Question premise and correct answer both accurate; all four options (Barnhill, Neyland, Wyatt, Battle) are real Tennessee-affiliated coaches, none self-eliminating. Clean. (This row wasn't flagged in any prior run and appears to have been clean from the start.)
+- **09-18 slot 3** (Barnes vs. Kentucky, "on multiple occasions"): Confirmed clean per the 09-16 run's verification; the previously-noted style note (long-phrase correct answer) is low-priority/informational only and not re-logged as a new issue.
+- **09-18 slot 4** (Pruitt-era infractions): Confirmed accurate and well-formed; real programs as distractors. Clean.
+- **09-18 slot 5** (1950 national title / six claimed titles): Confirmed accurate; distractors are plausible year-lists. Clean.
+- **09-19 slot 1** (Peyton Manning #16 retired 2005): Verified via web search — jersey retired Oct. 29, 2005, in a pregame ceremony ([UTSports](https://utsports.com/news/2005/10/28/peyton_manning_s_no_16_to_be_retired_during_pregame_ceremony)). Accurate. Clean. (Also not previously flagged — appears clean from the start.)
+- **09-19 slot 2** (Drew Beam, Freshman All-American): Verified via web search — Beam was a four-time Freshman All-American and SEC Freshman of the Year in 2022 under Vitello ([On3](https://www.on3.com/teams/tennessee-volunteers/news/tennessee-vols-baseball-major-league-draft-drew-beam/)). Now restructured from the old broken True/False into a standard 4-option question; the other three options (Burke, Moore, Dickey) are real Tennessee hitters, not pitchers, which is a legitimate knowledge-based distinction rather than a non-answer/absurd distractor. Clean.
+- **09-19 slot 3** (Red River Rivalry into SEC): Options are now four real, distinct rivalries (Red River / Iron Bowl / Egg Bowl / Bedlam) rather than premise-denying non-answers. Fact confirmed well-established. Clean.
+- **09-19 slot 4** (Rod Delmonico tenure): Now reads "18 seasons (1990-2007)," matching the previously-verified correct figure (699-396 record). Clean.
+- **09-19 slot 5** (Pat Summitt, Olympic medals): Option D trimmed to just "Pat Summitt," matching the other three single-name options; no meta-commentary remains. Clean.
+
+### 2026-09-20 — first review of this date (4 issues found)
+
+### trivia_questions.5618cacd-58d1-4bda-be1a-ed984fbab1ee — 2026-09-20 / slot 3 — non-answer + self-eliminating distractors, long-phrase correct answer
+**Current:** "Chamique Holdsclaw, Candace Parker, and Tamika Catchings all have which honor in common at Tennessee, beyond their Naismith Hall of Fame inductions?" A "Each has had her jersey number retired or honored by the program" (correct), B "Not applicable", C "None of their numbers have been honored", D "Every number has been formally retired for every Lady Vol"
+**Suggested fix:** Replace B/C/D with three real, plausible-but-wrong shared honors of the same type as the correct answer (e.g., "All three were named national Player of the Year," "All three are Tennessee Sports Hall of Fame inductees," "All three had their numbers honored but not formally retired"), and shorten the correct answer text to a short phrase, e.g. "Jersey retired" or "Numbers retired," to match David's style preference.
+**Reason:** §32 — B is the recurring "Not applicable" non-answer pattern; C flatly negates the question's own premise (a "none of them" option right after a question asking what they share); D is an absurd hyperbolic claim ("every single Lady Vol," obviously false) — all three are trivially eliminable without real Lady Vols knowledge. Separately, the correct answer is an 11-word full sentence, a clear style violation (should be 1-3 words). **Verification:** underlying fact confirmed accurate via web search — Holdsclaw (#23), Catchings (#24), and Parker (#3) have all had their numbers retired/honored by the Tennessee women's basketball program ([Volopedia](https://volopedia.lib.utk.edu/entries/lady-vols-numbers-jerseys-retired/), [ESPN](https://www.espn.com/womens-college-basketball/story/_/id/10233690/tennessee-lady-volunteers-honor-candace-parker-retire-jersey)).
+**Status:** ⏳ pending review
+
+### trivia_questions.20d975f5-f9a0-4687-85f0-4f13a9c48235 — 2026-09-20 / slot 2 — weak/tautological question content + long-phrase correct answer
+**Current:** "Tennessee plays its home games on the campus of which university?" A "University of Tennessee, Knoxville" (correct), B "Auburn University", C "University of Georgia", D "Vanderbilt University"
+**Suggested fix:** Recommend full replacement with a more substantive campus/venue fact (e.g., naming Neyland Stadium, its capacity, or an actual home-field detail) rather than a question that's essentially self-referential ("which university is Tennessee's team from" is nearly tautological). If kept as-is, at minimum shorten the correct answer to "University of Tennessee" or "UT Knoxville" for style.
+**Reason:** §32 — while not factually wrong and not self-eliminating (all four are real SEC schools), the question borders on a non-question: it's asking the test-taker to identify Tennessee's own home institution, which tests almost no actual Vol/SEC knowledge even at "easy" difficulty. Separately, the correct answer is a 4-word proper-noun phrase rather than the short 1-3 word style David prefers.
+**Status:** ⏳ pending review
+
+### trivia_questions.2a760da7-b1f1-453e-83db-1330e08c1b8d — 2026-09-20 / slot 5 — minor: implausible distractor
+**Current:** "...Which bracket structure does the men's CWS use?" A "A single best-of-one championship game with no bracket", B "A double-elimination bracket feeding into a best-of-three championship series" (correct), C "Single elimination throughout", D "A round-robin format"
+**Suggested fix:** Replace A with a more plausible-sounding but still wrong format description, e.g. "A single-elimination bracket with no championship series."
+**Reason:** §32 — option A ("no bracket" at all) is implausible on its face for a 64-team national tournament and is trivially eliminable without real knowledge, undercutting a "hard" slot. Correct answer verified accurate via web search — the men's CWS uses double-elimination pool play into a best-of-three finals, and Tennessee's 2024 run did include a win over Texas A&M in that finals format ([NCAA.com](https://www.ncaa.com/news/baseball/article/2024-06-24/tennessee-wins-2024-mens-college-world-series), [UTSports](https://utsports.com/news/2024/6/24/baseball-national-champions-1-tennessee-baseball-wins-2024-mcws)). Low priority.
+**Status:** ⏳ pending review
+
+### trivia_questions.5be91bb7-1244-49ff-8ca6-59363c893eb9 — 2026-09-20 / slot 1 — low-confidence flag: "primarily with Miami Heat" is a generous characterization
+**Current:** "Which Tennessee guard went on to a lengthy NBA career, primarily with the Miami Heat, after starring for the Vols in the 2010s?" A "Dale Ellis", B "Josh Richardson" (correct), C "Allan Houston", D "Chris Lofton"
+**Suggested fix:** No confident fix proposed — flagging for awareness only. Consider softening "primarily with the Miami Heat" to something like "including multiple stints with the Miami Heat" if the content team wants to be more precise.
+**Reason:** Verified via web search — Richardson had a 10-season NBA career (2015-2025) and did play 6 of those 10 seasons with Miami (including his best season, 2018-19), which supports "lengthy" and arguably "primarily." However, he also played for 6 other teams (Sixers, Mavs, Celtics, Spurs, Pelicans) in between his two Miami stints, so "primarily with the Miami Heat" slightly overstates how much of his career was Miami-only. Not confident enough this rises to a hard factual error to propose a firm rewrite — flagging as a borderline/low-confidence note per guardrails. Correct answer (Josh Richardson) itself is not in question.
+**Status:** ⏳ pending review — flagged as uncertain/low-confidence
+
+## Poll check — 2026-09-17 to 2026-09-20
+- Checked 4 rows (one per date). All four follow the site's established opinion-poll format ("who is the best...", "what makes ... special"), with clear single-topic questions and 4 distinct, non-overlapping options each.
+- **09-17** (best Vol basketball player: Houston/Lofton/Williams/Ellis): confirmed clean, consistent with prior review.
+- **09-18** (best safety: Berry/Grant/Griffin/Randolph): confirmed clean, consistent with prior review.
+- **09-19** (best baseball infielder: Moore 2B/Helton 1B/Senzel 3B/Lipscomb 3B): confirmed clean — two options share the "3B" label but are different real players, not a duplicate/overlap.
+- **09-20** (what makes Neyland Stadium special: size & atmosphere / Tennessee River backdrop / checkerboard endzone / Vol Walk) — new this run. All four claims verified accurate (Neyland sits on the Tennessee River; the checkerboard end zones and Vol Walk are real, well-known traditions). Clear, single-topic, no leading/biased phrasing, four distinct non-overlapping options. Clean.
+- No duplicate or near-duplicate poll within the window.
+- Category mix across the window: Basketball ×1 (09-17), Football ×2 (09-18, 09-20), Baseball ×1 (09-19), no Lady Vols poll — same recurring mix gap noted in the prior run's log; flagging again for awareness only, not a defect in any individual row.
+## 2026-09-18 — run summary — BLOCKED, not completed
+- Attempted scope: trivia 2026-09-18 to 2026-09-21, polls 2026-09-18 to 2026-09-21
+- Issues found: N/A — **the run could not be performed.** The `mcp__Supabase__execute_sql` and `mcp__Supabase__list_tables` tools required by this agent's brief were not available in this session. The Supabase MCP server first reported a `CONNECT_TIMEOUT`; after retrying, the server reported as "connected" but explicitly does **not** offer either tool in this environment ("No such tool available ... Its MCP server 'Supabase' is connected but does not offer this tool here"). No fallback read-only path to `trivia_questions` / `daily_polls` was available (no direct DB credentials, no CLI in this environment).
+- No rows were read this run. No proposals are logged below because none were checked — this entry exists only so there is a record that the automated check did not happen today, per the "log the summary even when nothing to report" guidance, extended here to an outright tooling failure so the gap is visible rather than silent.
+- Action needed: re-run this check once the Supabase MCP connector is fixed/exposes `execute_sql`/`list_tables` for this project. Until then, 2026-09-20's 4 previously-logged pending issues (slots 1-3, 5) remain unverified and unfixed, and 2026-09-21 remains completely unreviewed.
+**Status:** ⏳ blocked — tooling unavailable, needs re-run
+
+## 2026-09-18 — run summary
+- Checked: trivia 2026-09-18 to 2026-09-21 (20 rows, 5 slots × 4 days), polls 2026-09-18 to 2026-09-21 (4 rows)
+- Issues found: 7
+- Supabase MCP tools (`execute_sql`, `list_tables`) confirmed available and responsive this run (the outage noted in the preceding blocked entry is resolved).
+- Independent re-verification of 2026-09-18 and 2026-09-19 (the two in-scope dates from the manual backlog cleanup): all 10 rows (09-18 slots 1-5, 09-19 slots 1-5) plus both polls re-checked fresh against current DB content, with a live web search on 09-19 slot 2's Drew Beam claim. **All 10 trivia rows and both polls are clean — no remaining issues.** One non-blocking style note carried forward: 09-18 slot 3's correct answer "On multiple occasions" is still a 3-word descriptive phrase rather than a crisp name/number/year per David's short-answer preference; not re-logged as a numbered issue since it was already noted as low-priority in the prior run and is not a correctness problem.
+- 2026-09-20 re-assessed fresh per the PR #176 findings: independently reached the same conclusions on slots 1, 2, 3, and 5 (all still unfixed in the DB) and confirmed slot 4 is clean. Slot 1 (Josh Richardson) is upgraded from a low-confidence flag to a verified, firm proposed fix below.
+- 2026-09-21 entered scope for the first time and was reviewed fresh in full, including a web search that surfaced a genuine factual error on slot 5 (see below) and a duplicate/near-duplicate pairing with 09-20 slot 3.
+
+### trivia_questions.c7805f2f-00d3-4321-a637-e58631c7945c — 2026-09-21 / slot 5 — factual error: series claim is backwards
+**Current:** "Has Tennessee's all-time baseball series record against Vanderbilt historically favored Vanderbilt, even as Tennessee has closed the gap since 2017?" A "The series is exactly even every single year", B "They have never played", C "Yes, the long-run series has generally favored Vanderbilt" (correct), D "Tennessee has always dominated the series"
+**Suggested fix:** Replace with a factually correct framing, e.g. question: "Which team leads the all-time Tennessee-Vanderbilt baseball series?" correct answer: "Tennessee" (or "Tennessee, 188-172-2"), with plausible wrong options like "Vanderbilt", "Tied", "Series not tracked before 1950."
+**Reason:** §32 factual accuracy. Verified via Winsipedia: Tennessee leads the all-time series 188-172-2 (through the March 2026 matchup) — the opposite of what the question asserts. This is also a leading/loaded question (the stem states the false premise as if given, "even as Tennessee has closed the gap"), and options B and D both flatly contradict that same false premise rather than being genuine distractors, plus the correct-answer text is a long sentence rather than a short style-compliant answer. Recommend full replacement rather than a patch, given the premise itself is wrong.
+**Status:** ⏳ pending review — verified via web search (Winsipedia), high priority
+
+### trivia_questions.5be91bb7-1244-49ff-8ca6-59363c893eb9 — 2026-09-20 / slot 1 — factual accuracy concern, now confirmed (was a low-confidence flag in the PR #176 pass)
+**Current:** "Which Tennessee guard went on to a lengthy NBA career, primarily with the Miami Heat, after starring for the Vols in the 2010s?" A "Dale Ellis", B "Josh Richardson" (correct), C "Allan Houston", D "Chris Lofton"
+**Suggested fix:** Drop the "primarily with the Miami Heat" claim; reword to something team-neutral and verifiably accurate, e.g. "Which Tennessee guard went on to a 10-year NBA career with seven different teams after starring for the Vols in the 2010s?"
+**Reason:** §32 factual accuracy. Verified via web search: Richardson played 10 NBA seasons across seven team stints (Miami Heat 2015-19 and 2023-25, Philadelphia, Dallas, Boston, San Antonio, New Orleans) — 6 of his 10 seasons were with Miami, split across two non-consecutive stints. "Primarily with the Miami Heat" is a stretch given how much of his career (4 of 10 seasons, plus the entire middle of his career) was spent with five other franchises; he's arguably better known as a well-traveled journeyman than a Heat mainstay. The person named (Josh Richardson) and his Tennessee background are correct — only the "primarily Miami Heat" characterization is the concern.
+**Status:** ⏳ pending review — verified via web search, upgraded from prior low-confidence flag to a firm proposal
+
+### trivia_questions.20d975f5-f9a0-4687-85f0-4f13a9c48235 — 2026-09-20 / slot 2 — still unfixed: weak/tautological question + style
+**Current:** "Tennessee plays its home games on the campus of which university?" A "University of Tennessee, Knoxville" (correct), B "Auburn University", C "University of Georgia", D "Vanderbilt University"
+**Suggested fix:** Replace with a substantive Vol-football-history fact at easy difficulty, e.g. "What is the name of Tennessee's football stadium?" (Neyland Stadium) or a simple historical fact (first season, founding year, etc.) with real distractor options.
+**Reason:** §32 — the question is tautological (nearly answers itself from the team's own name) and tests no actual Vol knowledge; confirmed still present unchanged from the PR #176 pass (2026-09-17 run). Also a style note: not really applicable here since the correct answer is already short, but the underlying question design is the core problem.
+**Status:** ⏳ pending review — carried over unfixed from PR #176 pass, independently re-confirmed this run
+
+### trivia_questions.5618cacd-58d1-4bda-be1a-ed984fbab1ee — 2026-09-20 / slot 3 — still unfixed: non-answer distractors + long correct answer; also now a near-duplicate of 09-21 slot 3
+**Current:** "Chamique Holdsclaw, Candace Parker, and Tamika Catchings all have which honor in common at Tennessee, beyond their Naismith Hall of Fame inductions?" A "Each has had her jersey number retired or honored by the program" (correct), B "Not applicable", C "None of their numbers have been honored", D "Every number has been formally retired for every Lady Vol"
+**Suggested fix:** Replace B/C/D with plausible-but-wrong honors (e.g. "Each has a statue outside Thompson-Boling Arena", "Each coached the program after retiring", "Each was named SEC Player of the Decade") and shorten the correct answer to something like "Jersey retirement" or "Retired numbers." Also see the paired duplicate issue below — recommend replacing this question's topic entirely (not just the options) so it no longer overlaps with 09-21 slot 3.
+**Reason:** §32 — B and D are non-answers/absolutist extremes in the same recurring pattern flagged repeatedly across prior runs; confirmed still present unchanged from the PR #176 pass. New this run: 09-21 slot 3 (below) asks about the same three players and the same Hall-of-Fame/honors theme within the same 3-day window — a duplicate/near-duplicate pairing that should be resolved by changing one of the two questions' underlying topic, not just patching options.
+**Status:** ⏳ pending review — carried over unfixed from PR #176 pass, independently re-confirmed this run; duplicate concern is new
+
+### trivia_questions.405a1643-0a3e-47cc-b39c-cdebe9bfe091 — 2026-09-21 / slot 3 — near-duplicate of 09-20 slot 3 + same non-answer distractor pattern
+**Current:** "Which Lady Vols alumnae have been individually inducted into the Naismith Memorial Basketball Hall of Fame as players?" A "Only coaches are ever inducted", B "No Lady Vol player has ever been inducted", C "Chamique Holdsclaw, Candace Parker, and Tamika Catchings" (correct), D "Not applicable"
+**Suggested fix:** Since 09-20 slot 3 already covers this same trio's honors, recommend replacing this question with different Lady Vols History content entirely (e.g. a different alumna, a different era, a different achievement) rather than patching options on both. If kept, replace A/B/D with plausible-but-wrong player names/combinations instead of denial-of-premise non-answers.
+**Reason:** §32 — duplicate/near-duplicate within the 3-day window: this question and 09-20 slot 3 both center on the same three named Lady Vols (Holdsclaw, Parker, Catchings) and the same Hall-of-Fame/honors subject matter, just phrased from opposite directions ("what honor do they share" vs. "who are the Hall of Famers"). Also independently has the same "Not applicable"/absolute-denial distractor defect (A, B, D all deny the question's own premise) flagged repeatedly elsewhere in this log.
+**Status:** ⏳ pending review — new finding this run
+
+### trivia_questions.2a760da7-b1f1-453e-83db-1330e08c1b8d — 2026-09-20 / slot 5 — still unfixed: self-eliminating distractor
+**Current:** "Tennessee's 2024 College World Series run included wins over multiple nationally ranked opponents before the Finals win over Texas A&M. Which bracket structure does the men's CWS use?" A "A single best-of-one championship game with no bracket", B "A double-elimination bracket feeding into a best-of-three championship series" (correct), C "Single elimination throughout", D "A round-robin format"
+**Suggested fix:** Replace A with a plausible-but-wrong bracket description, e.g. "A single-elimination bracket with no championship series."
+**Reason:** §32 — option A directly contradicts the question stem's own premise (multiple games/wins over multiple ranked opponents leading to "the Finals," which implies a bracket exists), making it trivially eliminable without CWS-specific knowledge. Confirmed still present unchanged from the PR #176 pass.
+**Status:** ⏳ pending review — carried over unfixed from PR #176 pass, independently re-confirmed this run
+
+### trivia_questions.a3ef20ba-3643-483b-8e84-bf9dc2717fab — 2026-09-21 / slot 1 — self-eliminating absolutist distractors
+**Current:** "What is Tennessee basketball's general playing-style reputation under Rick Barnes?" A "Slow-down, stall-ball only", B "Exclusively three-point shooting", C "Defense-first, physical style" (correct), D "Fast-paced, no defense"
+**Suggested fix:** Replace with less absolute, more plausible alternatives, e.g. A "Slow, deliberate half-court offense", B "High-volume three-point shooting", D "Uptempo, fast-break style" — keeping C as the correct answer.
+**Reason:** §32 — A, B, and D each use an absolutist qualifier ("only", "Exclusively", "no defense") that no real basketball team's style ever literally matches, making them trivially eliminable as exaggerations rather than genuine plausible characterizations; same pattern as the "Not applicable"/absolute-extreme distractors flagged repeatedly elsewhere in this log.
+**Status:** ⏳ pending review — new finding this run
+
+## Poll check — 2026-09-18 to 2026-09-21
+- Checked 4 rows (one per date), all re-verified or newly reviewed:
+  - **09-18** ("best safety"): Eric Berry, Deon Grant, Michael Griffin, Brian Randolph — all real Tennessee safeties, distinct, no bias. Clean (re-confirmed).
+  - **09-19** ("best baseball infielder"): Christian Moore (2B), Todd Helton (1B), Nick Senzel (3B), Trey Lipscomb (3B) — distinct people, positions accurate, no bias. Clean (re-confirmed).
+  - **09-20** ("what makes Neyland Stadium special"): size/atmosphere, Tennessee River backdrop, checkerboard endzone, Vol Walk — four distinct, factually real features of Neyland Stadium, no leading phrasing toward one option. Clean (new review).
+  - **09-21** ("best Lady Vol basketball player of the 2000s"): Candace Parker, Shannon Bobbitt, Nicky Anosike, Alexis Hornbuckle — all Lady Vols who played in the 2000s, distinct, no bias. Clean (new review).
+- Category mix across this 4-day window: Football ×2 (09-18 player, 09-20 venue), Baseball ×1 (09-19), Lady Vols ×1 (09-21); no men's basketball poll in this window, consistent with the rotation noted as worth watching in earlier runs but not itself a defect over a 4-day slice.
+- Issues found: 0
+## 2026-09-19 — run summary
+- Checked: trivia 2026-09-19 to 2026-09-22 (20 rows, 5 slots × 4 days), polls 2026-09-19 to 2026-09-22 (4 rows, full coverage)
+- Issues found: 3 (0 factual errors, 1 difficulty-mismatch note, 1 style note, 1 poll-wording/clarity note). 2026-09-22 is newly in scope this run and was reviewed as fully unreviewed content.
+- Web search was available this run; sources cited per fact below.
+
+### Independent verification of everything David said was manually fixed earlier today
+Re-checked every row he listed fresh, not assuming any of it — **all confirmed factually accurate, no remaining issues on any of them:**
+- **09-19 slot 1** (Peyton Manning #16 retired 2005): confirmed.
+- **09-19 slot 2** (Drew Beam Freshman All-American): confirmed via web search — Beam earned Freshman All-American honors and SEC Freshman of the Year in 2022 ([On3](https://www.on3.com/teams/tennessee-volunteers/news/tennessee-vols-baseball-major-league-draft-drew-beam/), [UTSports](https://utsports.com/news/2023/4/16/baseball-rocky-top-spotlight-drew-beam)). Correct answer B accurate; no distractor issues (Burke/Moore/Dickey are all real hitters, not pitchers — clean, non-self-eliminating set).
+- **09-19 slot 5** (Lady Vols Olympic medalists under Summitt, answer 14): independently confirmed via web search — Summitt's program produced 14 Olympic Team members ([multiple sources](https://www.hoophall.com/hall-of-famers/pat-summitt) corroborate). Clean, appropriately hard for slot 5.
+- **09-20 slot 1** (Josh Richardson, 2015 Miami draft, two stints): confirmed via web search — 40th overall pick 2015, first stint 2015-2019, second stint 2023-2025, retired 2026 after 10 NBA seasons ([Wikipedia](https://en.wikipedia.org/wiki/Josh_Richardson), [Hot Hot Hoops](https://hothothoops.com/2026/07/30/former-miami-heat-guard-10-year-veteran-josh-richardson-retires/)). Factually clean — see difficulty note below (separate from a factual issue).
+- **09-20 slot 2** (Neyland/Shields-Watkins Field first game, 1921): confirmed. Clean, good replacement for the prior weak stadium question.
+- **09-20 slot 3** (Chamique Holdsclaw #23 retired): confirmed. Clean.
+- **09-20 slot 4** (John Currie AD, preceded Fulmer in 2017): confirmed, untouched and clean as noted.
+- **09-20 slot 5** (2024 CWS bracket format, best-of-three finals): confirmed via web search — 2024 MCWS Finals was a 3-game series (Texas A&M won G1, Tennessee won G2/G3 for the title) ([Bleacher Report](https://bleacherreport.com/articles/10125947-college-world-series-finals-2024-tennessee-beats-texas-am-to-win-1st-ncaa-title)), confirming men's CWS finals are best-of-three (option B). Clean.
+- **09-21 slot 1** (Barnes-era playing style = defense-first/physical): commonly-established characterization, not a hedge/non-answer; distractors are all plausible generic styles. Clean.
+- **09-21 slot 2** (Joe Milton III replaced injured Hooker, 2022): confirmed. Clean, untouched as noted.
+- **09-21 slot 3** (Naismith HOF Lady Vols trio — Holdsclaw, Parker, Catchings): confirmed via web search — Holdsclaw and Parker were both named to the Naismith Hall of Fame's Class of 2026 (announced April 2026, enshrined August 2026), and Catchings was already inducted in 2020 ([ESPN](https://www.espn.com/wnba/story/_/id/49593818/naismith-hall-fame-2026-class-candace-parker-elena-delle-donne-chamique-holdsclaw), [WVLT](https://www.wvlt.tv/2026/04/04/lvfls-candace-parker-chamique-holdsclaw-named-naismith-basketball-hall-fame/)). As of today (2026-09-19), all three are confirmed inductees and the other three options' non-included names (Bridgette Gordon, Nikki McCray, Kellie Harper) are not Naismith inductees as players. Correct answer C is accurate. Clean.
+- **09-21 slot 4** (Heupel national COY recognition after 2022): confirmed, untouched and clean as noted.
+- **09-21 slot 5** (Tennessee leads UT-Vandy baseball series by ~16 games): confirmed via web search — Tennessee leads the all-time series 188-172-2 through March 2026, a 16-win margin ([Winsipedia](https://www.winsipedia.com/tennessee/vs/vanderbilt)). Correct answer B accurate.
+
+### 2026-09-22 — newly in scope, reviewed fresh
+All 5 trivia rows check out factually clean:
+- Slot 1 (Thompson-Boling Arena hosts basketball): clean, good easy question with real-but-wrong-sport UT venues as distractors.
+- Slot 2 (2022 team, first-ever #1 overall national seed): clean.
+- Slot 3 (Trey Smith drafted by Chiefs, won Super Bowl): confirmed — Chiefs, SB LVII/LVIII. Clean.
+- Slot 4 (women's basketball = most all-time Olympic medals for UT, ahead of swimming/track): confirmed via web search — women's basketball 16 medals vs. men's swimming 10 and men's track 10 ([search aggregating UTSports Olympic medalist data](https://utsports.com/news/2012/8/8/Tennessee_s_All_Time_Olympic_Medalists)). Clean.
+- Slot 5 (Al Wilson wore #27): confirmed via web search ([Rivals/VolReport](https://tennessee.rivals.com/news/tennessee-football-jersey-countdown-no-27-al-wilson), [UTSports](https://utsports.com/news/2013/8/4/Vols_Jersey_Countdown_27)). Clean.
+
+The poll for 09-22 has a wording issue — see entry below.
+
+### trivia_questions.b51f5b58-037c-4140-91aa-da6dc05af9ea — 2026-09-19 / slot 4 — style: correct answer's parenthetical makes it stand out from distractors
+**Current:** correct option_c "18 seasons (1990-2007)"; other options are plain "3 seasons" / "5 seasons" / "30 seasons"
+**Suggested fix:** Shorten to just "18 seasons" to match the other three options' format.
+**Reason:** §32 style preference (short 1-3 word answers) plus a design "tell": the correct option is the only one carrying extra parenthetical detail, which makes it visually stick out from the other three and can let a test-taker guess correctly by length/specificity alone rather than knowledge. Underlying fact (Delmonico coached 1990-2007, 18 seasons) is accurate, not a factual issue.
+**Status:** ⏳ pending review
+
+### trivia_questions.5be91bb7-1244-49ff-8ca6-59363c893eb9 — 2026-09-20 / slot 1 — difficulty mismatch: labeled "easy" but requires fairly specific knowledge
+**Current:** difficulty "easy" — question asks about Josh Richardson's 2015 Miami draft *and* his two separate stints with Miami over a decade-long career.
+**Suggested fix:** Either relabel difficulty to "medium," or simplify the question stem to drop the "two separate stints" detail (e.g. just "Which Tennessee guard was drafted by the Miami Heat in 2015 and went on to a decade-long NBA career?") if it should stay an easy/slot-1 question.
+**Reason:** §32 — slot 1 should be the easiest question of the day. Knowing Richardson played at Tennessee and had an NBA career is reasonably easy; knowing the specific detail that he had two *separate* stints with Miami is a more advanced/medium-level fact. Not a factual error — the claim itself is accurate (verified above).
+**Status:** ⏳ pending review
+
+### daily_polls.d84e08e7-a12e-4646-a8ea-9b5afa182ffd — 2026-09-22 — clarity: one option is vague and non-parallel with the other three
+**Current:** "What is the best Vol basketball recruiting class in history?" A "A Tobias Harris class", B "A Chris Lofton era class", C "A recent Barnes class", D "The Grant Williams class"
+**Suggested fix:** Replace option C with a specific, named class in the same style as the others, e.g. "The 2021 signing class (Chandler, Springer, K. Johnson)" — flagged with uncertainty: I could not confidently verify which specific Barnes-era class is *the* strongest/most defensible pick (candidates include the 2021 five-star trio and the 2025 class with the program's highest-ranked recruit ever), so I'm not proposing that exact replacement with confidence. At minimum, "recent" should be replaced with a specific year/class before this airs, since it will read as stale/ambiguous by the time it's actually shown.
+**Reason:** §33 — options should be clear and non-overlapping; three options name specific players/classes while option C uses a vague relative term ("recent") with no named players, breaking parallel construction and becoming increasingly inaccurate as "recent" ages. Also a moving target for the "Barnes" identifier specifically, since Barnes has now had many recruiting classes.
+**Status:** ⏳ pending review — flagged with uncertainty on the exact replacement class
 ## 2026-09-23 — run summary
 - Checked: trivia 2026-09-23 to 2026-09-26 (20 rows, 5 slots × 4 days), polls 2026-09-23 to 2026-09-26 (3 rows found — 2026-09-24 has no poll scheduled)
 - Issues found: 9 (2 hard factual errors, 1 fabricated-premise question recommended for replacement, 1 ambiguous-premise question, 2 self-eliminating/"Not applicable"-style distractor issues, 1 distractor-quality note, 1 style/distractor-spread note, 1 poll scheduling gap)
