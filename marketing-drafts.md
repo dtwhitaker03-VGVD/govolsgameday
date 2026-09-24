@@ -334,3 +334,42 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-09-16 — Final score recap
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Subject: Tennessee 45, Georgia Tech 24 (away win, Sept 12, 2026) — the
+  first pillar-2 recap posted for this game; every earlier draft on this
+  matchup (Sept 7/11) was pregame hype/countdown, so this is a new
+  subject rather than a repeat. Pulled fresh from `live_games`
+  (`status = 'calculated'`, `updated_at` 2026-09-13 03:05 UTC — 3 days
+  before this run): final score 45–24, total yards Tennessee 447 vs.
+  Georgia Tech 356. Also queried `live_games` for Tennessee's other
+  `calculated` game (Furman, W 56–9) to confirm the real "2–0 THIS
+  SEASON" record shown on the graphic. Top-performer spotlight pulled
+  from `game_leaderboard` joined to `profiles` for this game's row:
+  Tiberious, 1,375 total game points (925 pregame + 450 drive), with
+  runner-up MrMasterMind14 at 1,144 shown as a second line — both real
+  usernames and point totals, no invented stat. Checked open PRs
+  (`gh api repos/dtwhitaker03-VGVD/govolsgameday/pulls?state=open`
+  returned none) and re-read this whole log first — no other recap for
+  this game exists yet.
+- Design note: dense magazine-style single artboard — masthead strip
+  (GVGD logo lockup + "FINAL" tag/date), a hero score block (Anton
+  score numerals, radial glow, a rotated Permanent Marker kicker line
+  "Road win. Still rolling."), a "TOTAL YARDS" comparison-bar block,
+  and a "TOP PREDICTOR OF THE NIGHT" leaderboard block, on the
+  `#0F172A`/`#162038`/`#FF8200` palette with the diagonal end-zone
+  stripe motif — matching the Anton + Inter + one Permanent Marker
+  accent-line pairing David has approved for recent drafts. No
+  photos/stock imagery; typography, color, and the diagonal/glow motif
+  only. Ran the two-pass local render check (real Google Fonts, then
+  fonts stripped to force fallback substitution) via headless Chromium
+  before publishing — both passes render every `white-space: nowrap`
+  line on one line with no overlap or overflow (the automated
+  wrap-height heuristic flagged the Permanent Marker kicker line in the
+  real-font pass as a possible wrap; the rendered screenshot confirms
+  it is one line — Permanent Marker's tall ascenders/descenders simply
+  exceed the heuristic's line-height multiplier, not an actual wrap).
+- Canvas: https://claude.ai/artifact/3wGgnXV6Gn4FrKdXFL2Nqk
+- Status: ⏳ pending review
