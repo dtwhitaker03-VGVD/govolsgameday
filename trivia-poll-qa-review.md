@@ -261,3 +261,65 @@ None of the above changes any of the 15 pending fixes from the run above — the
 - Issues found: 0
 
 **Status:** ⏳ pending review
+
+## 2026-09-24 — run summary
+- Checked: trivia 2026-09-24 to 2026-09-27 (20 rows, 5 slots × 4 days), polls 2026-09-24 to 2026-09-27 (4 rows, full coverage)
+- Issues found: 4 (2 factual-accuracy errors, 2 minor style/quality notes), plus 1 informational thematic-overlap note
+- Web search was available and used to verify every factual claim below rather than relying on recollection alone.
+
+**Independent re-verification of the manual fixes reported for 09-24/09-25 (checked fresh, not assumed):**
+- 09-24 slot 1 (Plavsic/Arizona State transfer): confirmed accurate — Uroš Plavšić signed with Tennessee out of Arizona State in 2019 (UTSports.com, 247Sports). Clean.
+- 09-24 slot 2 (Pruitt shortest tenure): confirmed accurate among the four listed coaches — Pruitt's ~3-season tenure (2018-2020) is shortest of Fulmer/Jones/Pruitt/Heupel. Clean.
+- 09-24 slot 3 (LSU "Golden Band from Tigerland"): confirmed accurate. Clean.
+- 09-24 slot 4 (Pat Summitt Foundation / Alzheimer's focus): confirmed accurate. Clean.
+- 09-24 slot 5 (Pruitt-era NCAA infractions "over 200"): confirmed accurate — NCAA COI found the program responsible for more than 200 individual violations, including 18 Level I (ESPN, CBS Sports, NCAA.org). Clean.
+- 09-25 slot 2 (Auburn "War Eagle"): confirmed accurate. Clean.
+- 09-25 slot 3 (Jaylen Wright, 2022 backfield rotation): confirmed accurate — Wright actually *led* Tennessee's 2022 rushing (875 yds/10 TD vs. Jabari Small's 734 yds/13 TD), so "standout member of the rotation" holds up. Clean.
+- 09-25 slot 4 (Dale Ellis single-season scoring record): confirmed accurate — Ellis set the record with 724 points in 1982-83; Allan Houston broke it with 806 in 1990-91. (Dalton Knecht's 780 in 2023-24 has since pushed Ellis to 3rd all-time, but the historical sequence in the question — Ellis held it, then Houston broke it — remains true and unaffected.) Clean.
+- 09-25 slot 5 (Tee Martin): **still has a factual problem**, see new finding below — the earlier fix removed a fabricated "interim head coach in 2020" premise, but the remaining correct answer is itself inaccurate.
+- 09-23 was out of this run's 3-day scope (09-24 to 09-27) and was not rechecked.
+
+**09-26 re-verification** (reported clean in an earlier pass): slots 1, 3, 5 and the poll reconfirmed clean this run; **slot 4 has a newly-found factual error** below that the earlier clean call missed.
+
+**09-27** (first time in scope, fully unreviewed before this run): all 5 slots and the poll checked fresh — 4 slots and the poll clean, 1 slot has a minor style-only spelling note.
+
+### trivia_questions.2ea5cbd7-c918-47db-a18d-d454dd6e67bd — 2026-09-25 / slot 5 — factual error: Tee Martin was never Tennessee's "offensive coordinator"
+**Current:** Q: "Tee Martin, the 1998 championship-winning quarterback, returned to Tennessee's coaching staff years later in what role?" option_a: "Offensive coordinator/assistant coach" (correct_answer)
+**Suggested fix:** Change option_a to "Assistant head coach/WR coach" (or "Passing game coordinator/assistant coach"); correct_answer stays A.
+**Reason:** Verified via web search (UTSports.com's January 2019 hire announcement) — when Martin returned to Tennessee under Jeremy Pruitt in Jan. 2019, his actual title was wide receivers coach, assistant head coach, and passing game coordinator. He was Tennessee's "offensive coordinator" at no point — that title was only ever his at USC (2015). He also wasn't retained when Josh Heupel took over in 2021 (he left for the Baltimore Ravens), so he never held an OC role at Tennessee at any time. §32 factual accuracy.
+**Status:** ⏳ pending review
+
+### trivia_questions.3f175046-661c-4c8a-8299-c90777f23b71 — 2026-09-26 / slot 4 — factual error: this was a road loss, not a home loss
+**Current:** Q: "Tennessee's 2016 team, ranked highly early in the season, suffered a costly home loss to which unranked SEC opponent?" correct_answer B "South Carolina"
+**Suggested fix:** Change "home loss" to "road loss" (or "away loss") in the question text; keep "South Carolina" as the correct answer.
+**Reason:** Verified via web search — the Oct. 29, 2016 South Carolina game (South Carolina won 24-21) was played in Columbia, SC, per Tennessee's official 2016 schedule (UTSports.com lists it "at South Carolina"). It was a road game, not a Neyland Stadium home game. Tennessee's only home loss in 2016 was to Alabama, which was ranked #1 at the time (not unranked), so no unranked SEC team beat Tennessee at home that season — the "home" qualifier itself is the error. Note: this row was reported clean in an earlier pass; that check didn't catch this.
+**Status:** ⏳ pending review
+
+### trivia_questions.5d16768f-b57d-4b3e-b250-88588d3b8697 — 2026-09-25 / slot 1 — minor style: answer is given away in the question's own wording
+**Current:** Q: "Tennessee basketball fans commonly wear which color en masse for themed 'orange-out' games?" correct_answer A "Orange"
+**Suggested fix:** Reword so the color name isn't already embedded in the question, e.g. "What color do Tennessee fans wear en masse for themed home-game promotions?"
+**Reason:** The question stem contains "orange" as part of the promotion's own name ("orange-out"), so the answer is derivable from reading comprehension alone, with zero Vol knowledge needed — trivially easy even for slot 1. Low priority style note, not a factual error.
+**Status:** ⏳ pending review
+
+### trivia_questions.6d98d10a-a068-4572-8f96-340c53f71053 — 2026-09-27 / slot 1 — minor style: spelling of the official alternate-uniform name
+**Current:** correct_answer option_a: "Smokey Gray"
+**Suggested fix:** "Smokey Grey" — Tennessee Athletics' own branding/press coverage consistently spells it "Grey" (247Sports, On3, SportsLogos.net, Rocky Top Insider all cover the 2026 football and baseball "Smokey Grey" alternate-uniform rollouts with that spelling).
+**Reason:** Minor accuracy/style nitpick on the official spelling — not a substance error.
+**Status:** ⏳ pending review
+
+### General note — thematic overlap on 2026-09-24 (informational only)
+**Current:** 2026-09-24 slot 2 (Pruitt's short, scandal-ended tenure) and slot 5 (the Pruitt-era NCAA infractions count) both center on the same Jeremy Pruitt/NCAA-scandal storyline on the same day.
+**Suggested fix:** No content-field fix proposed — these test two distinct facts (tenure length vs. violation count), not a duplicate. Flagging only as a minor thematic repetition for awareness on future scheduling, consistent with similar informational notes logged in prior runs.
+**Reason:** §32 duplicate/near-duplicate check — judged not a violation, but noted for awareness.
+**Status:** ⏳ pending review (informational only)
+
+## Poll check — 2026-09-24 to 2026-09-27
+- Checked 4 rows (one per date). All four are clear, single-topic, with distinct, non-overlapping options.
+- 09-24 (Texas margin-of-victory prediction poll): follows the site's established win-margin-bucket format used previously (e.g. the 09-15 Kennesaw State poll), which was already reviewed and accepted as non-biased in an earlier pass — not re-flagging.
+- 09-25 (best Vol basketball player of the 1990s — Houston/Allen/Harris/Black): verified via web search that Corey Allen, Tony Harris, and C.J. Black are all real Tennessee players active in the 1990s (C.J. Black specifically 1996-97 through 1999-2000, per UTSports.com rosters). Clean.
+- 09-26 (best Vol football player of the 2020s so far — Hooker/Smith/Tillman/Milton): all four are real 2020s-era Tennessee football players. Clean.
+- 09-27 (what would mean more to Lady Vols fans — beating UConn/winning SEC/Final Four/national title): clear trade-off format, no factual claims to verify, no leading bias. Clean.
+- Category mix across the window: football (game prediction), basketball, football, Lady Vols basketball — reasonably balanced.
+- Issues found: 0
+
+**Status:** ⏳ pending review
