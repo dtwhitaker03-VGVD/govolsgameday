@@ -418,6 +418,12 @@ export function PreGamePredictions({ game }: Props) {
   const oppName  = tnIsHome ? game.away_team : game.home_team;
   const spreadAvailable = game.spread_line_tn != null;
   const totalAvailable = game.total_points_line != null;
+  // spread_line_tn is signed from TN's perspective (positive = TN getting
+  // points as the underdog, negative = TN favored by that many) — the
+  // "wins by" side of the label has to track that sign, or a Tennessee
+  // underdog game reads backwards (e.g. Texas favored by 3.5 showing
+  // "Spread (TN wins by)").
+  const spreadFavoredTeam = game.spread_line_tn != null && game.spread_line_tn > 0 ? oppName : tnName;
   // The 3 TN stat guesses only make sense when Tennessee is actually
   // playing — an admin test game between two other teams skips them.
   const hasTennessee = game.home_team === 'Tennessee' || game.away_team === 'Tennessee';
@@ -744,7 +750,7 @@ export function PreGamePredictions({ game }: Props) {
 
                 {spreadAvailable && (
                   <div className="grid grid-cols-[1fr_44px_38px_44px] gap-1.5 items-center px-2.5 py-1.5 border-b border-white/[0.05]">
-                    <span className="text-[11px] font-bold text-white/85 truncate">Spread (TN wins by)</span>
+                    <span className="text-[11px] font-bold text-white/85 truncate">Spread ({spreadFavoredTeam} wins by)</span>
                     <button type="button" onClick={() => setField('spreadPick', 'under')} disabled={isLocked}
                       className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
                         form.spreadPick === 'under' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white hover:border-white/30'
