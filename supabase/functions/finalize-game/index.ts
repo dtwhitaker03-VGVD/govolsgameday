@@ -183,24 +183,67 @@ function findTeamStatByCategory(
   return Number.isFinite(n) ? n : null;
 }
 
-function findPlayerStatByName(
+// stat_category may list several comma-separated categories to sum one stat
+// type across them — e.g. "passing,rushing" + "TD" for a QB's total TDs.
+function parseCategories(statCategory: string): string[] {
+  return statCategory.split(",").map(normalize).filter(Boolean);
+}
+
+function findStatType(team: GamePlayerStatsTeam, category: string, statType: string): PlayerStatType | undefined {
+  const cat = team.categories?.find((c) => normalize(c.name) === category);
+  return cat?.types.find((t) => normalize(t.name) === normalize(statType));
+}
+
+// The player must appear in at least one listed category; a category they
+// don't appear in counts as 0 (a QB with no rushing TD line still had 0).
+function sumPlayerStat(
   entries: GamePlayerStatsEntry[],
-  category: string,
+  categories: string[],
   statType: string,
   playerName: string
 ): number | null {
   const game = entries[0];
   if (!game?.teams) return null;
+  let total = 0;
+  let found = false;
   for (const team of game.teams) {
-    const cat = team.categories?.find((c) => normalize(c.name) === normalize(category));
-    const type = cat?.types.find((t) => normalize(t.name) === normalize(statType));
-    const athlete = type?.athletes.find((a) => normalize(a.name) === normalize(playerName));
-    if (athlete) {
+    for (const category of categories) {
+      const athlete = findStatType(team, category, statType)?.athletes
+        .find((a) => normalize(a.name) === normalize(playerName));
+      if (!athlete) continue;
       const n = parseFloat(athlete.stat);
-      return Number.isFinite(n) ? n : null;
+      if (!Number.isFinite(n)) return null;
+      total += n;
+      found = true;
     }
   }
-  return null;
+  return found ? total : null;
+}
+
+// Team-scope prop with a stat_type: sum a /games/players stat over every
+// athlete on that team — e.g. "punting" + "NO" for a team's total punts
+// without knowing the punter's name. Null if the team has no such stat line.
+function sumTeamPlayerStat(
+  entries: GamePlayerStatsEntry[],
+  teamName: string,
+  categories: string[],
+  statType: string
+): number | null {
+  const team = entries[0]?.teams?.find((t) => normalize(t.team) === normalize(teamName));
+  if (!team) return null;
+  let total = 0;
+  let found = false;
+  for (const category of categories) {
+    const type = findStatType(team, category, statType);
+    if (!type) continue;
+    for (const athlete of type.athletes) {
+      const n = parseFloat(athlete.stat);
+      if (!Number.isFinite(n)) return null;
+      total += n;
+    }
+    found = true;
+  }
+  return found ? total : null;
 }
 
 async function autoGradeProps(
@@ -225,18 +268,26 @@ async function autoGradeProps(
     let actualValue: number | null = null;
 
     if (prop.stat_scope === "team") {
-      if (!teamsData) {
-        warnings.push(`Prop "${prop.description}": no CFBD team stats available to auto-grade.`);
-        continue;
-      }
       if (!prop.team_side) {
         warnings.push(`Prop "${prop.description}": team scope but no team_side set — skipped.`);
         continue;
       }
       const teamName = prop.team_side === "home" ? homeTeam : awayTeam;
-      actualValue = findTeamStatByCategory(teamsData, teamName, prop.stat_category);
+      if (prop.stat_type) {
+        if (!playersData) {
+          warnings.push(`Prop "${prop.description}": no CFBD player stats available to auto-grade.`);
+          continue;
+        }
+        actualValue = sumTeamPlayerStat(playersData, teamName, parseCategories(prop.stat_category), prop.stat_type);
+      } else {
+        if (!teamsData) {
+          warnings.push(`Prop "${prop.description}": no CFBD team stats available to auto-grade.`);
+          continue;
+        }
+        actualValue = findTeamStatByCategory(teamsData, teamName, prop.stat_category);
+      }
       if (actualValue === null) {
-        warnings.push(`Prop "${prop.description}": could not find team stat "${prop.stat_category}" for ${teamName} in CFBD data.`);
+        warnings.push(`Prop "${prop.description}": could not find "${prop.stat_category}${prop.stat_type ? `/${prop.stat_type}` : ""}" for ${teamName} in CFBD data — left for manual grading.`);
         continue;
       }
     } else {
@@ -248,7 +299,7 @@ async function autoGradeProps(
         warnings.push(`Prop "${prop.description}": player scope but missing stat_type/player_name — skipped.`);
         continue;
       }
-      actualValue = findPlayerStatByName(playersData, prop.stat_category, prop.stat_type, prop.player_name);
+      actualValue = sumPlayerStat(playersData, parseCategories(prop.stat_category), prop.stat_type, prop.player_name);
       if (actualValue === null) {
         warnings.push(`Prop "${prop.description}": could not find "${prop.player_name}" in CFBD's ${prop.stat_category}/${prop.stat_type} data — left for manual grading.`);
         continue;
