@@ -59,12 +59,19 @@ function mapDriveResult(result: string): string | null {
   // (full) and "FG"/"Field Goal" (makes) — this left drive 18 permanently
   // stuck unresolved (mapDriveResult returned null every poll) until this
   // fix. Check both "FIELD GOAL" and bare "FG" alongside "MISSED".
+  //
+  // Punts and turnovers must also be checked before "TOUCHDOWN": a return TD
+  // by the defense ("Punt Return Touchdown", "Interception Return
+  // Touchdown") is still a punt/turnover for the offense this drive belongs
+  // to — confirmed on drive 14 of the 2026-09-26 Texas game, where Texas
+  // punted, Tennessee returned it for a TD, and the drive settled as a Texas
+  // touchdown.
   const r = result.toUpperCase().trim();
   if (r.includes("MISSED") && (r.includes("FIELD GOAL") || r.includes("FG"))) return "turnover_on_downs";
+  if (r.includes("PUNT")) return "punt";
+  if ((r.includes("FUMBLE") && !r.includes("OWN")) || r.includes("INTERCEPTION") || r === "INT") return "turnover";
   if (r.includes("FIELD GOAL") || r === "FG") return "field_goal";
   if (r.includes("TOUCHDOWN") || r === "TD") return "touchdown";
-  if (r === "PUNT") return "punt";
-  if (r.includes("FUMBLE") || r.includes("INTERCEPTION") || r === "INT") return "turnover";
   if (r.includes("DOWNS")) return "turnover_on_downs";
   if (r.includes("SAFETY")) return "safety";
   if (r.includes("END OF")) return "end_of_quarter";
@@ -520,13 +527,21 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
       // offense actually starts from: a scrimmage play's spot if there is
       // one, else CFBD's drive start once it has moved off the kickoff tee
       // spot. Until then, wait for the next poll rather than open wrong.
+      // yardsToGoal of 0 or 100 is never a real line of scrimmage — CFBD
+      // reported those as the start of kickoff-only drives 13 and 15 of the
+      // 2026-09-26 Texas game — so treat them as "not known yet" too.
+      const isRealSpot = (y: number | null | undefined): y is number =>
+        y != null && y > 0 && y < 100;
       const scrimmagePlays = drive.plays.filter((p) => !isKickoff(p));
       const situationPlay = scrimmagePlays[scrimmagePlays.length - 1];
       const kickoffPlay = drive.plays.find(isKickoff);
       let startYardsToGoal: number;
-      if (situationPlay?.yardsToGoal != null) {
+      if (isRealSpot(situationPlay?.yardsToGoal)) {
         startYardsToGoal = situationPlay.yardsToGoal;
-      } else if (kickoffPlay && drive.startYardsToGoal === kickoffPlay.yardsToGoal) {
+      } else if (
+        !isRealSpot(drive.startYardsToGoal) ||
+        (kickoffPlay && drive.startYardsToGoal === kickoffPlay.yardsToGoal)
+      ) {
         continue;
       } else {
         startYardsToGoal = drive.startYardsToGoal;
