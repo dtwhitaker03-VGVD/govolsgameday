@@ -162,12 +162,15 @@ function sumCategoryTds(entries: GamePlayerStatsEntry[], categoryName: string): 
 interface GamePropRow {
   id: string;
   description: string;
+  line: number;
   stat_scope: "player" | "team" | null;
   stat_category: string | null;
   stat_type: string | null;
   player_name: string | null;
   team_side: "home" | "away" | null;
 }
+
+interface PropGradeResult { description: string; line: number; actual_value: number }
 
 function findTeamStatByCategory(
   entries: GameTeamStatsEntry[],
@@ -253,15 +256,16 @@ async function autoGradeProps(
   awayTeam: string,
   teamsData: GameTeamStatsEntry[] | null,
   playersData: GamePlayerStatsEntry[] | null,
-  warnings: string[]
-): Promise<number> {
+  warnings: string[],
+  dryRun: boolean
+): Promise<PropGradeResult[]> {
   const { data: props } = await service
     .from("game_props")
-    .select("id, description, stat_scope, stat_category, stat_type, player_name, team_side")
+    .select("id, description, line, stat_scope, stat_category, stat_type, player_name, team_side")
     .eq("game_id", gameId)
     .is("actual_result", null);
 
-  let graded = 0;
+  const graded: PropGradeResult[] = [];
   for (const prop of (props ?? []) as GamePropRow[]) {
     if (!prop.stat_scope || !prop.stat_category) continue;
 
@@ -306,6 +310,11 @@ async function autoGradeProps(
       }
     }
 
+    const result = { description: prop.description, line: Number(prop.line), actual_value: actualValue };
+    if (dryRun) {
+      graded.push(result);
+      continue;
+    }
     const { error } = await service.rpc("admin_grade_game_prop", {
       p_id: prop.id,
       p_actual_value: actualValue,
@@ -313,7 +322,7 @@ async function autoGradeProps(
     if (error) {
       warnings.push(`Prop "${prop.description}": auto-grade failed: ${error.message}`);
     } else {
-      graded++;
+      graded.push(result);
     }
   }
 
@@ -335,29 +344,38 @@ Deno.serve(async (req: Request) => {
 
   const service = getServiceClient();
 
-  // Resolve the caller's identity from their own JWT (not the service-role
-  // key), then check admin status server-side — finalize_game itself has
-  // no admin gate, so this edge function is the enforcement point.
-  const callerClient = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_ANON_KEY")!,
-    { global: { headers: { Authorization: authHeader } } }
-  );
-  const { data: userData, error: userErr } = await callerClient.auth.getUser();
-  if (userErr || !userData?.user) {
-    return json({ error: "Not authenticated" }, 401);
+  // The service-role key (already full DB access) is accepted as-is, the
+  // same way cfbd-data does, so finalize can be run from SQL via pg_net.
+  // Anyone else must be a signed-in admin: resolve the caller's identity
+  // from their own JWT and check admin status server-side — finalize_game
+  // itself has no admin gate, so this edge function is the enforcement point.
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const isServiceCaller = !!serviceKey && authHeader === `Bearer ${serviceKey}`;
+  if (!isServiceCaller) {
+    const callerClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: userData, error: userErr } = await callerClient.auth.getUser();
+    if (userErr || !userData?.user) {
+      return json({ error: "Not authenticated" }, 401);
+    }
+
+    const { data: profile } = await service
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", userData.user.id)
+      .maybeSingle();
+    if (!profile?.is_admin) {
+      return json({ error: "Unauthorized: admin access required." }, 403);
+    }
   }
 
-  const { data: profile } = await service
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", userData.user.id)
-    .maybeSingle();
-  if (!profile?.is_admin) {
-    return json({ error: "Unauthorized: admin access required." }, 403);
-  }
-
-  let body: { game_id?: string };
+  // dry_run: fetch and parse CFBD exactly as a real finalize would, but write
+  // nothing — to confirm CFBD has published the box score (and every prop
+  // resolves) before the one-way finalize_game call.
+  let body: { game_id?: string; dry_run?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -367,6 +385,7 @@ Deno.serve(async (req: Request) => {
   if (!gameId) {
     return json({ error: "Missing game_id" }, 400);
   }
+  const dryRun = body.dry_run === true;
 
   const { data: game, error: gameErr } = await service
     .from("live_games")
@@ -445,6 +464,23 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  if (dryRun) {
+    const props = await autoGradeProps(service, gameId, game.home_team, game.away_team, teamsData, playersData, warnings, true);
+    return json({
+      ok: true,
+      dry_run: true,
+      cfbd_team_stats_found: teamsData !== null,
+      cfbd_player_stats_found: playersData !== null,
+      stats: {
+        home_score: homePoints, away_score: awayPoints,
+        home_total_yards: homeYards, away_total_yards: awayYards,
+        tn_rushing_tds: tnRushingTds, tn_receiving_tds: tnReceivingTds, tn_turnovers_forced: tnTurnoversForced,
+      },
+      props,
+      warnings,
+    });
+  }
+
   // Score/yards only get written when CFBD actually returned a value —
   // unlike the tn_* prop stats below (which only ever come from this
   // function), score/yards may already be correctly populated by game-sync
@@ -475,7 +511,7 @@ Deno.serve(async (req: Request) => {
   // pregame_prop_picks.points_earned off whatever game_props.actual_result
   // already is at that moment — a prop graded after finalize_game would
   // never get credited without a second run.
-  const propsGraded = await autoGradeProps(service, gameId, game.home_team, game.away_team, teamsData, playersData, warnings);
+  const propsGraded = await autoGradeProps(service, gameId, game.home_team, game.away_team, teamsData, playersData, warnings, false);
 
   const { error: finalizeErr } = await service.rpc("finalize_game", { p_game_id: gameId });
   if (finalizeErr) {
@@ -489,7 +525,8 @@ Deno.serve(async (req: Request) => {
       home_total_yards: homeYards, away_total_yards: awayYards,
       tn_rushing_tds: tnRushingTds, tn_receiving_tds: tnReceivingTds, tn_turnovers_forced: tnTurnoversForced,
     },
-    props_auto_graded: propsGraded,
+    props_auto_graded: propsGraded.length,
+    props: propsGraded,
     warnings,
   });
 });
