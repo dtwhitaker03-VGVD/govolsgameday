@@ -85,6 +85,15 @@ interface LiveGamePlay {
   playType: string | null;
   team: string;
   period: number | null;
+  yardsToGoal: number | null;
+}
+
+// CFBD (like ESPN) files the kickoff as the first play of the RECEIVING
+// team's drive, but that play's yardsToGoal is the kicking team's tee spot
+// (65 = their own 35) — confirmed on the 2026-09-26 Texas game, where drive 1
+// opened at yardline 35 instead of the TEX 25 touchback spot.
+function isKickoff(play: LiveGamePlay): boolean {
+  return /kickoff|onside/i.test(play.playType ?? "");
 }
 
 interface LiveGameDrive {
@@ -495,7 +504,6 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
     const existing = windowByCfbdId.get(drive.id);
     const driveNumber = existing ? existing.drive_number : nextDriveNumber;
     const hasResult = !!drive.result;
-    const lastPlay = drive.plays[drive.plays.length - 1];
 
     if (!hasResult) {
       // Drive still in progress. open_drive_window upserts and resets
@@ -508,6 +516,22 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
       if (existing) continue;
       if (!readyToOpenNext) continue; // still inside the post-drive pause
 
+      // Open as soon as the kickoff is reported, but only with the spot the
+      // offense actually starts from: a scrimmage play's spot if there is
+      // one, else CFBD's drive start once it has moved off the kickoff tee
+      // spot. Until then, wait for the next poll rather than open wrong.
+      const scrimmagePlays = drive.plays.filter((p) => !isKickoff(p));
+      const situationPlay = scrimmagePlays[scrimmagePlays.length - 1];
+      const kickoffPlay = drive.plays.find(isKickoff);
+      let startYardsToGoal: number;
+      if (situationPlay?.yardsToGoal != null) {
+        startYardsToGoal = situationPlay.yardsToGoal;
+      } else if (kickoffPlay && drive.startYardsToGoal === kickoffPlay.yardsToGoal) {
+        continue;
+      } else {
+        startYardsToGoal = drive.startYardsToGoal;
+      }
+
       const offenseIsHome = drive.offense === homeTeam?.team;
       const offenseScore = offenseIsHome ? homeScore : awayScore;
       const defenseScore = offenseIsHome ? awayScore : homeScore;
@@ -515,12 +539,12 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
       const { error } = await supabase.rpc("open_drive_window", {
         p_game_id: game.id,
         p_drive_number: driveNumber,
-        p_yardline: 100 - (lastPlay?.yardsToGoal ?? drive.startYardsToGoal),
+        p_yardline: 100 - startYardsToGoal,
         p_quarter: drive.startPeriod,
         p_game_clock: drive.startClock ?? live.clock,
         p_score_diff: offenseScore - defenseScore,
-        p_down: lastPlay?.down ?? 1,
-        p_distance: lastPlay?.distance ?? 10,
+        p_down: situationPlay?.down ?? 1,
+        p_distance: situationPlay?.distance ?? 10,
         p_cfbd_drive_id: drive.id,
         p_window_seconds: 60,
       });
