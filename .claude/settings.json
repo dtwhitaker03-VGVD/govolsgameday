@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "mcp__Supabase__*",
-      "mcp__github__merge_pull_request"
+      "mcp__github__merge_pull_request",
+      "Bash(git fetch *)",
+      "Bash(git merge-base *)",
+      "Bash(npm run typecheck)",
+      "mcp__github__pull_request_read",
+      "mcp__github__list_pull_requests",
+      "mcp__github__actions_list",
+      "mcp__Claude_Code_Remote__list_triggers",
+      "mcp__Claude_Code_Remote__get_session"
     ]
   }
 }
