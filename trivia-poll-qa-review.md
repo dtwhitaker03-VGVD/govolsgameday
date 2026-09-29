@@ -678,3 +678,29 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-09-29 — run summary
+- Checked: trivia 2026-09-29 to 2026-10-02, polls 2026-09-29 to 2026-10-02
+- 2026-09-29 through 10-01 (15 trivia rows, 3 polls) were already reviewed in the prior run (logged 2026-09-28) — not re-checked here; see that section above for their findings, still pending review.
+- New this run: 2026-10-02 (5 trivia rows, 1 poll), reviewed fresh.
+- Issues found (new): 2 (1 factual error with false premise, unsalvageable; 1 broken-structure/non-answer distractors), plus 1 minor style note on the poll.
+
+### trivia_questions.207a4d7b-03e2-4e0f-a8d4-bf322e9f794d — 2026-10-02 / slot 5 — factual error, false premise (unsalvageable)
+**Current:** Q: "Which former Tennessee quarterback served as interim head coach for the bowl game following Jeremy Pruitt's January 2021 firing?" A "Phillip Fulmer", B "Butch Jones", C "Josh Heupel", D "Tee Martin" (correct)
+**Suggested fix:** Full replacement — the premise is false on multiple levels, not just the specific name, so no option here can be patched into a correct answer. Recommend a different verified fact in the same category/slot instead, e.g. a straightforward question about Kevin Steele's actual (very brief, gameless) tenure, phrased without the false "former Tennessee quarterback" framing.
+**Reason:** Verified via multiple sources — (1) Tennessee finished the 2020 season 3-7 and was bowl-ineligible, so there was no bowl game that season for anyone to coach; (2) the actual interim head coach named after Pruitt's Jan. 18, 2021 firing was Kevin Steele, not Tee Martin — Steele had just joined the staff days earlier from Auburn and "never coached in a game or at practice" before Josh Heupel was hired 9 days later; (3) Kevin Steele was never a Tennessee player, let alone a Tennessee quarterback, so the question's own "former Tennessee quarterback" qualifier doesn't fit the real answer either. Tee Martin remained an assistant coach on staff during this period but was not the interim head coach. §32 factual accuracy — high confidence, multiple corroborating sources.
+**Status:** ⏳ pending review
+
+### trivia_questions.548ef1ca-fb1e-43de-8f6c-33a498668c94 — 2026-10-02 / slot 4 — broken True/False structure, non-answer distractors
+**Current:** Q: "Tony Vitello's program has been noted for embracing modern analytics and player-development technology, such as Trackman data, mirroring broader college baseball trends. True or false?" A "Yes" (correct), B "Not applicable", C "No Tennessee staff has ever used analytics", D "Rod Delmonico's staff used this technology decades earlier"
+**Suggested fix:** Full replacement recommended — rebuild as a standard 4-option factual question (e.g. naming a specific Vitello-era analytics/technology initiative or date) with real, plausible distractors, rather than a True/False dressed up to satisfy the NOT NULL constraint.
+**Reason:** §32 — same recurring broken-structure pattern flagged throughout this file: B is a non-answer, C is self-eliminating (obviously false for any modern D1 program), and D is a dubious/anachronistic distractor (Trackman-style tracking technology wasn't in college baseball use during Rod Delmonico's tenure, which ended in 2007 — well before Trackman's mid-2010s rollout), so a knowledgeable fan can eliminate 3 of 4 options without needing real Tennessee-specific knowledge.
+**Status:** ⏳ pending review
+
+## Poll check — 2026-10-02 (new this run)
+
+### daily_polls.3f900018-9174-48d5-a34f-526057cae919 — 2026-10-02 — minor style: possible option overlap
+**Current:** Q: "What is the best Vol football social media moment you remember?" A "A viral postgame celebration", B "A hype video before a big game", C "A player's personal announcement", D "A team's National Signing Day reveal"
+**Suggested fix:** Consider narrowing option C (e.g. "A player's retirement or return-to-school announcement") so it doesn't read as a superset of option D, or merging the concept into a single option.
+**Reason:** §33 — options should be genuinely distinct and non-overlapping. A National Signing Day reveal (D) is arguably a type of "player's personal announcement" (C), so the two categories aren't fully separable as posed. Low-severity — this is a subjective opinion poll with no factual claims to verify, so it's a category-design nitpick rather than an accuracy problem.
+**Status:** ⏳ pending review
