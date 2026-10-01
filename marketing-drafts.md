@@ -334,3 +334,58 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-09-24 — Gameday hype/countdown
+
+- Trigger: scheduled (Mon/Wed/Fri) — re-attempt of this run after a prior
+  attempt was killed mid-run by a container restart before it published
+  anything; this is a fresh build, not a resume.
+- Re-verified all in-flight subjects against live Supabase data and the
+  actual open-PR list (not taken on trust) before picking a pillar:
+  `live_games` still shows PR #184's Kennesaw State recap (42–9) as the
+  most recent `calculated` game — not repeated. PR #175 (Georgia Tech
+  recap, Sept 16, still a probable duplicate of closed #170) and PR #178
+  (1-day countdown for Kennesaw State, a game already played and
+  recapped) are both still open and stale — not repeated. PR #179's
+  trivia/poll spotlight only covers Sept 18's specific poll/trivia rows,
+  so it doesn't block a fresh trivia/poll pillar, but a **gameday
+  hype/countdown** for a game nobody has covered was the more timely
+  choice this run: `live_games` shows the next `pregame` game is
+  Tennessee (home) vs. Texas (away), kickoff 2026-09-26 16:00 UTC
+  (12:00 PM ET, Sat) — 2 calendar days out in US Eastern time from
+  today (Thu, Sept 24), and no hype/countdown graphic exists for this
+  specific game in this log or any open PR.
+- Subject: No. 1 Texas (3-0) at No. 14 Tennessee (3-0), Sat Sept 26,
+  12:00 PM ET on ABC, Neyland Stadium — both teams unbeaten, a
+  genuinely big top-15 showdown. All content pulled fresh this run from
+  `live_games` (kickoff time, matchup, records) and `game_previews`
+  (rankings, season stats, red zone note, QB Watch line): Tennessee
+  510.3 yards/game (14th FBS offense), 47.7 points/game (7th),
+  FBS-leading 100% red zone scoring; Texas 417.3 yards/game (63rd),
+  37.7 points/game (42nd); Faizon Brandon 552 passing yards, 6 TD, 0
+  INT, 64.1% completion. Per the standing decision noted on the
+  original Sept 7 countdown post above, kept the DraftKings betting
+  line (Texas −4.5, O/U 55.5, captured 2026-09-23) off the graphic —
+  Game Week/countdown graphics stay odds-free.
+- Visual system matches the established brand: `#0F172A` background,
+  `#162038` panel, `#FF8200` orange accent, `#D11919` red, Anton for
+  the hero countdown number/headlines, Inter for body/labels, diagonal
+  end-zone-stripe corner motif + radial glow behind the hero "2", GVGD
+  logo lockup matching the current `Header.tsx` (orange rounded-square
+  "GVGD" mark, "GoVolsGameDay" wordmark with "GameDay" in orange). No
+  stock photography or fabricated player photos.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html` frame
+  `1080×1080`). Verified locally before publishing per the mandatory
+  font-fallback check: extracted the artboard's inner markup/styles
+  into a standalone page and rendered it twice with headless Chromium
+  via Playwright — once with the real Google Fonts (fetched and
+  self-hosted locally) and once with the Google Fonts link stripped to
+  force full fallback-font substitution. Every `white-space: nowrap`
+  element's `scrollWidth` stayed within its `clientWidth` in both
+  passes (0 overflow in either render); reviewed both screenshots
+  directly — no wrapping, no overlap, no clipping of real content in
+  either pass, and the design fills the frame densely with a small,
+  even margin top and bottom (no large dead-space gap).
+- Canvas: https://claude.ai/artifact/CnhrqwDZvyKJqqZ9ZG5tqB
+- Status: ⏳ pending review
