@@ -334,3 +334,134 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-09-18 — Gameday countdown ("1 day," Kennesaw State)
+
+- Trigger: on-demand — David asked for a 1-day-out countdown post today
+  (2026-09-18), for the game happening tomorrow.
+- Subject: confirmed via `live_games` that the soonest `pregame` game is
+  Tennessee (home) vs. Kennesaw State, kickoff 2026-09-19 23:45 UTC
+  (7:45 PM EDT) — today really is 1 day out, so the "1 DAY" framing is
+  accurate. Checked open PRs first (`gh api .../pulls?state=open`) and
+  found none covering this game, so this isn't a duplicate. Stats pulled
+  from `game_previews` for this game (ESPN preview, fetched 2026-09-18
+  13:28 UTC): No. 15 Tennessee (2-0), Kennesaw State (1-1); Tennessee
+  offense averaging 542.5 yards/game (11th in FBS); both teams scoring on
+  100% of red-zone trips (an FBS-leading stat, real for Tennessee too,
+  not invented); last game summary confirms Tennessee's 45-24 win over
+  Georgia Tech on Sept 12. No betting line/spread used anywhere on the
+  graphic — `live_games` does have a current spread (TN -35.5) and total
+  (59.5) for this game, but per David's standing decision (see the
+  "remove betting line" update on the Sept 7 countdown entry above) all
+  Game Week/countdown graphics stay odds-free, so it was deliberately
+  left off.
+- Design note: reuses the approved "flare" countdown style from the
+  Sept 11 entry above (duotone offset-shadow hero numeral, conic
+  starburst glow, rotated red ribbon badge, plain/undecorated stat strip
+  with thin dividers per that entry's cleanup pass) rather than the
+  original flat Game Week template, since David preferred that version.
+  Matchup block, kickoff details (Sat, Sept 19, 7:45 PM ET, SEC Network),
+  three real stat call-outs, last-game context line, and a Permanent
+  Marker hype kicker ("One more day. Let's roll.") on the
+  `#0F172A`/`#162038`/`#FF8200`/`#D11919` palette with the diagonal
+  end-zone stripe motif and standard GVGD logo lockup. Ran the two-pass
+  local render check (real Google Fonts, then fonts stripped to force
+  fallback substitution) via headless Chromium before publishing — this
+  run the fallback pass actually substituted different fonts (not just a
+  no-op), and every `white-space: nowrap` line still rendered on one line
+  with no overlap or clipping in either pass.
+- Canvas: https://claude.ai/artifact/KvzYL24cwH7eXwyb212vKd
+- Status: ⏳ pending review
+
+### Update — denser, more exciting layout (2026-09-18)
+
+- David felt the original was "kinda boring" and asked for it to be more
+  dense and more exciting. Rebuilt the same subject/data (no new
+  Supabase pull needed — nothing had moved) into a magazine-style sports
+  broadcast graphic instead of the centered/sparse original.
+- Added: a side-by-side hero (numeral + matchup, instead of stacked
+  centered blocks) with circular rank/logo-style badges next to each
+  team; a computed "+34 AVG POINT MARGIN THIS SEASON" banner (real math
+  from live_games — Furman 56-9 is a 47-point margin, Georgia Tech 45-24
+  is a 21-point margin, averaging 34 — not a new stat pull, just an
+  honest derivation of numbers already logged); a "TALE OF THE TAPE"
+  three-row stat-bar comparison (offense/defense/scoring, both teams,
+  with FBS ranks) pulled from the same `game_previews` payload as the
+  original draft; three "WATCH FOR" player cards (Brandon passing,
+  Bishop rushing, Matthews receiving — all from that preview's
+  `teamLeaders`); and a "LOOKING AHEAD" teaser banner for the Sept 26
+  Texas game, also from `game_previews.nextGame`. Still odds-free — no
+  betting line anywhere, same standing guardrail as before.
+- Kept the diagonal stripe motif, GVGD logo lockup, Anton/Inter/Permanent
+  Marker pairing, and `#0F172A`/`#162038`/`#FF8200`/`#D11919` palette
+  unchanged; just filled the canvas edge-to-edge instead of leaving a
+  large empty gap in the lower half (measured the natural content flow
+  before finalizing sizes so nothing floats in dead space or gets
+  clipped by the fixed 1080×1080 frame).
+- Re-ran the two-pass local render check (real Google Fonts, then fonts
+  stripped to force fallback substitution) after the resize — both
+  passes still render every `white-space: nowrap` line on one line, no
+  overlap or clipping, despite the fallback pass again substituting
+  different fonts for Anton and Permanent Marker.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/artifact/KvzYL24cwH7eXwyb212vKd
+- Status: ⏳ pending review
+
+### Update — Tennessee-only stats, drop Kennesaw State comparison (2026-09-18)
+
+- David liked the denser direction but didn't like the "Tale of the
+  Tape" comparison format and asked to focus on Tennessee's own stats
+  and leave Kennesaw State's numbers out of it entirely.
+- Replaced the three side-by-side comparison bars (which paired each TN
+  stat against the matching Kennesaw State number) with a "TENNESSEE BY
+  THE NUMBERS" 2x2 stat grid — same four real figures already sourced
+  from `game_previews` (542.5 offense YPG, 11th FBS; 50.5 scoring PPG,
+  13th FBS; 288.5 defense YPG allowed, 49th FBS; 100% red-zone scoring,
+  FBS-leading), just shown as standalone Tennessee callouts with no
+  opponent number or bar next to any of them. Kennesaw State's name/
+  record stays only in the matchup identification line at the top
+  (unavoidable — it's who the game is against) and nowhere else on the
+  graphic.
+- Trimmed margins/padding throughout (hero, banner, stat grid, watch-for
+  row, looking-ahead banner, footer) by a consistent amount to absorb
+  the height the old 3-row comparison block used to take up, so the
+  redesign still fills the 1080×1080 frame edge-to-edge with no dead
+  space — measured the natural content flow before finalizing (came out
+  to exactly 1080px).
+- Re-ran the two-pass local render check (real Google Fonts, then fonts
+  stripped to force fallback substitution) after the edit — both passes
+  clean, no wrapped or clipped lines.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/artifact/KvzYL24cwH7eXwyb212vKd
+- Status: ⏳ pending review
+
+### Update — remove Week 4 tag, exported for download (2026-09-18)
+
+- David asked to drop the "WEEK 4" pill from the top-right of the
+  masthead (next to the "GAMEDAY EVE" ribbon) and wanted the graphic on
+  a canvas he could download from.
+- Removed the pill; the masthead's right side is now just the
+  "GAMEDAY EVE" ribbon. No other layout change — re-measured the
+  content flow after removing it and it still fills the 1080×1080 frame
+  exactly, so no other spacing needed adjusting.
+- Re-ran the two-pass local render check (real Google Fonts, then fonts
+  stripped to force fallback substitution) — both passes clean.
+- It was already published as a design canvas with download capability
+  enabled; also sent David a rendered PNG directly so he doesn't need
+  to use the canvas editor's Export button if he'd rather just grab the
+  file.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/artifact/KvzYL24cwH7eXwyb212vKd
+- Status: ⏳ pending review
+
+### Update — kicker line wording (2026-09-18)
+
+- David asked to change the hype kicker line from "One more day. Let's
+  roll." to "One More Day. Go Vols!"
+- Swapped the text only, no other layout change. Re-ran the two-pass
+  local render check (real Google Fonts, then fonts stripped to force
+  fallback substitution) since the new line is slightly longer — both
+  passes still render it on one line with no overlap or clipping.
+- Redeployed to the same canvas URL (no new artifact):
+  https://claude.ai/artifact/KvzYL24cwH7eXwyb212vKd
+- Status: ⏳ pending review
