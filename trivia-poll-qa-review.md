@@ -678,3 +678,35 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-01 — run summary
+- Checked: trivia 2026-10-01 to 2026-10-04, polls 2026-10-01 to 2026-10-04
+- 2026-10-01 through 10-03 (15 trivia rows, 3 polls) were already reviewed in prior runs (logged 2026-09-28 through 2026-09-30, still pending merge to main) — not re-checked here.
+- New this run: 2026-10-04 (5 trivia rows, 1 poll), reviewed fresh.
+- Issues found (new): 3 (2 broken-structure/non-answer-distractor issues, 1 meta-commentary-in-option issue — correct answers all verified accurate), plus 1 poll factual error (a repeat of a previously-flagged mistake in a different row).
+
+### trivia_questions.4da7f78c-b918-4c17-843b-95b2f5699f08 — 2026-10-04 / slot 2 — broken structure, non-answer distractors (unsalvageable)
+**Current:** Q: "Which Lady Vols standout later became Tennessee's own head coach after a long assistant coaching career under Pat Summitt?" A "Not applicable", B "Only men become head coaches", C "No Lady Vols assistant has ever become a head coach", D "Holly Warlick" (correct)
+**Suggested fix:** Full replacement recommended — rebuild with three other real Lady Vols assistant-coach or player names as distractors instead of non-answer filler text.
+**Reason:** §32 — same recurring broken-structure pattern: A/B/C are non-answers/self-eliminating (B and C are both transparently false — Holly Warlick herself disproves both), not real competing names. The correct answer itself is accurate — Holly Warlick, a Lady Vols standout player, spent decades as Pat Summitt's top assistant before becoming Tennessee's head coach (2012-2019).
+**Status:** ⏳ pending review
+
+### trivia_questions.891c724a-8bcb-40af-886e-3d8914215d86 — 2026-10-04 / slot 4 — meta-commentary baked into option text
+**Current:** Q: "Which Nashville-born swimmer, not a Tennessee athlete herself, is sometimes confused with Lady Vol swimmers due to her four-medal haul at the 2024 Paris Olympics?" A "Erika Connolly", B "Simone Manuel", C "Katie Ledecky", D "Gretchen Walsh (swam collegiately for Virginia, not Tennessee)" (correct)
+**Suggested fix:** Trim option D to just "Gretchen Walsh" — the parenthetical gives away the answer and duplicates information already stated in the question itself.
+**Reason:** §32 — the parenthetical in option D is meta-commentary/an editorial aside that doesn't belong in option text (same category of issue flagged elsewhere in this file), though here it's also redundant with the question stem, which already says "not a Tennessee athlete herself." Underlying facts all verified accurate: Gretchen Walsh was born in Nashville, TN, swam collegiately at Virginia (not Tennessee), and won 2 gold + 2 silver (4 medals) at the 2024 Paris Olympics. Also verified option A, Erika Connolly, is a real Tennessee swim alum and Olympic medalist — a genuinely plausible, non-fabricated distractor. Clean otherwise.
+**Status:** ⏳ pending review
+
+### trivia_questions.c0a073ce-f961-483c-90c5-225852e61df8 — 2026-10-04 / slot 5 — self-eliminating distractors (correct answer verified accurate)
+**Current:** Q: "Which Tennessee players are commonly cited among the program's best single-season scoring averages, at 20+ points per game?" A "Scoring averages have never been tracked", B "Only walk-ons have led the team in scoring", C "Lofton, Ellis, and King all posted 20+ point scoring averages in standout seasons" (correct), D "No Tennessee player has ever averaged over 15 points"
+**Suggested fix:** Replace A, B, and D with other plausible-but-wrong Tennessee player-name groupings in the same format as C.
+**Reason:** §32 — A, B, and D are all self-eliminating/absurd (a major program obviously tracks scoring stats and has had prolific scorers), leaving C as the only real-format answer. Verified C is accurate: Bernard King set Tennessee's single-season scoring average record at 26.4 ppg (1974-75); Chris Lofton led the SEC with 20.8 ppg in 2006-07; Dale Ellis's 1982-83 record-setting 724-point season (previously verified elsewhere in this file) computes to roughly 26 ppg. All three exceed 20 ppg in a standout season.
+**Status:** ⏳ pending review
+
+## Poll check — 2026-10-04 (new this run)
+
+### daily_polls.425e116f-f9e2-470b-9a1b-8ecc0b054a1e — 2026-10-04 — factual error: repeat of a previously-flagged mistake (David Price never played at Tennessee)
+**Current:** Q: "Who is the greatest Vol baseball player of all time?" A "Todd Helton", B "David Price", C "R.A. Dickey", D "Luke Hochevar"
+**Suggested fix:** Replace David Price with a verified actual Tennessee baseball alum. I don't have a specific name I'm confident enough in to propose without guessing — recommend David pick the replacement (same unresolved gap as the 09-29 poll finding below).
+**Reason:** Same error already logged against the 2026-09-29 poll (`daily_polls.2beff22b-...`) — David Price played his college baseball at Vanderbilt, not Tennessee, so he doesn't belong in a "greatest Vol baseball player" poll regardless of which specific poll row he appears in. Worth checking whether this name is sitting in a shared options pool that's getting reused across multiple polls, since this is now the second occurrence. Todd Helton, R.A. Dickey, and Luke Hochevar are all freshly verified as genuine Tennessee baseball alums (Hochevar: Tennessee ace 2003-2005, Roger Clemens Award winner, #1 overall 2006 draft pick). §33 factual accuracy.
+**Status:** ⏳ pending review
