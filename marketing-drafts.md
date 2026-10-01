@@ -334,3 +334,65 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-09-18 — Trivia/Poll spotlight
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Pillar chosen: **Trivia/Poll spotlight**. The other two candidate
+  pillars for today were already covered by open PRs: gameday hype for
+  the Kennesaw State game (kickoff tomorrow, Sat Sept 19) is fully
+  covered by the open "1-day countdown" draft (#178), and the only
+  finished game to recap — Tennessee 45, Georgia Tech 24 — already has
+  an open recap draft (#175, itself a likely duplicate of an earlier
+  closed one, #170). Checked `scraped_articles` for a News/recruiting
+  angle too: most fresh rows were either thin recruiting-aggregator
+  boilerplate, an ad ("Kalshi Promo Code"), or — for the one genuinely
+  on-topic football headline ("What Tennessee Football HC Josh Heupel
+  Wants to See From Faizon Brandon Ahead of SEC Play," Rocky Top
+  Insider, published 2026-09-17) — the scraped `summary` cuts off right
+  before stating what Heupel actually said he wants to see, so there
+  wasn't enough real substance to headline responsibly without
+  guessing at the missing content. Trivia/Poll spotlight was the pillar
+  with clean, complete, genuinely fresh real data for today.
+- Subject: today's real `daily_polls` row (`active_date = 2026-09-18`):
+  "Who is the best safety in Tennessee football history?" — Eric Berry
+  / Deon Grant / Michael Griffin / Brian Randolph. Paired with one of
+  today's five real `trivia_questions` rows (`scheduled_date =
+  2026-09-18`, slot 1, difficulty easy, category "Vol Basketball
+  History"): "Which Tennessee forward was named a consensus first-team
+  All-American on the program's 2018-19 #1-ranked team?" — Admiral
+  Schofield / Grant Williams / Jordan Bone / Jordan Bowden (real correct
+  answer Grant Williams, not shown on the graphic). Both tables list
+  entries under both `daily_polls` and `trivia_questions`, so pairing
+  today's poll with today's trivia question stays inside this one
+  pillar rather than mixing in another. Checked the last trivia/poll
+  spotlight in this log's history (an earlier, unmerged draft from
+  2026-09-11, PR #160, used a different poll question — "greatest win
+  in Tennessee football history") — no repeat.
+- Design: 1080×1080 canvas, `#0F172A` background with the diagonal
+  end-zone stripe motif (low-opacity orange repeating diagonal) and a
+  radial glow behind the masthead, Anton for the "TODAY ON GVGD"
+  headline and both question headlines, Inter for labels/body, GVGD
+  monogram + wordmark lockup matching `Header.tsx` exactly (orange
+  rounded-square "GVGD" mark, white "GoVols" + orange "GameDay"). Poll
+  card (red "TODAY'S POLL" eyebrow) and trivia card (orange "DAILY
+  TRIVIA" eyebrow + difficulty/category tag) each show their real
+  options as a 2×2 chip grid, with a real CTA line under each pointing
+  to the live poll/trivia on the site. No stock photos or fabricated
+  stats; every line of copy traces to the two Supabase rows above or is
+  plain site-feature CTA copy.
+- Verified with the required two-pass local render check (Playwright +
+  headless Chromium): once with the real Google Fonts (Anton/Inter)
+  fetched and self-hosted locally, once with the font `<link>` stripped
+  entirely to force full fallback-font substitution. Both passes
+  confirmed every `nowrap` element (headlines, labels, chip text, CTA
+  lines) stayed on one line with no `scrollWidth`/`clientWidth` overflow
+  and no card-level clipping; caught and fixed one real bug in the
+  process — the poll headline overflowed its card under the fallback
+  font at the original 40px size, fixed by sizing it down to 32px
+  before publishing. Also measured natural content height against the
+  1080×1080 frame and tightened spacing/enlarged chip padding once
+  headroom was confirmed, so the design fills the frame densely with
+  real content rather than leaving empty space at the bottom.
+- Canvas: https://claude.ai/artifact/KMHEXry7R1B2oqq1mi2wEh
+- Status: ⏳ pending review
