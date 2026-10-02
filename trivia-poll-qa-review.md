@@ -678,3 +678,35 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-02 — run summary
+- Checked: trivia 2026-10-02 to 2026-10-05, polls 2026-10-02 to 2026-10-05
+- 2026-10-02 through 10-04 (15 trivia rows, 3 polls) were already reviewed in prior runs (logged 2026-09-30 and 2026-10-01, still pending merge to main) — not re-checked here.
+- New this run: 2026-10-05 (5 trivia rows, 1 poll), reviewed fresh.
+- Issues found (new): 2 (1 factual date error, 1 self-eliminating-distractor issue), plus 1 broken-structure issue repeating the recurring pattern. Poll clean.
+
+### trivia_questions.e1b43aa6-71cc-4d4f-aa88-703022245428 — 2026-10-05 / slot 1 — factual error: wrong hire year
+**Current:** Q: "Which Lady Vols coach took over the program in 2023, bringing an up-tempo offensive system?" A "Kellie Harper", B "Mickie DeMoss", C "Kim Caldwell" (correct), D "Holly Warlick"
+**Suggested fix:** Change "2023" to "2024" in the question text. Keep "Kim Caldwell" as the correct answer.
+**Reason:** Verified via web search — Kim Caldwell was hired as Tennessee's Lady Vols head coach and introduced at a press conference on April 9, 2024, not 2023 (she'd been at Marshall through the 2023-24 season before Tennessee hired her). The person is correct, but the year in the question stem is off by one. §32 factual accuracy.
+**Status:** ⏳ pending review
+
+### trivia_questions.3ab0c20d-ce7b-461a-a094-a44e569fa9ff — 2026-10-05 / slot 3 — self-eliminating distractor (correct answer verified accurate)
+**Current:** Q: "Across Pat Summitt's tenure, the Lady Vols won a combined 32 SEC regular-season and tournament championships. Roughly how many seasons did she coach to accumulate that total?" A "5 seasons", B "100 seasons", C "10 seasons", D "38 seasons" (correct)
+**Suggested fix:** Replace B "100 seasons" with a more plausible wrong number, e.g. "25 seasons."
+**Reason:** §32 — B is self-eliminating (no NCAA coach has ever coached 100 seasons; the timeframe alone makes it absurd regardless of Summitt-specific knowledge). Verified the underlying facts are accurate: Summitt coached 38 seasons (1974-2012) and won exactly 16 SEC regular-season titles + 16 SEC tournament titles = 32 combined, matching the question's premise precisely.
+**Status:** ⏳ pending review
+
+### trivia_questions.14fcef04-1dde-486b-8e43-53cd797be214 — 2026-10-05 / slot 5 — broken structure, non-answer distractors (unsalvageable)
+**Current:** Q: "...What is typically cited as the primary rationale for such realignment moves?" A "Leaving the SEC entirely", B "Eliminating football", C "Increased competitive and financial strength for member schools" (correct), D "Not applicable"
+**Suggested fix:** Full replacement recommended — rebuild with three other plausible (but wrong) rationale-type statements as distractors, matching the format of the correct answer.
+**Reason:** §32 — same recurring broken-structure pattern flagged throughout this file: A, B, and D are non-answers/self-eliminating (none of them is a type of "rationale" at all), leaving C as the only real-format answer. The correct answer itself (increased competitive/financial strength as the typical cited rationale for SEC realignment) is a reasonable, defensible characterization.
+**Status:** ⏳ pending review
+
+## Poll check — 2026-10-05 (new this run)
+
+### daily_polls.ca9ddfda-37ee-494e-9c43-12701c25a7d9 — 2026-10-05 — clean
+**Current:** Q: "Who deserves a statue outside Thompson-Boling for Lady Vols basketball?" A "Pat Summitt", B "Chamique Holdsclaw", C "Candace Parker", D "All three"
+**Suggested fix:** None needed.
+**Reason:** All three named figures are legitimate, significant Lady Vols figures (legendary coach plus two legendary players); "All three" is a valid non-exclusive option; no factual claims to verify, no leading bias, clear single-topic opinion poll.
+**Status:** ✅ no action needed
