@@ -678,3 +678,45 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-05 — run summary
+- Checked: trivia 2026-10-05 to 2026-10-08, polls 2026-10-05 to 2026-10-08
+- 2026-10-05 through 10-07 (15 trivia rows, 3 polls) were already reviewed in prior runs (logged 2026-10-02 through 2026-10-04, still pending merge to main) — not re-checked here.
+- New content this run: trivia 2026-10-08 (5 rows), poll 2026-10-08 (1 row)
+- Issues found: 4
+
+### trivia_questions.2d241bbe-4799-4def-8a98-3c619ec7a470 — 2026-10-08 / slot 1 — overlapping/non-distinct distractors
+**Current:** Q: "Which award did Zakai Zeigler earn multiple times for his defensive play at Tennessee?" A "John R. Wooden Award for offense", B "Naismith Trophy", C "Wooden Award", D "SEC Defensive Player of the Year" (correct)
+**Suggested fix:** Replace A with a genuinely different real award (e.g. "AP National Player of the Year") so it's not just a reworded duplicate of option C.
+**Reason:** Verified via WebSearch — Zeigler has won SEC Defensive Player of the Year twice (2023-24, 2024-25), so D is correct. But A ("John R. Wooden Award for offense") and C ("Wooden Award") name the same real award (the John R. Wooden Award) under two different labels — not genuinely distinct options, and A's "for offense" qualifier is an invented sub-category that doesn't exist. §32 — distractors must be distinct and plausible, not a reworded duplicate.
+**Status:** ⏳ pending review
+
+### trivia_questions.c14a8eee-0cc9-4a1c-baf5-0eb034d314f1 — 2026-10-08 / slot 3 — self-eliminating distractors
+**Current:** Q: "Under Josh Heupel, Tennessee's scoring offense has generally ranked where nationally?" A "Among the national leaders in scoring" (correct), B "Bottom of the SEC", C "Never above 20 points per game", D "Middle of the pack only"
+**Suggested fix:** Replace B and C with more plausible wrong answers, e.g. B "Solid but unspectacular, mid-SEC" and C "Strong in the SEC but outside the national top 25" — keep A as correct.
+**Reason:** §32 — B and C are self-eliminating: Heupel's Tennessee offenses are widely known for routinely scoring 40+ points per game and ranking among the national scoring leaders, so anyone with even casual awareness of the program can eliminate B and C without needing the specific ranking fact, leaving a near-coin-flip between A and D.
+**Status:** ⏳ pending review
+
+### trivia_questions.7835585c-0104-4bd0-9df6-4aecd1b0ede7 — 2026-10-08 / slot 4 — meta-commentary bleeding into option text
+**Current:** Q: "Which two Tennessee swimmers are the only ones in program history to win three career Olympic medals each?" A "No Tennessee swimmer has ever won an Olympic medal", B "Gretchen Walsh and Alex Walsh (neither swam for Tennessee)", C "Only one swimmer has ever done this", D "Melvin Stewart and Erika Connolly" (correct)
+**Suggested fix:** Replace B's text with a plain name-only option (no parenthetical) — e.g. "Nikki Nazarov and Kristen Rohrer" or another real, non-Tennessee-relevant pair of elite swimmers named without commentary — and drop the "(neither swam for Tennessee)" explanation, which gives away the wrong answer directly in the option text.
+**Reason:** Verified via WebSearch the correct answer is factually accurate — Melvin Stewart (2 gold + 1 bronze, 1992) and Erika Connolly (1 bronze + 2 silver, 2020/2024) each have exactly 3 career Olympic medals, and sources confirm Connolly is "the only UT women's swimmer to win three Olympic medals." But option B's parenthetical "(neither swam for Tennessee)" is meta-commentary explaining why the option is wrong rather than a real competing answer — directly against §32's "no meta-commentary... bleeding into question text" rule (here it's bleeding into option text). A and C are also non-answers/self-eliminating, so only one of four options (D) functions as a real answer.
+**Status:** ⏳ pending review
+
+### trivia_questions.da8b5a42-b8b2-4e82-8162-a0f783da2bcd — 2026-10-08 / slot 5 — broken True/False structure, non-answer distractors (unsalvageable)
+**Current:** Q: "A Lady Vol has scored a program-record number of points in a single NCAA Tournament game at some point across program history. True or false?" A "The record belongs to a football player", B "No such record exists", C "True" (correct), D "Not applicable"
+**Suggested fix:** Full replacement recommended — rebuild as a standard 4-option question naming the actual record-holder and point total (if verifiable) as concrete, competing answer options, rather than a True/False dressed up to satisfy the NOT NULL constraint.
+**Reason:** §32 — same recurring broken-structure pattern logged repeatedly in this file: A is absurd (a football player cannot hold a women's basketball scoring record), B contradicts the question's own premise, and D is a non-answer — none of A/B/D is a real competing answer. **Flagging as uncertain** — did not independently verify the specific record-holder/point total to propose as a concrete replacement, so recommend verifying before drafting new options.
+**Status:** ⏳ pending review — flagged as uncertain (replacement details unverified)
+
+### daily_polls.af994b8a-fa33-4775-91ef-9a54aa73e965 — 2026-10-08 — clean
+**Current:** Q: "Who should be Tennessee's all-time starting quarterback?" A "Peyton Manning", B "Heath Shuler", C "Tee Martin", D "Erik Ainge"
+**Suggested fix:** None needed.
+**Reason:** All four are real Tennessee starting quarterbacks; clear single-topic, non-overlapping, no leading bias.
+**Status:** ✅ no action needed
+
+### General note — baseball coach timeline check, trivia_questions.6cc060dd-3962-4012-b469-fe729c761fd8 (2026-10-08 / slot 2) — clean
+**Current:** Q: "Which Tennessee baseball coach's animated, fiery in-game demeanor has become a widely discussed part of his public persona?" A "Dave Serrano", B "Rod Delmonico", C "Tony Vitello" (correct), D "Todd Raleigh"
+**Suggested fix:** None needed.
+**Reason:** Verified via WebSearch — all four are real Tennessee baseball head coaches in correct historical sequence (Delmonico 1989-2007, Raleigh 2008-2011, Serrano 2012-2016, Vitello 2017-present); Vitello's animated sideline demeanor is well documented. No factual issue.
+**Status:** ✅ no action needed
