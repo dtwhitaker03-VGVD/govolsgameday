@@ -678,3 +678,21 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-06 — run summary
+- Checked: trivia 2026-10-06 to 2026-10-09, polls 2026-10-06 to 2026-10-09
+- 2026-10-06 through 10-08 (15 trivia rows, 3 polls) were already reviewed in prior runs (logged 2026-10-03 through 2026-10-05, still pending merge to main) — not re-checked here.
+- New content this run: trivia 2026-10-09 (5 rows); no poll scheduled for 2026-10-09
+- Issues found: 1 (trivia), plus 1 poll-scheduling gap note
+
+### trivia_questions.fb31c7f6-cfb1-40d8-8083-87bf0339dfc8 — 2026-10-09 / slot 2 — non-Tennessee distractors (easily eliminable without specific knowledge)
+**Current:** Q: "Which Tennessee running back rushed for over 1,000 yards during the undefeated 1998 championship season?" A "Jamal Lewis" (correct), B "Emmitt Smith", C "Herschel Walker", D "Bo Jackson"
+**Suggested fix:** Replace B, C, and D with other real Tennessee running backs from the same or nearby eras, e.g. B "Travis Henry", C "Shawn Bryson", D "Travis Stephens" — keep A "Jamal Lewis" as correct.
+**Reason:** Verified Jamal Lewis is correct (1,364 rushing yards for Tennessee's 1998 national championship team). But B, C, and D (Emmitt Smith, Herschel Walker, Bo Jackson) never played for Tennessee at all and played in entirely different eras (1980s-90s, other schools) — a Vol fan can eliminate all three purely on "these guys never played here," without needing any 1998-season-specific knowledge. §32 — distractors should be plausible within the actual Tennessee roster/context, not trivially non-Vol names.
+**Status:** ⏳ pending review
+
+### General note — poll scheduling gap, 2026-10-09 (informational only)
+**Current:** No `daily_polls` row exists for `active_date = 2026-10-09`.
+**Suggested fix:** None from this QA process — flagging for awareness only, consistent with prior scheduling-gap notes logged in this file (e.g. 2026-09-24).
+**Reason:** Scope note, not a content-quality issue.
+**Status:** ✅ no action needed (informational only)
