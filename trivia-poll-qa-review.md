@@ -678,3 +678,27 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-07 — run summary
+- Checked: trivia 2026-10-07 to 2026-10-10, polls 2026-10-07 to 2026-10-10
+- 2026-10-07 through 10-09 (15 trivia rows, 2 polls) were already reviewed in prior runs (logged 2026-10-04 through 2026-10-06, still pending merge to main) — not re-checked here.
+- New content this run: trivia 2026-10-10 (5 rows), poll 2026-10-10 (1 row)
+- Issues found: 2
+
+### trivia_questions.eb76099d-89b3-45a0-8fe6-2231ff4621e6 — 2026-10-10 / slot 4 — unverified/possibly fabricated premise + non-answer distractor
+**Current:** Q: "What is the SEC's well-known football broadcast promotional slogan, referencing the pace and intensity of its games?" A "\"The Fastest Four Quarters in Sports\"" (correct), B "\"Where Legends Are Made\"", C "\"Any Given Saturday\"", D "Not applicable, no such slogan exists"
+**Suggested fix:** Could not confirm "The Fastest Four Quarters in Sports" as an actual, documented SEC slogan via WebSearch — recommend David verify this phrase against an SEC Network/ESPN source before airing; if it can't be confirmed, replace with a verified real SEC promotional tagline (e.g. "It Just Means More," which is well-documented) as the correct answer. Separately, regardless of A's accuracy, replace D with a real alternative slogan/phrase rather than a non-answer that just negates the question's own premise.
+**Reason:** §32 — **flagging as uncertain**: did not find a source confirming the correct answer's premise is accurate, so logging instead of guessing. D is also a self-eliminating non-answer distractor independent of that question. (Note: "Where Legends Are Made" is the Big Ten's actual slogan, not the SEC's — a legitimate real-but-wrong distractor, no issue there.)
+**Status:** ⏳ pending review — flagged as uncertain (correct-answer premise unverified)
+
+### trivia_questions.6fc50390-398a-46a5-8dec-eb3ad83465cf — 2026-10-10 / slot 5 — factual timing error
+**Current:** Q: "Which Tennessee coach led the program through the mid-1970s to early 1980s, including a Sugar Bowl appearance, before a difficult firing?" A "Robert Neyland", B "Doug Dickey", C "Bill Battle" (correct), D "Bowden Wyatt"
+**Suggested fix:** Change "the mid-1970s to early 1980s" to "the early-to-mid 1970s" (or "1970 to 1976"). Keep C "Bill Battle" as the correct answer.
+**Reason:** Verified via WebSearch — Bill Battle's actual Tennessee tenure was 1970-1976 (not into the early 1980s; Johnny Majors took over starting in 1977), and he did win the 1971 Sugar Bowl (34-13 over Air Force, capping the 1970 season). Battle was indeed forced out under fan pressure after the 1976 season, so "a difficult firing" is accurate — only the decade-range phrasing is off, the same recurring pattern as prior logged timing errors (Pickens "mid-1990s," Fulmer/Clawson "mid-2000s").
+**Status:** ⏳ pending review
+
+### daily_polls.3e36ae94-f53f-43eb-90b8-a1a57bf6168a — 2026-10-10 — clean
+**Current:** Q: "Who is the most physically dominant Vol football player of all time?" A "Reggie White", B "John Henderson", C "Albert Haynesworth", D "Trey Smith"
+**Suggested fix:** None needed.
+**Reason:** All four are real Tennessee football linemen known for physical dominance; clear single-topic, non-overlapping, no leading bias.
+**Status:** ✅ no action needed
