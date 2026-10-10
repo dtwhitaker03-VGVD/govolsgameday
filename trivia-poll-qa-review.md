@@ -678,3 +678,33 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-10 — run summary
+- Checked: trivia 2026-10-10 to 2026-10-13, polls 2026-10-10 to 2026-10-13
+- 2026-10-10 through 10-12 (15 trivia rows, 1 poll) were already reviewed in prior runs (logged 2026-10-07 through 2026-10-09, still pending merge to main) — not re-checked here.
+- New content this run: trivia 2026-10-13 (5 rows); no poll scheduled for 2026-10-13
+- Issues found: 3
+
+### trivia_questions.fbfb8ec5-548a-4568-8ba5-684f16687ac2 — 2026-10-13 / slot 3 — meta-commentary in option text + non-answer distractor
+**Current:** Q: "Which SEC baseball program has become one of Tennessee's primary rivals for national title contention in the 2020s, alongside their traditional in-state rivalry?" A "Oklahoma (only recently joined)", B "Not applicable", C "Vanderbilt" (correct), D "Texas (only recently joined)"
+**Suggested fix:** Replace A and D with plain school names (no parenthetical) — e.g. "LSU" and "Florida" — and drop "Not applicable" entirely in favor of another real SEC baseball program.
+**Reason:** §32 — A and D bake meta-commentary directly into the option text ("only recently joined"), explaining away the wrong answer rather than offering a real competing name; B is a non-answer. Only C functions as a genuine answer. Verified via general knowledge that Vanderbilt and Tennessee have indeed been Tennessee's primary 2020s national-title-contention baseball rival alongside the cross-state series — C is accurate.
+**Status:** ⏳ pending review
+
+### trivia_questions.59c3ea14-edef-42f8-8e3f-a40f08b7ec20 — 2026-10-13 / slot 4 — self-eliminating distractors (via the question's own stated premise)
+**Current:** Q: "Tennessee's all-time bowl win total is among the best in the nation historically. What is the program's approximate all-time bowl record?" A "Tennessee has never won a bowl game", B "A losing record, around 15-30", C "Around 30-25, a winning record" (correct), D "An exactly even record"
+**Suggested fix:** Drop the leading premise sentence ("...is among the best in the nation historically") from the question stem — it effectively tells the test-taker the answer must be a strong winning record, pre-eliminating A, B, and D without requiring the specific figure.
+**Reason:** Verified via WebSearch — Tennessee's all-time bowl record is 30-25, matching C. But the question stem itself states the record is "among the best in the nation," which logically rules out A (never won), B (losing record), and D (even record) before the reader needs any specific knowledge — a variant of the recurring self-eliminating-distractor pattern, caused here by the stem rather than the options themselves.
+**Status:** ⏳ pending review
+
+### trivia_questions.91c287d0-4f09-4d73-bd7e-ff006ce929e3 — 2026-10-13 / slot 5 — broken yes/no structure, non-answer/absurd distractors (unsalvageable)
+**Current:** Q: "Has Tennessee's athletic compliance office grown in staffing and scope in response to the rise of NIL, the transfer portal, and revenue-sharing regulations in the 2020s?" A "Not applicable", B "Compliance offices don't exist in college athletics", C "No regulatory shifts have occurred", D "Yes" (correct)
+**Suggested fix:** Full replacement recommended — rebuild as a standard question with concrete, verifiable facts (e.g. asking what specific regulatory changes NCAA athletic compliance offices have had to adapt to in the 2020s) rather than a yes/no question with absurd alternatives.
+**Reason:** §32 — A is a non-answer, B is objectively false (compliance offices obviously exist), and C contradicts extremely well-known facts (NIL, the transfer portal, and revenue-sharing are all real 2020s regulatory shifts) — none of A/B/C is a real competing answer, leaving D as a trivial default. Same recurring broken-structure pattern logged repeatedly in this file.
+**Status:** ⏳ pending review
+
+### General note — poll scheduling gap, 2026-10-13 (informational only)
+**Current:** No `daily_polls` row exists for `active_date = 2026-10-13`.
+**Suggested fix:** None from this QA process — flagging for awareness only, consistent with prior scheduling-gap notes logged in this file (e.g. 2026-09-24, 2026-10-09, 2026-10-12).
+**Reason:** Scope note, not a content-quality issue.
+**Status:** ✅ no action needed (informational only)
