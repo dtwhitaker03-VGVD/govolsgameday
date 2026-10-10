@@ -90,6 +90,7 @@ interface LiveGamePlay {
   yardsGained: number | null;
   rushPass: string | null;
   playType: string | null;
+  playText?: string | null;
   team: string;
   period: number | null;
   yardsToGoal: number | null;
@@ -102,6 +103,39 @@ interface LiveGamePlay {
 function isKickoff(play: LiveGamePlay): boolean {
   return /kickoff|onside/i.test(play.playType ?? "");
 }
+
+// Where the receiving team starts, read from a kickoff play's own text, so
+// the pick window can open as soon as the kickoff is logged instead of
+// waiting for the first snap. Returns the receiving team's yardsToGoal, or
+// null when it can't be settled with confidence (the caller then waits for
+// the first scrimmage play, as before). Rules: a touchback or a fair catch
+// is the 25 and a kick out of bounds is the 35; a returned kick is worked
+// out from the kick and return distances and cross-checked against the spot
+// the text itself names. Penalties, onside kicks, fumbles and return
+// touchdowns are never guessed.
+function kickoffStartYardsToGoal(play: LiveGamePlay): number | null {
+  const text = play.playText ?? "";
+  if (!text) return null;
+  if (/penalty|onside|fumble|touchdown|\bTD\b/i.test(text)) return null;
+  if (/touchback/i.test(text) || /fair catch/i.test(text)) return 75;
+  if (/out of bounds/i.test(text)) return 65;
+
+  const m = text.match(/kickoff\s+(\d+)\s+yards?\b.*?\breturn\s+(\d+)\s+yards?\s+to\s+the\s+[A-Za-z]+(\d+)/i);
+  const kickerYtg = play.yardsToGoal;
+  if (!m || kickerYtg == null) return null;
+  const kickYards = parseInt(m[1], 10);
+  const returnYards = parseInt(m[2], 10);
+  const namedSpot = parseInt(m[3], 10);
+  const ytg = 100 - kickerYtg + kickYards - returnYards;
+  if (ytg < 1 || ytg > 99) return null;
+  return ytg === 100 - namedSpot || ytg === namedSpot ? ytg : null;
+}
+
+// Pick-window length by how the drive starts: a drive that starts off a
+// kickoff (after a score, start of a half) gets 30s; one that starts off a
+// punt, turnover, missed field goal or turnover on downs gets 60s.
+const KICKOFF_WINDOW_SECONDS = 30;
+const DEFAULT_WINDOW_SECONDS = 60;
 
 interface LiveGameDrive {
   id: string;
@@ -488,21 +522,6 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
   let nextDriveNumber =
     Math.max(0, ...(existingWindows ?? []).map((w) => w.drive_number)) + 1;
 
-  // Deliberate pause between drives (auto mode only — manual_control games
-  // never reach this code): as soon as a drive resolves, hold off opening
-  // the NEXT drive's pick window for ~15s, rather than the instant CFBD's
-  // data allows, so picks don't feel like they're firing back-to-back.
-  // live-cfbd-sync is a stateless 15s poller, so this is enforced by
-  // checking drive_windows.resolved_at across polls, not a real in-memory
-  // timer — the actual gap ends up being one poll cycle (~15-30s), not an
-  // exact 15.000s.
-  const NEW_DRIVE_OPEN_DELAY_MS = 15_000;
-  const mostRecentResolvedAt = (existingWindows ?? [])
-    .map((w) => (w.resolved_at ? new Date(w.resolved_at).getTime() : null))
-    .filter((t): t is number => t !== null)
-    .reduce((max, t) => (t > max ? t : max), 0);
-  const readyToOpenNext = Date.now() - mostRecentResolvedAt >= NEW_DRIVE_OPEN_DELAY_MS;
-
   let opened = 0;
   let settled = 0;
   const settleErrors: string[] = [];
@@ -521,23 +540,29 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
       // offense-relative (offense's own score minus the opponent's),
       // matching how open_drive_window's odds heuristics are written.
       if (existing) continue;
-      if (!readyToOpenNext) continue; // still inside the post-drive pause
 
-      // Open as soon as the kickoff is reported, but only with the spot the
-      // offense actually starts from: a scrimmage play's spot if there is
-      // one, else CFBD's drive start once it has moved off the kickoff tee
-      // spot. Until then, wait for the next poll rather than open wrong.
+      // Open as soon as the drive's starting spot is known, never mid-drive:
+      // the FIRST scrimmage play's spot if there is one (using the latest
+      // play put drive 2 of the 2026-10-10 Arkansas game at the 48 instead
+      // of Tennessee's real start at its own 33); else, for a kickoff-only
+      // drive, the spot read from the kickoff's own text; else CFBD's drive
+      // start once it has moved off the kickoff tee spot. Until then, wait
+      // for the next poll rather than open wrong.
       // yardsToGoal of 0 or 100 is never a real line of scrimmage — CFBD
       // reported those as the start of kickoff-only drives 13 and 15 of the
       // 2026-09-26 Texas game — so treat them as "not known yet" too.
       const isRealSpot = (y: number | null | undefined): y is number =>
         y != null && y > 0 && y < 100;
       const scrimmagePlays = drive.plays.filter((p) => !isKickoff(p));
-      const situationPlay = scrimmagePlays[scrimmagePlays.length - 1];
+      const situationPlay = scrimmagePlays[0];
       const kickoffPlay = drive.plays.find(isKickoff);
+      const kickoffSpot =
+        kickoffPlay && scrimmagePlays.length === 0 ? kickoffStartYardsToGoal(kickoffPlay) : null;
       let startYardsToGoal: number;
       if (isRealSpot(situationPlay?.yardsToGoal)) {
         startYardsToGoal = situationPlay.yardsToGoal;
+      } else if (kickoffSpot !== null) {
+        startYardsToGoal = kickoffSpot;
       } else if (
         !isRealSpot(drive.startYardsToGoal) ||
         (kickoffPlay && drive.startYardsToGoal === kickoffPlay.yardsToGoal)
@@ -561,7 +586,7 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
         p_down: situationPlay?.down ?? 1,
         p_distance: situationPlay?.distance ?? 10,
         p_cfbd_drive_id: drive.id,
-        p_window_seconds: 60,
+        p_window_seconds: kickoffPlay ? KICKOFF_WINDOW_SECONDS : DEFAULT_WINDOW_SECONDS,
       });
       if (!error) opened++;
       if (!existing) nextDriveNumber = driveNumber + 1;
@@ -569,9 +594,8 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
       // Drive already ended by the time we saw it (possible if a poll is
       // missed) — open its window with the drive's starting situation
       // first so settle_drive_outcome has a row to resolve against. This
-      // is a catch-up path (the drive is already over), so the post-drive
-      // pause doesn't apply — there's no "next pick window" being shown
-      // early, just history being recorded.
+      // is a catch-up path (the drive is already over), so there's no
+      // "next pick window" being shown early, just history being recorded.
       if (!existing) {
         await supabase.rpc("open_drive_window", {
           p_game_id: game.id,
@@ -583,7 +607,7 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
           p_down: 1,
           p_distance: 10,
           p_cfbd_drive_id: drive.id,
-          p_window_seconds: 60,
+          p_window_seconds: drive.plays.some(isKickoff) ? KICKOFF_WINDOW_SECONDS : DEFAULT_WINDOW_SECONDS,
         });
         nextDriveNumber = driveNumber + 1;
       }
@@ -613,6 +637,14 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
     opened,
     settled,
     settleErrors,
+    // TEMPORARY diagnostic: raw shape of CFBD's live drives/plays, read back
+    // from net._http_response to learn which fields exist. Remove after use.
+    debug: {
+      liveKeys: Object.keys(live),
+      driveKeys: Object.keys(live.drives[0] ?? {}),
+      playKeys: Object.keys(live.drives[0]?.plays[0] ?? {}),
+      lastDrives: live.drives.slice(-2).map((d) => ({ ...d, plays: d.plays.slice(-3) })),
+    },
   };
 }
 
