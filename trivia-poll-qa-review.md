@@ -678,3 +678,21 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-11 — run summary
+- Checked: trivia 2026-10-11 to 2026-10-14, polls 2026-10-11 to 2026-10-14
+- 2026-10-11 through 10-13 (15 trivia rows, 1 poll) were already reviewed in prior runs (logged 2026-10-08 through 2026-10-10, still pending merge to main) — not re-checked here.
+- New content this run: trivia 2026-10-14 (5 rows); no poll scheduled for 2026-10-14
+- Issues found: 1
+
+### trivia_questions.b4c5b465-2d5c-47c6-b1db-4bdef1203d60 — 2026-10-14 / slot 4 — broken True/False structure, self-eliminating/non-answer distractors
+**Current:** Q: "The SEC's football strength of schedule is generally considered among the toughest of the Power conferences, a frequent talking point in national ranking and CFP seeding debates. True or false?" A "Among the weakest of the Power conferences", B "True" (correct), C "Strength of schedule is not measured", D "Not applicable"
+**Suggested fix:** Rebuild as a standard question, e.g. "Which metric has the SEC's football strength of schedule frequently ranked near the top of in recent seasons?" with real comparative options instead of True/False-style options.
+**Reason:** §32 — same recurring broken-structure pattern logged repeatedly in this file: A directly contradicts the question's own stated premise, C is objectively false (strength of schedule is a well-established, widely published metric), and D is a non-answer — only B functions as a real answer.
+**Status:** ⏳ pending review
+
+### General note — poll scheduling gap, 2026-10-14 (informational only)
+**Current:** No `daily_polls` row exists for `active_date = 2026-10-14`.
+**Suggested fix:** None from this QA process — flagging for awareness only, consistent with prior scheduling-gap notes logged in this file (e.g. 2026-09-24, 2026-10-09, 2026-10-12, 2026-10-13).
+**Reason:** Scope note, not a content-quality issue.
+**Status:** ✅ no action needed (informational only)
