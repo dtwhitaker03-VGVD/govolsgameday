@@ -343,11 +343,15 @@ interface GameRow {
   status: string;
   manual_control: boolean;
   kickoff_time: string;
+  data_source?: string;
 }
 
 async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow) {
   if (game.status === "final" || game.status === "calculated") {
     return { game_id: game.id, ok: true, skipped: `status is ${game.status}` };
+  }
+  if (game.data_source === "espn") {
+    return { game_id: game.id, ok: true, skipped: "data_source is espn" };
   }
 
   const res = await fetch(
@@ -572,7 +576,13 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
         startYardsToGoal = drive.startYardsToGoal;
       }
 
-      const offenseIsHome = drive.offense === homeTeam?.team;
+      // A kickoff-only drive is labelled with the KICKING team until the
+      // first snap, so the real offense is the other side.
+      const realOffense =
+        kickoffPlay && scrimmagePlays.length === 0
+          ? (kickoffPlay.team === homeTeam?.team ? awayTeam?.team : homeTeam?.team)
+          : drive.offense;
+      const offenseIsHome = realOffense === homeTeam?.team;
       const offenseScore = offenseIsHome ? homeScore : awayScore;
       const defenseScore = offenseIsHome ? awayScore : homeScore;
 
@@ -637,14 +647,6 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
     opened,
     settled,
     settleErrors,
-    // TEMPORARY diagnostic: raw shape of CFBD's live drives/plays, read back
-    // from net._http_response to learn which fields exist. Remove after use.
-    debug: {
-      liveKeys: Object.keys(live),
-      driveKeys: Object.keys(live.drives[0] ?? {}),
-      playKeys: Object.keys(live.drives[0]?.plays[0] ?? {}),
-      lastDrives: live.drives.slice(-2).map((d) => ({ ...d, plays: d.plays.slice(-3) })),
-    },
   };
 }
 
@@ -667,7 +669,7 @@ Deno.serve(async (req: Request) => {
     // Single-game mode — used for manual/debug calls.
     const { data: game, error: gameErr } = await supabase
       .from("live_games")
-      .select("id, cfbd_game_id, home_team, away_team, status, manual_control, kickoff_time")
+      .select("id, cfbd_game_id, home_team, away_team, status, manual_control, kickoff_time, data_source")
       .eq("id", body.game_id)
       .maybeSingle();
 
@@ -685,7 +687,7 @@ Deno.serve(async (req: Request) => {
   const soon = new Date(Date.now() + 60 * 60 * 1000).toISOString();
   const { data: games, error: gamesErr } = await supabase
     .from("live_games")
-    .select("id, cfbd_game_id, home_team, away_team, status, kickoff_time, manual_control")
+    .select("id, cfbd_game_id, home_team, away_team, status, kickoff_time, manual_control, data_source")
     .or(`status.eq.live,and(status.eq.pregame,kickoff_time.lte.${soon})`);
 
   if (gamesErr) return json({ error: gamesErr.message }, 500);
