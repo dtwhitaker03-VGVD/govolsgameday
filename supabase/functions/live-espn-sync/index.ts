@@ -294,12 +294,20 @@ const sameTeam = (a: string, b: string) => {
   return x === y || x.startsWith(y) || y.startsWith(x);
 };
 
+let lastFetchError = "";
+
 async function fetchSummary(eventId: number): Promise<EspnSummary | null> {
   try {
-    const res = await fetch(`${ESPN_SUMMARY}${eventId}`);
-    if (!res.ok) return null;
+    const res = await fetch(`${ESPN_SUMMARY}${eventId}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; GoVolsGameDay/1.0)", Accept: "application/json" },
+    });
+    if (!res.ok) {
+      lastFetchError = `HTTP ${res.status}`;
+      return null;
+    }
     return (await res.json()) as EspnSummary;
-  } catch {
+  } catch (e) {
+    lastFetchError = e instanceof Error ? e.message : String(e);
     return null;
   }
 }
@@ -307,7 +315,7 @@ async function fetchSummary(eventId: number): Promise<EspnSummary | null> {
 async function syncGame(supabase: SupabaseClient, game: GameRow, dryRun: boolean) {
   const d = await fetchSummary(game.cfbd_game_id);
   if (!d?.header?.competitions?.[0]) {
-    return { game_id: game.id, ok: false, error: "ESPN summary unavailable" };
+    return { game_id: game.id, ok: false, error: `ESPN summary unavailable: ${lastFetchError || "unexpected shape"}` };
   }
   const comp = d.header.competitions[0];
   const home = comp.competitors.find((c) => c.homeAway === "home");
