@@ -19,6 +19,13 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // yards, turnovers, first downs, time of possession), the receiving team and
 // resulting spot of every kickoff, and the end spot of every play.
 //
+// Early opening: when a drive ends in a punt, turnover, missed FG or downs,
+// the next window opens right away from the last play's end spot (see
+// earlyNextStart), keyed "pending:<prev drive id>" until ESPN creates the next
+// drive at its first snap, then re-keyed to it. If the next drive turns out
+// not to match (a kickoff, the other team), the early window and its picks are
+// dropped — nothing has been scored — and the drive opens normally.
+//
 // dry_run (with a game_id) plans every drive from ESPN's data without writing
 // anything and compares the plan against the windows already in the database
 // — used to replay finished games.
@@ -145,6 +152,32 @@ function kickoffStart(p: EspnPlay): { ytg: number; receiverId: string } | null {
   return endYtg === 100 - named || endYtg === named ? { ytg: endYtg, receiverId } : null;
 }
 
+// Where the NEXT drive will start, read from the last play of a drive that
+// just ended in a change of possession — so the next pick window can open
+// before the next drive exists in ESPN's feed (it isn't created until the
+// first snap). ESPN's end spot is right about 90% of replayed cases; the
+// misses are penalties, a fair catch (end spot 0) and an interception whose
+// end spot ignores the return. So accept it only when it is a real spot, the
+// ball changed hands, no penalty is mentioned, and it agrees with the spot the
+// play text itself names. Anything else returns null and the window opens at
+// the first snap, as before.
+function earlyNextStart(v: EspnDrive, outcome: string | null, rawResult: string): { ytg: number; offenseId: string } | null {
+  if (outcome !== "punt" && outcome !== "turnover" && outcome !== "turnover_on_downs") return null;
+  if (/touchdown|safety|end of/i.test(rawResult)) return null;
+  const last = [...(v.plays ?? [])].reverse().find((p) => !/timeout|end period|end of|official/i.test(p.type?.text ?? ""));
+  if (!last) return null;
+  const text = last.text ?? "";
+  if (/penalty|no play|touchdown|safety|\bTD\b/i.test(text) || /penalty/i.test(last.type?.text ?? "")) return null;
+  const e = last.end;
+  if (!e || !isRealSpot(e.yardsToEndzone) || !e.team?.id || e.team.id === v.team?.id) return null;
+  const spots = [...text.matchAll(/\b(?:to|at)\s+(?:the\s+)?[A-Za-z]*?(\d{1,2})\b/g)];
+  if (spots.length > 0) {
+    const named = parseInt(spots[spots.length - 1][1], 10);
+    if (e.yardsToEndzone !== named && e.yardsToEndzone !== 100 - named) return null;
+  }
+  return { ytg: e.yardsToEndzone, offenseId: e.team.id };
+}
+
 interface PlannedOpen {
   ytg: number;
   down: number;
@@ -162,6 +195,8 @@ interface PlannedDrive {
   open: PlannedOpen | null; // null = starting spot not known yet
   outcome: string | null; // mapped outcome of a finished drive
   rawResult: string; // ESPN's displayResult ("" while in progress)
+  startsWithKickoff: boolean;
+  next: { ytg: number; offenseId: string } | null; // early read of the following drive's start
 }
 
 function allDrives(d: EspnSummary): EspnDrive[] {
@@ -216,13 +251,16 @@ function planDrive(v: EspnDrive, fallbackClock: string): PlannedDrive {
     seconds: kickoff ? KICKOFF_WINDOW_SECONDS : DEFAULT_WINDOW_SECONDS,
   };
 
+  const outcome = inProgress ? null : mapDriveResult(rawResult);
   return {
     id: v.id,
     inProgress,
     offenseId,
     open,
-    outcome: inProgress ? null : mapDriveResult(rawResult),
+    outcome,
     rawResult,
+    startsWithKickoff: !!kickoff,
+    next: inProgress ? null : earlyNextStart(v, outcome, rawResult),
   };
 }
 
@@ -360,6 +398,7 @@ async function syncGame(supabase: SupabaseClient, game: GameRow, dryRun: boolean
           outcome: p.outcome,
           plannedYardline: plannedYard,
           plannedSeconds: p.open?.seconds ?? null,
+          earlyNext: p.next ? { yardline: 100 - p.next.ytg, offense: nameOf(p.next.offenseId) } : null,
           existing: w ? { n: w.drive_number, yardline: w.yardline, outcome: w.actual_outcome, scoreDiff: w.score_differential } : null,
           yardlineMatch: w && plannedYard != null ? w.yardline === plannedYard : null,
           outcomeMatch: w && p.outcome ? w.actual_outcome === p.outcome : null,
@@ -407,53 +446,100 @@ async function syncGame(supabase: SupabaseClient, game: GameRow, dryRun: boolean
     return { game_id: game.id, ok: true, status: newStatus, homeScore, awayScore, driveSyncSkipped: "manual control active" };
   }
 
-  // ── Drive windows ──
   const { data: existingWindows } = await supabase
     .from("drive_windows")
     .select("drive_number, cfbd_drive_id, status")
     .eq("game_id", game.id);
-  const byId = new Map(
-    (existingWindows ?? []).filter((w) => w.cfbd_drive_id).map((w) => [w.cfbd_drive_id as string, w])
+  type WinRow = { drive_number: number; cfbd_drive_id: string | null; status: string };
+  const byId = new Map<string, WinRow>(
+    (existingWindows ?? []).filter((w) => w.cfbd_drive_id).map((w) => [w.cfbd_drive_id as string, w as WinRow])
   );
   let nextDriveNumber = Math.max(0, ...(existingWindows ?? []).map((w) => w.drive_number)) + 1;
 
   let opened = 0;
   let settled = 0;
+  let openedEarly = 0;
+  let rekeyed = 0;
+  let voided = 0;
   const settleErrors: string[] = [];
+  const resolvedIds = new Set<string>();
 
-  for (const p of plans) {
-    const existing = byId.get(p.id);
+  const scoreDiffFor = (offenseId: string) => (offenseId === home.team.id ? homeScore - awayScore : awayScore - homeScore);
+
+  const openAt = async (driveNumber: number, cfbdId: string, o: PlannedOpen) => {
+    const { error } = await supabase.rpc("open_drive_window", {
+      p_game_id: game.id,
+      p_drive_number: driveNumber,
+      p_yardline: 100 - o.ytg,
+      p_quarter: o.quarter,
+      p_game_clock: o.clock,
+      p_score_diff: scoreDiffFor(o.offenseId),
+      p_down: o.down,
+      p_distance: o.distance,
+      p_cfbd_drive_id: cfbdId,
+      p_window_seconds: o.seconds,
+    });
+    if (error) settleErrors.push(`open ${cfbdId}: ${error.message}`);
+    else opened++;
+    nextDriveNumber = Math.max(nextDriveNumber, driveNumber + 1);
+    return !error;
+  };
+
+  // Early windows are keyed "pending:<previous drive id>" until the real next
+  // drive shows up in ESPN's feed, then re-keyed to its id (same drive number,
+  // so picks already made carry over).
+  const pendingKey = (prevId: string) => `pending:${prevId}`;
+
+  for (let i = 0; i < plans.length; i++) {
+    const p = plans[i];
+    let existing = byId.get(p.id);
+
+    if (!existing && i > 0) {
+      const prev = plans[i - 1];
+      const pend = byId.get(pendingKey(prev.id));
+      if (pend) {
+        if (!p.open && p.inProgress) continue; // real start not known yet — keep the early window
+        if (p.open && !p.startsWithKickoff && prev.next && p.open.offenseId === prev.next.offenseId) {
+          // Same team has the ball: the early window was for this drive.
+          const { error } = await supabase
+            .from("drive_windows")
+            .update({ cfbd_drive_id: p.id })
+            .eq("game_id", game.id)
+            .eq("drive_number", pend.drive_number);
+          if (error) {
+            settleErrors.push(`rekey ${p.id}: ${error.message}`);
+            continue;
+          }
+          existing = { ...pend, cfbd_drive_id: p.id };
+          byId.delete(pendingKey(prev.id));
+          byId.set(p.id, existing);
+          rekeyed++;
+        } else {
+          // The next drive isn't the one we predicted (a kickoff, the other
+          // team, nothing played). Nothing was scored yet, so drop the early
+          // window and its picks and open this drive the normal way.
+          await supabase.from("drive_predictions").delete().eq("game_id", game.id).eq("drive_number", pend.drive_number).in("status", ["open", "locked"]);
+          await supabase.from("drive_windows").delete().eq("game_id", game.id).eq("drive_number", pend.drive_number).neq("status", "resolved");
+          byId.delete(pendingKey(prev.id));
+          nextDriveNumber = Math.min(nextDriveNumber, pend.drive_number);
+          voided++;
+        }
+      }
+    }
+
     const driveNumber = existing ? existing.drive_number : nextDriveNumber;
-
-    const openWindow = async () => {
-      const o = p.open!;
-      const offenseIsHome = o.offenseId === home.team.id;
-      const { error } = await supabase.rpc("open_drive_window", {
-        p_game_id: game.id,
-        p_drive_number: driveNumber,
-        p_yardline: 100 - o.ytg,
-        p_quarter: o.quarter,
-        p_game_clock: o.clock,
-        p_score_diff: offenseIsHome ? homeScore - awayScore : awayScore - homeScore,
-        p_down: o.down,
-        p_distance: o.distance,
-        p_cfbd_drive_id: p.id,
-        p_window_seconds: o.seconds,
-      });
-      if (!error) opened++;
-      nextDriveNumber = driveNumber + 1;
-    };
+    if (existing?.status === "resolved") resolvedIds.add(p.id);
 
     if (p.inProgress) {
       if (existing || !p.open) continue; // already open, or spot not known yet — wait
-      await openWindow();
+      await openAt(driveNumber, p.id, p.open);
     } else if (!existing || existing.status !== "resolved") {
       if (!existing) {
         if (!p.open) {
           settleErrors.push(`drive ${p.id}: finished but no starting spot to open a window with`);
           continue;
         }
-        await openWindow();
+        await openAt(driveNumber, p.id, p.open);
       }
       if (p.outcome) {
         const { error } = await supabase.rpc("settle_drive_outcome", {
@@ -462,11 +548,35 @@ async function syncGame(supabase: SupabaseClient, game: GameRow, dryRun: boolean
           p_actual_outcome: p.outcome,
         });
         if (error) settleErrors.push(`drive ${driveNumber}: ${error.message}`);
-        else settled++;
+        else {
+          settled++;
+          resolvedIds.add(p.id);
+        }
       } else {
         settleErrors.push(`drive ${driveNumber}: unrecognized result "${p.rawResult}"`);
       }
     }
+  }
+
+  // Early open: the latest drive just ended in a change of possession and the
+  // next one isn't in the feed yet. Not at a half/quarter break or after the
+  // game, where the "next drive" may never be played.
+  const lastPlan = plans[plans.length - 1];
+  const detail = comp.status.type.detail ?? "";
+  if (
+    lastPlan?.next && state === "in" && !/half|end of|final/i.test(detail) &&
+    resolvedIds.has(lastPlan.id) && !byId.has(pendingKey(lastPlan.id))
+  ) {
+    const ok = await openAt(nextDriveNumber, pendingKey(lastPlan.id), {
+      ytg: lastPlan.next.ytg,
+      down: 1,
+      distance: Math.min(10, lastPlan.next.ytg),
+      quarter: period ?? 1,
+      clock: clock ?? "15:00",
+      offenseId: lastPlan.next.offenseId,
+      seconds: DEFAULT_WINDOW_SECONDS,
+    });
+    if (ok) openedEarly++;
   }
 
   return {
@@ -477,6 +587,9 @@ async function syncGame(supabase: SupabaseClient, game: GameRow, dryRun: boolean
     awayScore,
     driveCount: plans.length,
     opened,
+    openedEarly,
+    rekeyed,
+    voided,
     settled,
     settleErrors,
   };
