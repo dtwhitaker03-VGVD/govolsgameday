@@ -678,3 +678,29 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-13 — run summary (fixes APPLIED to DB, per David's 2026-10-11 instruction)
+- Checked: trivia and polls for 2026-10-13 through 2026-10-16.
+- Trivia for 10-13 to 10-15 and polls through 10-19 had already been fixed or refreshed in earlier runs. The only new content this run was the 10-16 trivia set (5 rows).
+- Poll for 10-16: present, about Alabama week, so it follows David's rule.
+- Issues found and fixed: 4 trivia rows. Slot 1 ("Third Saturday in October" → Alabama) was already correct and fits Bama week.
+
+### trivia_questions.d6aabd8b — 2026-10-16 / slot 2 — ✅ applied (duplicate + weak distractors)
+**Before:** "Which Lady Vol swimmer became the first in program history to win three career Olympic medals...?" Gretchen Walsh / Michelle Snow / Tamika Catchings / Erika Connolly ✔
+**After:** "Before home games, Tennessee's players take the field by running through a giant formation made by the Pride of the Southland Band. What is it called?" A The Vol Walk / B Running Through the T ✔ / C The Power T Charge / D The Checkerboard Run
+**Why:** Connolly's Olympic medals were already asked on 10-08. Also, two of the wrong answers were basketball players, which anyone could rule out. The replacement is a game-week tradition question, and the Vol Walk is a real tradition, so it works as a trap.
+
+### trivia_questions.55c13ec6 — 2026-10-16 / slot 3 — ✅ applied
+**Before:** "...In which conference division did the two schools [Tennessee, Florida] once share membership...?" They have never shared a division / Big 12 / SEC West / SEC East ✔
+**After:** "Tennessee won its first College World Series title in 2024 by beating which team in the finals?" A Florida / B Kentucky / C Texas A&M ✔ / D North Carolina
+**Why:** The old question had a non-answer and an absurd option (Big 12), and it repeated the "SEC dropped divisions" topic from 10-11. The new answer is verified (Tennessee beat Texas A&M 6-5 in Game 3). All three wrong answers were real 2024 CWS teams.
+
+### trivia_questions.4817885e — 2026-10-16 / slot 4 — ✅ applied
+**Before:** "...opened its season with a tough true road environment against which nonconference opponent?" Syracuse ✔ / Kentucky / Memphis / Vanderbilt
+**After:** "Tennessee's 1998 national title team opened its season with a 34-33 road win over which nonconference opponent?" A Syracuse ✔ / B Houston / C Memphis / D UAB
+**Why:** Kentucky and Vanderbilt are SEC teams, so the word "nonconference" ruled them out. Houston and UAB were real 1998 nonconference opponents, so the wrong answers are now believable. Verified: the opener was a 34-33 win at Syracuse on a field goal as time expired.
+
+### trivia_questions.70acf233 — 2026-10-16 / slot 5 — ✅ applied (full replacement)
+**Before:** "The SEC generally has among the highest number of former players on active NFL rosters... True or false?" True ✔ / Not applicable / ranks last / zero players
+**After:** "Tennessee's 52-49 win over Alabama in 2022 snapped a losing streak against the Tide of how many games?" A 10 / B 12 / C 15 ✔ / D 17. Category changed to Vol Football History.
+**Why:** The old question was a broken True/False. The new one is timely for Bama week and verified: the 2022 win ended a 15-game losing streak that dated back to 2007.
