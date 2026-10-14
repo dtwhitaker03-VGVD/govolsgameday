@@ -334,3 +334,54 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-10-14 — News/recruiting highlight
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Re-checked all four pillars and this log (plus still-open marketing
+  PR branches) before picking a subject. `live_games` hasn't changed
+  since the Oct 12 Arkansas recap (PR #212) — Alabama is still
+  `pregame`, 3 days out, and a recap would repeat Monday's pillar
+  back-to-back, so pillar 4 (news) was the pick: it hadn't been used
+  since Sept 30 — 14 days, the most stale of all four — and
+  `scraped_articles` had two genuinely fresh, real stories from the day
+  before.
+- Subject: SEC Network broadcaster Cole Cubelic, on his "Cube Show"
+  podcast, calling Tennessee defensive lineman Xavier Gilliam "the best
+  defensive player in college football" through the first six games of
+  the season. Pulled the real `scraped_articles` row (`is_hidden =
+  false`, `source_name` "Rocky Top Insider", `published_at`
+  2026-10-13) verbatim from its `summary` field: the quote, the
+  broadcaster's name and network, and the "through the first six games"
+  qualifier are all the article's own wording. Checked a second real
+  row from the same day too (Mariyon Dye's highlight play vs. Arkansas)
+  but chose the Cubelic quote as the stronger, more shareable subject.
+  Treated this deliberately as a quoted opinion from a named analyst,
+  not as GVGD's own claim — the headline on the graphic is set off with
+  quotation marks and credited to Cubelic by name, per the pillar's
+  guardrail on amplifying a claim uncritically.
+- Design: a quote-spotlight treatment, distinct from this log's usual
+  stat-card recaps/countdowns — a large stylized opening quotation mark
+  (Anton, orange) over the quote text (Anton, white, centered), credited
+  below in Inter, then a player-spotlight card naming Gilliam, his
+  position, and the "through 6 games" qualifier. `#0F172A` background,
+  `#162038` panel, `#FF8200` orange accent (used for the "VOL NEWS" pill,
+  distinct from the red "FINAL"/"GAME WEEK" pills used on other
+  pillars), Anton + Inter type pairing, diagonal end-zone-stripe motif +
+  radial glow, GVGD logo lockup matching `Header.tsx`. No stock photos
+  or fabricated player photos.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html` frame
+  `1080×1080`). Verified locally before publishing the same way as this
+  log's recent canvases: extracted the artboard into a standalone page
+  and rendered it with headless Chromium (Google Fonts failed to load
+  through this session's network proxy, giving a genuine fallback-font
+  pass) using a taller capture window cropped to the true 1080×1080
+  frame. The first pass rendered correctly but noticeably sparse (large
+  flex-gap spacing since this layout has only four content blocks), so
+  enlarged the quote mark, headline, and player-name type sizes and
+  tightened the spotlight card's padding for a denser look consistent
+  with this log's other graphics, then re-rendered to confirm — nothing
+  overflowed, wrapped, or clipped in either pass.
+- Canvas: https://claude.ai/artifact/KYHrXK8Y5qr75FBkC13zSQ
+- Status: ⏳ pending review
