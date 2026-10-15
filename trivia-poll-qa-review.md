@@ -678,3 +678,19 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-15 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Checked: trivia 2026-10-15 → 2026-10-18, polls 2026-10-15 → 2026-10-18
+- 10-15 → 10-17 trivia and all polls were already reviewed/fixed in earlier runs (PRs #211, #214, #215, #216); re-checked, no new issues
+- New in window: 2026-10-18 trivia. Issues found: 2, both applied. Slots 1, 3, 4 clean.
+- Polls: present for every date through 2026-10-19 (Alabama week / South Carolina preview)
+
+### trivia_questions.9e14f7c6-d43e-435c-a8c9-94226ebfe332 — 2026-10-18 / slot 2 — ✅ applied
+**Before:** option_a = "Pat Summitt (deceased by then)"
+**After:** option_a = "Nikki Caldwell"
+**Why:** Meta-commentary in a distractor, and it rules itself out. Nikki Caldwell is a former Lady Vol player/assistant, so she's a plausible wrong answer. Correct answer (B, Kellie Harper) unchanged.
+
+### trivia_questions.9f3b7ff1-cfab-4af4-9751-023f8725d093 — 2026-10-18 / slot 5 — ✅ applied
+**Before:** a stem that gave away its own answer (11 + 5 = 16) with absurd distractors
+**After:** "Tennessee men's basketball reached its first-ever Elite Eight in which season?" — A 2008 / **B 2010 ✔** / C 2019 / D 2024
+**Why:** Rewrote as a real Hard basketball-history question. Verified: the 2010 team under Bruce Pearl made the program's first Elite Eight, losing 70-69 to Michigan State. 2024 was a later Elite Eight, so it's a fair distractor because the question asks for the *first*. Category stays Vol Basketball History.
