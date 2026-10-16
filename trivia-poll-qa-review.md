@@ -678,3 +678,34 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-16 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Checked: trivia 2026-10-16 → 2026-10-19, polls 2026-10-16 → 2026-10-19
+- 10-16 → 10-18 already reviewed/fixed in earlier runs (PRs #215, #216, #218); re-checked, no new issues
+- New in window: 2026-10-19 trivia. Issues found: 5, all applied. No answers logged for 10-19 yet.
+- Polls: present for every date in the window (10-19 = South Carolina preview). Next run must add a 10-20 poll.
+
+### trivia_questions.99f15dcc-b69c-446f-bf50-1d2581442239 — 2026-10-19 / slot 1 — ✅ applied (replaced)
+**Before:** "Which Lady Vol coach led the program from 2019 to 2023, a former Vol player herself?" (Kellie Harper ✔)
+**After:** "In 2005, Tennessee named the Thompson-Boling Arena basketball court in honor of Pat Summitt. What is the court called?" — A Pat's Place / B Lady Vol Court / **C The Summitt ✔** / D The Big Orange Floor
+**Why:** Wrong dates (Harper coached 2019–2024), and it nearly duplicates 10-18 slot 2 (also about Kellie Harper). Verified: the court was named "The Summitt" after her 880th win on March 22, 2005. Checked ±30 days for duplicates.
+
+### trivia_questions.32443c48-8541-48db-ba07-3f0526dac80d — 2026-10-19 / slot 2 — ✅ applied (replaced)
+**Before:** "Tennessee's 2022 season included a marquee win over which rival, ending a long losing streak in the series?" (Alabama ✔)
+**After:** "Who was Tennessee's head coach for the 1998 national championship season?" — A Johnny Majors / **B Phillip Fulmer ✔** / C Derek Dooley / D Lane Kiffin
+**Why:** Near-duplicate of 10-16 slot 5 (52-49 over Alabama, snapping the losing streak). Checked ±21 days for duplicates.
+
+### trivia_questions.4c86b75a-1ae3-4474-ad83-b296a87690a7 — 2026-10-19 / slot 3 — ✅ applied (distractors)
+**Before:** A Don DeVoe / B Ray Mears ✔ / C Rick Barnes / D Bruce Pearl
+**After:** A Don DeVoe / **B Ray Mears ✔** / C Emmett Lowery / D John Sines
+**Why:** Barnes and Pearl are modern coaches, so a "1960s and 70s" stem rules them out on sight. Replaced them with Mears' real predecessors, Lowery (1947–59) and Sines (1959–62). Verified: Mears made 3 NCAA trips, including the program's first-ever in 1967.
+
+### trivia_questions.dc5f0191-3b60-4fe7-9121-1d85f5aa901e — 2026-10-19 / slot 4 — ✅ applied
+**Before:** "...Approximately how many points did she score?" — Exactly 1,000 / Over 10,000 / Over 3,000 ✔ / Under 500
+**After:** "Chamique Holdsclaw is Tennessee's all-time leading scorer, men or women. How many career points did she score?" — A 2,510 / B 2,785 / **C 3,025 ✔** / D 3,210
+**Why:** The old distractors were absurd. Verified: 3,025 points, the only Lady Vol to pass 3,000.
+
+### trivia_questions.0476b157-f0dc-4363-b440-6c94c7013499 — 2026-10-19 / slot 5 — ✅ applied (rewritten)
+**Before:** "Tennessee's 1990 Sugar Bowl-winning team, under Johnny Majors, featured which running back's huge performance against Virginia?" (Chuck Webb ✔)
+**After:** "Chuck Webb ran for how many yards in Tennessee's 31-27 win over Arkansas in the January 1, 1990 Cotton Bowl?" — A 178 / B 212 / **C 250 ✔** / D 294
+**Why:** Factually wrong. Webb's big bowl game was the Jan. 1, 1990 Cotton Bowl vs Arkansas (26 carries, 250 yards, 2 TDs), not the Sugar Bowl vs Virginia, where he had been lost to injury. 294 is a fair hard-level distractor because it's his school-record game vs Ole Miss.
