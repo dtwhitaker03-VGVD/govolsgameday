@@ -334,3 +334,49 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-10-16 — Gameday hype/countdown (1 day to Vols-Alabama)
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Re-checked all four pillars and this log (plus the still-open
+  marketing PR branches) before picking a subject. `live_games` shows
+  No. 6 Alabama (5-1) at No. 14 Tennessee (5-1), Sat Oct 17, 3:30 PM ET
+  on ABC, `status = 'pregame'` — exactly 1 day out and the
+  highest-ranked matchup of the season so far, with no prior countdown
+  graphic for this specific game. The last pillar used was news
+  (Oct 14, Gilliam quote, PR open), so a countdown post does not repeat
+  the immediately-prior pillar. Picked the fresh offense-vs-defense
+  stat angle plus an honest turnover-margin caution stat, deliberately
+  different from the red-zone angle (Sept 11/12) and the turnover-margin
+  framing already used in the recap pillar (Sept 14/Oct 12), to avoid
+  repeating a stat angle back-to-back.
+- Subject: pulled live from the real `game_previews` row joined to the
+  TN@Bama `live_games` row (fetched 2026-10-16). `keyStats`: Alabama's
+  scoring offense at 44.2 PPG (3rd in FBS) vs. Tennessee's scoring
+  defense at 15.5 PPG (19th in FBS); `keyStatsNotes` also carried
+  Alabama's turnover margin at +7 (6th in FBS), used here as a
+  "Watch Out For" caution stat rather than framed as a Tennessee
+  advantage, since the real number favors Alabama. No win-probability,
+  betting line, or synthetic stat was added — both figures and both
+  rankings are the preview data's own numbers.
+- Design: countdown-hero treatment matching the established Game Week
+  look — rotated red "GAME DAY EVE" pill (kickoff day/time/network to
+  its right), a 320px Anton "1" over a conic-gradient starburst glow
+  with "DAY TIL KICKOFF" label, a ranked matchup line (No. 14 Tennessee
+  vs. No. 6 Alabama, venue beneath), the offense-vs-defense stat card,
+  and an orange-bordered "Watch Out For" turnover-margin stat strip.
+  `#0F172A` background, `#162038` panel, `#FF8200` orange accent, `#D11919`
+  red pill, Anton + Inter type pairing, diagonal end-zone-stripe motif,
+  GVGD logo lockup matching `Header.tsx`. No stock photos or fabricated
+  player photos.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html` frame
+  `1080×1080`). Verified locally before publishing the same way as this
+  log's recent canvases: extracted the artboard into a standalone page
+  and rendered it with headless Chromium (Google Fonts failed to load
+  through this session's network proxy, giving a genuine fallback-font
+  pass) using a taller capture window cropped to the true 1080×1080
+  frame — nothing overflowed, wrapped, or clipped, and visual density
+  matched the rest of this log's graphics.
+- Canvas: https://claude.ai/artifact/9Xy7gRNK2s1bpzzghSgtVq
+- Status: ⏳ pending review
