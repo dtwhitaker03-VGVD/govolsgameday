@@ -708,4 +708,4 @@ The poll for 09-22 has a wording issue — see entry below.
 ### trivia_questions.0476b157-f0dc-4363-b440-6c94c7013499 — 2026-10-19 / slot 5 — ✅ applied (rewritten)
 **Before:** "Tennessee's 1990 Sugar Bowl-winning team, under Johnny Majors, featured which running back's huge performance against Virginia?" (Chuck Webb ✔)
 **After:** "Chuck Webb ran for how many yards in Tennessee's 31-27 win over Arkansas in the January 1, 1990 Cotton Bowl?" — A 178 / B 212 / **C 250 ✔** / D 294
-**Why:** Factually wrong. Webb's big bowl game was the Jan. 1, 1990 Cotton Bowl vs Arkansas (26 carries, 250 yards, 2 TDs), not the Sugar Bowl vs Virginia, where he had been lost to injury. 294 is a fair hard-level distractor because it's his school-record game vs Ole Miss.
+**Why:** Factually wrong. Webb's big bowl game was the Jan. 1, 1990 Cotton Bowl vs Arkansas (26 carries, 250 yards, 2 TDs). The stem had attached his performance to the wrong bowl and opponent (Jan. 1, 1991 Sugar Bowl vs Virginia). 294 is a fair hard-level distractor because it's his school-record game vs Ole Miss.
