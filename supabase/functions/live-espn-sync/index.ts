@@ -167,7 +167,11 @@ function earlyNextStart(v: EspnDrive, outcome: string | null, rawResult: string)
   const last = [...(v.plays ?? [])].reverse().find((p) => !/timeout|end period|end of|official/i.test(p.type?.text ?? ""));
   if (!last) return null;
   const text = last.text ?? "";
-  if (/penalty|no play|touchdown|safety|\bTD\b/i.test(text) || /penalty/i.test(last.type?.text ?? "")) return null;
+  // A DECLINED penalty doesn't change the spot (e.g. "punt 38 yards to the
+  // BAMA50 PENALTY TENN Running Into The Kicker declined"), so ignore it;
+  // an accepted, offsetting or unlabelled one still blocks the early read.
+  const textNoDeclined = text.replace(/\bpenalty\b[^()]*?\bdeclined\b/gi, "");
+  if (/penalty|no play|touchdown|safety|\bTD\b/i.test(textNoDeclined) || /penalty/i.test(last.type?.text ?? "")) return null;
   const e = last.end;
   if (!e || !isRealSpot(e.yardsToEndzone) || !e.team?.id || e.team.id === v.team?.id) return null;
   const spots = [...text.matchAll(/\b(?:to|at)\s+(?:the\s+)?[A-Za-z]*?(\d{1,2})\b/g)];
