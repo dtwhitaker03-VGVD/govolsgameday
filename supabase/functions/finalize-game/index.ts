@@ -149,6 +149,115 @@ function sumCategoryTds(entries: GamePlayerStatsEntry[], categoryName: string): 
   return total;
 }
 
+// ─── ESPN source ─────────────────────────────────────────────────────────────
+// ESPN's public game summary (free, no key) is tried first. Its box score is
+// converted into the same GameTeamStatsEntry / GamePlayerStatsEntry shapes the
+// CFBD path produces, so every lookup and the prop auto-grader below work
+// unchanged whichever source answered. ESPN's event id is the same number as
+// live_games.cfbd_game_id. Team names are taken from the game row (not ESPN's
+// "location") so prop team matching keeps using the names already stored.
+
+const ESPN_SUMMARY = "https://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=";
+
+const sameTeamName = (a: string, b: string) => {
+  const x = normalize(a);
+  const y = normalize(b);
+  return x === y || x.startsWith(y) || y.startsWith(x);
+};
+
+// deno-lint-ignore no-explicit-any
+type Json = any;
+
+async function loadEspnStats(
+  game: { cfbd_game_id: number; home_team: string; away_team: string },
+  warnings: string[]
+): Promise<{ teams: GameTeamStatsEntry[]; players: GamePlayerStatsEntry[] } | null> {
+  let d: Json;
+  try {
+    const res = await fetch(`${ESPN_SUMMARY}${game.cfbd_game_id}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; GoVolsGameDay/1.0)", Accept: "application/json" },
+    });
+    if (!res.ok) {
+      warnings.push(`ESPN summary returned HTTP ${res.status} — falling back to CFBD.`);
+      return null;
+    }
+    d = await res.json();
+  } catch (err) {
+    warnings.push(`ESPN summary fetch failed (${String(err)}) — falling back to CFBD.`);
+    return null;
+  }
+
+  const comp = d?.header?.competitions?.[0];
+  const competitors: Json[] = comp?.competitors ?? [];
+  const homeC = competitors.find((c) => c.homeAway === "home");
+  const awayC = competitors.find((c) => c.homeAway === "away");
+  if (!comp || !homeC || !awayC) {
+    warnings.push("ESPN summary had an unexpected shape — falling back to CFBD.");
+    return null;
+  }
+  if (!sameTeamName(homeC.team?.location ?? "", game.home_team) || !sameTeamName(awayC.team?.location ?? "", game.away_team)) {
+    warnings.push(`ESPN event ${game.cfbd_game_id} is ${awayC.team?.location} @ ${homeC.team?.location}, not this game — ignored.`);
+    return null;
+  }
+  if (comp.status?.type?.state !== "post" && comp.status?.type?.completed !== true) {
+    warnings.push("ESPN does not show this game as final yet — falling back to CFBD.");
+    return null;
+  }
+  const boxTeams: Json[] = d.boxscore?.teams ?? [];
+  const boxPlayers: Json[] = d.boxscore?.players ?? [];
+  if (boxTeams.length < 2 || boxPlayers.length < 2) {
+    warnings.push("ESPN box score is not published yet — falling back to CFBD.");
+    return null;
+  }
+
+  const players: GamePlayerStatsTeam[] = [];
+  const teams: GameTeamStatsTeam[] = [];
+  for (const [side, c, name] of [
+    ["home", homeC, game.home_team],
+    ["away", awayC, game.away_team],
+  ] as const) {
+    const pl = boxPlayers.find((p) => p.team?.id === c.team.id);
+    const categories: PlayerStatCategory[] = (pl?.statistics ?? []).map((cat: Json) => ({
+      name: cat.name,
+      types: (cat.labels ?? []).map((label: string, i: number) => ({
+        name: label,
+        athletes: (cat.athletes ?? [])
+          .map((a: Json) => ({ name: a.athlete?.displayName ?? "", stat: String(a.stats?.[i] ?? "") }))
+          .filter((a: PlayerStatAthlete) => a.name),
+      })),
+    }));
+    players.push({ team: name, categories });
+
+    // Team totals from the box score, plus a few CFBD-named team stats ESPN
+    // only gives per player (sacks, etc.), summed from the player lines.
+    const sumType = (cat: string, type: string) => {
+      const t = categories.find((x) => normalize(x.name) === cat)?.types.find((x) => normalize(x.name) === normalize(type));
+      return t ? t.athletes.reduce((n, a) => n + (parseFloat(a.stat) || 0), 0) : 0;
+    };
+    const stats: TeamStatEntry[] = (boxTeams.find((t) => t.team?.id === c.team.id)?.statistics ?? []).map(
+      (st: Json) => ({ category: String(st.name), stat: String(st.displayValue ?? "") })
+    );
+    stats.push(
+      { category: "sacks", stat: String(sumType("defensive", "SACKS")) },
+      { category: "tacklesForLoss", stat: String(sumType("defensive", "TFL")) },
+      { category: "passesDeflected", stat: String(sumType("defensive", "PD")) },
+      { category: "interceptions", stat: String(sumType("interceptions", "INT")) },
+      { category: "fumblesLost", stat: String(sumType("fumbles", "LOST")) },
+      { category: "fumblesRecovered", stat: String(sumType("fumbles", "REC")) },
+    );
+    teams.push({ team: name, homeAway: side, points: parseInt(c.score, 10) || 0, stats });
+  }
+
+  if (!teams.some((t) => t.stats.some((s) => s.category === "totalYards"))) {
+    warnings.push("ESPN box score has no team yardage yet — falling back to CFBD.");
+    return null;
+  }
+  return {
+    teams: [{ id: game.cfbd_game_id, teams }],
+    players: [{ id: game.cfbd_game_id, teams: players }],
+  };
+}
+
 // ─── Weekly prop bet auto-grading ───────────────────────────────────────────
 // Reuses the same /games/teams and /games/players responses already fetched
 // above for the TD/turnover/yards lookups — no extra CFBD calls. A prop only
@@ -279,24 +388,24 @@ async function autoGradeProps(
       const teamName = prop.team_side === "home" ? homeTeam : awayTeam;
       if (prop.stat_type) {
         if (!playersData) {
-          warnings.push(`Prop "${prop.description}": no CFBD player stats available to auto-grade.`);
+          warnings.push(`Prop "${prop.description}": no player stats available to auto-grade.`);
           continue;
         }
         actualValue = sumTeamPlayerStat(playersData, teamName, parseCategories(prop.stat_category), prop.stat_type);
       } else {
         if (!teamsData) {
-          warnings.push(`Prop "${prop.description}": no CFBD team stats available to auto-grade.`);
+          warnings.push(`Prop "${prop.description}": no team stats available to auto-grade.`);
           continue;
         }
         actualValue = findTeamStatByCategory(teamsData, teamName, prop.stat_category);
       }
       if (actualValue === null) {
-        warnings.push(`Prop "${prop.description}": could not find "${prop.stat_category}${prop.stat_type ? `/${prop.stat_type}` : ""}" for ${teamName} in CFBD data — left for manual grading.`);
+        warnings.push(`Prop "${prop.description}": could not find "${prop.stat_category}${prop.stat_type ? `/${prop.stat_type}` : ""}" for ${teamName} in the box score — left for manual grading.`);
         continue;
       }
     } else {
       if (!playersData) {
-        warnings.push(`Prop "${prop.description}": no CFBD player stats available to auto-grade.`);
+        warnings.push(`Prop "${prop.description}": no player stats available to auto-grade.`);
         continue;
       }
       if (!prop.stat_type || !prop.player_name) {
@@ -305,7 +414,7 @@ async function autoGradeProps(
       }
       actualValue = sumPlayerStat(playersData, parseCategories(prop.stat_category), prop.stat_type, prop.player_name);
       if (actualValue === null) {
-        warnings.push(`Prop "${prop.description}": could not find "${prop.player_name}" in CFBD's ${prop.stat_category}/${prop.stat_type} data — left for manual grading.`);
+        warnings.push(`Prop "${prop.description}": could not find "${prop.player_name}" in the ${prop.stat_category}/${prop.stat_type} data — left for manual grading.`);
         continue;
       }
     }
@@ -375,7 +484,7 @@ Deno.serve(async (req: Request) => {
   // dry_run: fetch and parse CFBD exactly as a real finalize would, but write
   // nothing — to confirm CFBD has published the box score (and every prop
   // resolves) before the one-way finalize_game call.
-  let body: { game_id?: string; dry_run?: boolean };
+  let body: { game_id?: string; dry_run?: boolean; source?: string };
   try {
     body = await req.json();
   } catch {
@@ -407,61 +516,81 @@ Deno.serve(async (req: Request) => {
   let awayYards: number | null = null;
   let teamsData: GameTeamStatsEntry[] | null = null;
   let playersData: GamePlayerStatsEntry[] | null = null;
+  let source: "espn" | "cfbd" | "none" = "none";
 
-  if (!apiKey) {
-    warnings.push("CFBD API key not configured — final score/yards and rushing/receiving TDs/turnovers-forced won't be updated from CFBD.");
-  } else {
-    // CFBD requires `year` on both endpoints, plus one of week/team/conference
-    // — confirmed live 2026-09-05 (both previously 400'd with "year parameter
-    // is required" on every call, meaning these lookups had never actually
-    // succeeded). `team` uses the game's own home team so this works for any
-    // game, not just a Tennessee one (e.g. an admin test game).
-    const season = new Date(game.kickoff_time).getUTCFullYear();
-    const teamParam = encodeURIComponent(game.home_team);
-    const week = await resolveWeek(apiKey, game.cfbd_game_id, season, game.home_team);
+  // source: "auto" (default) tries ESPN, then falls back to CFBD; "espn" or
+  // "cfbd" forces one.
+  const wantSource = body.source === "espn" || body.source === "cfbd" ? body.source : "auto";
 
-    if (week === null) {
-      warnings.push("Could not resolve this game's week from CFBD's schedule — final score/yards and rushing/receiving TDs/turnovers-forced won't be updated from CFBD.");
+  if (wantSource !== "cfbd") {
+    const espn = await loadEspnStats(game, warnings);
+    if (espn) {
+      teamsData = espn.teams;
+      playersData = espn.players;
+      source = "espn";
+    }
+  }
+
+  if (source === "none" && wantSource !== "espn") {
+    if (!apiKey) {
+      warnings.push("CFBD API key not configured — final score/yards and rushing/receiving TDs/turnovers-forced won't be updated from CFBD.");
     } else {
-      const [teamsResult, playersResult] = await Promise.all([
-        cfbdGet(`/games/teams?week=${week}&year=${season}&team=${teamParam}`, apiKey),
-        cfbdGet(`/games/players?week=${week}&year=${season}&team=${teamParam}`, apiKey),
-      ]);
+      // CFBD requires `year` on both endpoints, plus one of week/team/conference
+      // — confirmed live 2026-09-05. `team` uses the game's own home team so
+      // this works for any game, not just a Tennessee one.
+      const season = new Date(game.kickoff_time).getUTCFullYear();
+      const teamParam = encodeURIComponent(game.home_team);
+      const week = await resolveWeek(apiKey, game.cfbd_game_id, season, game.home_team);
 
-      if (teamsResult.ok) {
-        teamsData = entriesMatchGame(teamsResult.data as GameTeamStatsEntry[], game.cfbd_game_id);
-        if (!teamsData) {
-          warnings.push("CFBD /games/teams returned a different game than requested — ignored to avoid corrupting scoring with another game's stats.");
-        } else {
-          tnTurnoversForced = findTurnoversForced(teamsData);
-          if (tnTurnoversForced === null) warnings.push("Could not find opponent turnovers stat in CFBD /games/teams response.");
-
-          const pointsAndYards = findTeamPointsAndYards(teamsData);
-          homePoints = pointsAndYards.homePoints;
-          awayPoints = pointsAndYards.awayPoints;
-          homeYards = pointsAndYards.homeYards;
-          awayYards = pointsAndYards.awayYards;
-          if (homePoints === null || awayPoints === null) warnings.push("Could not find final score in CFBD /games/teams response — left live_games score untouched.");
-          if (homeYards === null || awayYards === null) warnings.push("Could not find total yards in CFBD /games/teams response — left live_games yards untouched.");
-        }
+      if (week === null) {
+        warnings.push("Could not resolve this game's week from CFBD's schedule — final score/yards and rushing/receiving TDs/turnovers-forced won't be updated from CFBD.");
       } else {
-        warnings.push(teamsResult.message);
-      }
+        const [teamsResult, playersResult] = await Promise.all([
+          cfbdGet(`/games/teams?week=${week}&year=${season}&team=${teamParam}`, apiKey),
+          cfbdGet(`/games/players?week=${week}&year=${season}&team=${teamParam}`, apiKey),
+        ]);
 
-      if (playersResult.ok) {
-        playersData = entriesMatchGame(playersResult.data as GamePlayerStatsEntry[], game.cfbd_game_id);
-        if (!playersData) {
-          warnings.push("CFBD /games/players returned a different game than requested — ignored to avoid corrupting scoring with another game's stats.");
+        if (teamsResult.ok) {
+          teamsData = entriesMatchGame(teamsResult.data as GameTeamStatsEntry[], game.cfbd_game_id);
+          if (!teamsData) {
+            warnings.push("CFBD /games/teams returned a different game than requested — ignored to avoid corrupting scoring with another game's stats.");
+          }
         } else {
-          tnRushingTds = sumCategoryTds(playersData, "rushing");
-          tnReceivingTds = sumCategoryTds(playersData, "receiving");
-          if (tnRushingTds === null) warnings.push("Could not find TN rushing TDs in CFBD /games/players response.");
-          if (tnReceivingTds === null) warnings.push("Could not find TN receiving TDs in CFBD /games/players response.");
+          warnings.push(teamsResult.message);
         }
-      } else {
-        warnings.push(playersResult.message);
+
+        if (playersResult.ok) {
+          playersData = entriesMatchGame(playersResult.data as GamePlayerStatsEntry[], game.cfbd_game_id);
+          if (!playersData) {
+            warnings.push("CFBD /games/players returned a different game than requested — ignored to avoid corrupting scoring with another game's stats.");
+          }
+        } else {
+          warnings.push(playersResult.message);
+        }
+        if (teamsData || playersData) source = "cfbd";
       }
     }
+  }
+
+  // Same derivations whichever source supplied the data.
+  const label = source === "espn" ? "ESPN" : "CFBD";
+  if (teamsData) {
+    tnTurnoversForced = findTurnoversForced(teamsData);
+    if (tnTurnoversForced === null) warnings.push(`Could not find opponent turnovers stat in ${label} team stats.`);
+
+    const pointsAndYards = findTeamPointsAndYards(teamsData);
+    homePoints = pointsAndYards.homePoints;
+    awayPoints = pointsAndYards.awayPoints;
+    homeYards = pointsAndYards.homeYards;
+    awayYards = pointsAndYards.awayYards;
+    if (homePoints === null || awayPoints === null) warnings.push(`Could not find final score in ${label} team stats — left live_games score untouched.`);
+    if (homeYards === null || awayYards === null) warnings.push(`Could not find total yards in ${label} team stats — left live_games yards untouched.`);
+  }
+  if (playersData) {
+    tnRushingTds = sumCategoryTds(playersData, "rushing");
+    tnReceivingTds = sumCategoryTds(playersData, "receiving");
+    if (tnRushingTds === null) warnings.push(`Could not find TN rushing TDs in ${label} player stats.`);
+    if (tnReceivingTds === null) warnings.push(`Could not find TN receiving TDs in ${label} player stats.`);
   }
 
   if (dryRun) {
@@ -469,6 +598,7 @@ Deno.serve(async (req: Request) => {
     return json({
       ok: true,
       dry_run: true,
+      source,
       cfbd_team_stats_found: teamsData !== null,
       cfbd_player_stats_found: playersData !== null,
       stats: {
@@ -520,6 +650,7 @@ Deno.serve(async (req: Request) => {
 
   return json({
     ok: true,
+    source,
     stats: {
       home_score: homePoints, away_score: awayPoints,
       home_total_yards: homeYards, away_total_yards: awayYards,
