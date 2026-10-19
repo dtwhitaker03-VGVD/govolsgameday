@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light only" />
+  <meta name="supported-color-schemes" content="light only" />
+  <title>Your sign-in link</title>
+</head>
+<body style="margin:0;padding:0;background-color:#EEF1F6;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+
+  <!-- Preheader: the grey preview text shown next to the subject in an inbox. -->
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;font-size:1px;line-height:1px;">
+    Tap the button to sign in to Go Vols Gameday &mdash; no password needed.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#EEF1F6;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
+
+          <!-- Header -->
+          <tr>
+            <td align="center" style="background-color:#0F172A;border-radius:12px 12px 0 0;padding:32px 24px 28px 24px;">
+              <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:16px;letter-spacing:3px;font-weight:700;color:#FF8200;text-transform:uppercase;">
+                Tennessee Football
+              </div>
+              <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:30px;line-height:36px;font-weight:800;color:#FFFFFF;padding-top:6px;letter-spacing:0.5px;">
+                GO VOLS <span style="color:#FF8200;">GAMEDAY</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#FF8200;height:4px;line-height:4px;font-size:4px;">&nbsp;</td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="background-color:#FFFFFF;padding:40px 40px 32px 40px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;color:#1E293B;">
+
+              <h1 style="margin:0 0 16px 0;font-size:24px;line-height:30px;font-weight:700;color:#0F172A;">
+                Your sign-in link
+              </h1>
+
+              <p style="margin:0 0 16px 0;font-size:16px;line-height:25px;color:#334155;">
+                {{ if .Data.username }}Hi {{ .Data.username }},{{ else }}Hi there,{{ end }}
+              </p>
+
+              <p style="margin:0 0 16px 0;font-size:16px;line-height:25px;color:#334155;">
+                Use the button below to sign in to Go Vols Gameday. No password needed.
+              </p>
+
+              <!-- Button -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:12px auto 28px auto;">
+                <tr>
+                  <td align="center" bgcolor="#FF8200" style="border-radius:8px;">
+                    <a href="{{ .ConfirmationURL }}" target="_blank"
+                       style="display:inline-block;padding:15px 40px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:20px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:8px;">
+                      Sign in to Go Vols Gameday
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 8px 0;font-size:14px;line-height:22px;color:#64748B;">
+                This link is for you only, works once, and expires after a short time. If the button doesn&rsquo;t work, copy and paste this address into your browser:
+              </p>
+              <p style="margin:0 0 28px 0;font-size:13px;line-height:20px;word-break:break-all;">
+                <a href="{{ .ConfirmationURL }}" target="_blank" style="color:#C2410C;text-decoration:underline;">{{ .ConfirmationURL }}</a>
+              </p>
+
+              <!-- Divider -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr><td style="border-top:1px solid #E2E8F0;font-size:1px;line-height:1px;">&nbsp;</td></tr>
+              </table>
+
+              <p style="margin:20px 0 0 0;font-size:14px;line-height:22px;color:#64748B;">
+                Didn&rsquo;t request this? You can safely ignore this email &mdash; nobody can sign in without the link.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="background-color:#0F172A;border-radius:0 0 12px 12px;padding:24px 24px 28px 24px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
+              <div style="font-size:14px;line-height:20px;font-weight:700;color:#FFFFFF;">
+                Go Vols Gameday
+              </div>
+              <div style="font-size:12px;line-height:18px;color:#94A3B8;padding-top:4px;">
+                The home for Tennessee football fans &middot;
+                <a href="{{ .SiteURL }}" target="_blank" style="color:#FF8200;text-decoration:none;">govolsgameday.com</a>
+              </div>
+              <div style="font-size:11px;line-height:16px;color:#64748B;padding-top:14px;">
+                This message was sent to {{ .Email }} because of activity on a Go Vols Gameday account with this address.
+              </div>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

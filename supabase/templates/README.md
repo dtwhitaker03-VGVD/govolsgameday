@@ -16,6 +16,24 @@ Variables used: `{{ .ConfirmationURL }}` (the button and fallback link),
 there"), `{{ .Email }}`, `{{ .SiteURL }}` (set under Authentication → URL
 Configuration; should be `https://govolsgameday.com`).
 
+## The rest of the set
+
+Same look, same variables. In the dashboard each lives at Authentication →
+Emails → Templates under the name shown; paste the subject and the file's source.
+
+| Dashboard template | Subject | File |
+|---|---|---|
+| Confirm sign up | `Confirm your Go Vols Gameday account` | `confirm-signup.html` |
+| Reset password | `Reset your Go Vols Gameday password` | `reset-password.html` |
+| Magic link | `Your Go Vols Gameday sign-in link` | `magic-link.html` |
+| Invite user | `You're invited to Go Vols Gameday` | `invite-user.html` |
+| Change email address | `Confirm your new email address` | `change-email.html` |
+| Reauthentication | `Your Go Vols Gameday verification code` | `reauthentication.html` |
+
+Extra variables: `{{ .NewEmail }}` (change email) and `{{ .Token }}` (the 6-digit
+code in the reauthentication email). The app currently only uses sign-up
+confirmation and password sign-in, so the others matter as features are added.
+
 ## Sender (what makes it look professional in the inbox)
 
 The template only changes the body. The "from" name and address come from the
