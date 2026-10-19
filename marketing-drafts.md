@@ -334,3 +334,58 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-10-19 — Final score recap (Vols stun No. 6 Alabama)
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Re-checked all four pillars and this log (plus the still-open
+  marketing PR branches) before picking a subject. The Oct 16 countdown
+  post (PR #220) previewed this exact Tennessee-Alabama game as "1 day
+  out"; `live_games` now shows it `status = 'calculated'` — a brand new
+  subject, not a repeat, and by far the freshest, highest-stakes result
+  available (Tennessee's next game, at South Carolina, is still 5 days
+  out and `pregame`, too far for a countdown). Recap was also not the
+  immediately-prior pillar (Oct 16 was countdown, Oct 14 was news), so
+  this doesn't repeat a pillar back-to-back either.
+- Subject: Tennessee 26, Alabama 10 (home win, Sat Oct 17, 2026,
+  Knoxville, TN) — Tennessee's sixth win in seven games, now 6-1 on the
+  season. Pulled fresh from `live_games` (`status = 'calculated'`):
+  final score, total yards (Tennessee 347, Alabama 201), turnovers
+  (Tennessee committed 2, forced 4), first downs (20-12). Cross-checked
+  the real `game_previews` row for this game (the same one the Oct 16
+  countdown post used) for pregame context still accurate after the
+  fact: the `openingLine` field had Alabama favored by 7 ("Alabama by
+  7"), so Tennessee's win as a real 7-point underdog is itself a sourced
+  fact, not embellishment. The recap's stat angle is deliberately new
+  for this pillar: Alabama's pregame `keyStats` scoring offense was
+  44.2 PPG (3rd in FBS) — Tennessee's defense held them to 10 points
+  tonight — and Alabama's pregame `keyStatsNotes` turnover margin was
+  +7 (6th in FBS) — Tennessee's defense forced 4 turnovers in this game
+  alone. This flips the pregame story rather than repeating either the
+  "turnover margin won it" (Auburn recap) or "won anyway despite
+  losing the turnover battle" (Arkansas recap) framing already used.
+  Confirmed the 6-1 record by checking all seven `calculated`
+  `live_games` rows to date (Furman W, at Georgia Tech W, Kennesaw
+  State W, Texas L, Auburn W, at Arkansas W, Alabama W). Top-predictor
+  spotlight pulled from `game_leaderboard` joined to this game's
+  `game_id`: real username MrMasterMind14, 1384 total game points (1089
+  pregame + 295 live drive), 6-for-16 on live drive picks.
+- Visual system matches the established brand: `#0F172A` background,
+  `#162038` panels, `#FF8200` orange accent, `#D11919` red "FINAL"
+  pill, Anton for the score/headline type, Inter for body, diagonal
+  end-zone-stripe motif + radial glow behind the score, GVGD logo
+  lockup. An orange Anton headline ("VOLS STUN NO. 6 ALABAMA") sits
+  above the scoreboard, a treatment this log's recap posts haven't
+  used before (prior recaps led straight with the score). No stock
+  photos or fabricated player photos.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html` frame
+  `1080×1080`). Verified locally before publishing the same way as
+  this log's recent canvases: extracted the artboard into a standalone
+  page and rendered it with headless Chromium (Google Fonts failed to
+  load through this session's network proxy, giving a genuine
+  fallback-font pass) using a taller capture window cropped to the
+  true 1080×1080 frame. Nothing overflowed, wrapped, or clipped, and
+  the layout filled the frame densely with even top/bottom margins.
+- Canvas: https://claude.ai/artifact/KKustNxTvEi7KoXqa3Ar6L
+- Status: ⏳ pending review
