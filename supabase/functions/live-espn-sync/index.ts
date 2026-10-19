@@ -34,6 +34,15 @@ const ESPN_SUMMARY = "https://site.api.espn.com/apis/site/v2/sports/football/col
 const KICKOFF_WINDOW_SECONDS = 30;
 const DEFAULT_WINDOW_SECONDS = 60;
 
+// Outcomes that can be reversed on review (touchdowns, field goals, fumbles
+// and interceptions, safeties) are only settled after ESPN has reported the
+// same result on two polls at least this long apart. Settling credits points
+// and streaks for good, and on 2026-10-17 ESPN first called a fumble return a
+// touchdown, then corrected it. This catches feed flip-flops and quick
+// corrections; a long official review can still outlast it.
+const CONFIRM_OUTCOMES = new Set(["touchdown", "field_goal", "turnover", "safety"]);
+const CONFIRM_SECONDS = 30;
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -468,6 +477,17 @@ async function syncGame(supabase: SupabaseClient, game: GameRow, dryRun: boolean
   const settleErrors: string[] = [];
   const resolvedIds = new Set<string>();
 
+  // Unconfirmed results from earlier ticks. If the table can't be read, fall
+  // back to settling straight away (the old behaviour) rather than never.
+  const { data: candRows, error: candErr } = await supabase
+    .from("drive_settle_candidates")
+    .select("drive_number, outcome, first_seen_at")
+    .eq("game_id", game.id);
+  const candidates = new Map<number, { outcome: string; first_seen_at: string }>(
+    (candRows ?? []).map((c) => [c.drive_number as number, c as { outcome: string; first_seen_at: string }])
+  );
+  let confirming = 0;
+
   const scoreDiffFor = (offenseId: string) => (offenseId === home.team.id ? homeScore - awayScore : awayScore - homeScore);
 
   const openAt = async (driveNumber: number, cfbdId: string, o: PlannedOpen) => {
@@ -535,6 +555,11 @@ async function syncGame(supabase: SupabaseClient, game: GameRow, dryRun: boolean
     if (existing?.status === "resolved") resolvedIds.add(p.id);
 
     if (p.inProgress) {
+      // A result that was seen and then taken back (a reversed play): forget it.
+      if (existing && candidates.has(existing.drive_number)) {
+        await supabase.from("drive_settle_candidates").delete().eq("game_id", game.id).eq("drive_number", existing.drive_number);
+        candidates.delete(existing.drive_number);
+      }
       if (existing || !p.open) continue; // already open, or spot not known yet — wait
       await openAt(driveNumber, p.id, p.open);
     } else if (!existing || existing.status !== "resolved") {
@@ -546,6 +571,27 @@ async function syncGame(supabase: SupabaseClient, game: GameRow, dryRun: boolean
         await openAt(driveNumber, p.id, p.open);
       }
       if (p.outcome) {
+        // Reviewable results wait for confirmation (not after the final whistle).
+        if (!candErr && state !== "post" && CONFIRM_OUTCOMES.has(p.outcome)) {
+          const cand = candidates.get(driveNumber);
+          const ageMs = cand ? Date.now() - new Date(cand.first_seen_at).getTime() : 0;
+          if (!cand || cand.outcome !== p.outcome) {
+            const { error: upErr } = await supabase
+              .from("drive_settle_candidates")
+              .upsert(
+                { game_id: game.id, drive_number: driveNumber, outcome: p.outcome, first_seen_at: new Date().toISOString() },
+                { onConflict: "game_id,drive_number" }
+              );
+            if (!upErr) {
+              confirming++;
+              continue;
+            }
+            settleErrors.push(`candidate ${driveNumber}: ${upErr.message} — settling without confirmation`);
+          } else if (ageMs < CONFIRM_SECONDS * 1000) {
+            confirming++;
+            continue;
+          }
+        }
         const { error } = await supabase.rpc("settle_drive_outcome", {
           p_game_id: game.id,
           p_drive_number: driveNumber,
@@ -555,6 +601,9 @@ async function syncGame(supabase: SupabaseClient, game: GameRow, dryRun: boolean
         else {
           settled++;
           resolvedIds.add(p.id);
+          if (candidates.delete(driveNumber)) {
+            await supabase.from("drive_settle_candidates").delete().eq("game_id", game.id).eq("drive_number", driveNumber);
+          }
         }
       } else {
         settleErrors.push(`drive ${driveNumber}: unrecognized result "${p.rawResult}"`);
@@ -594,6 +643,7 @@ async function syncGame(supabase: SupabaseClient, game: GameRow, dryRun: boolean
     openedEarly,
     rekeyed,
     voided,
+    confirming,
     settled,
     settleErrors,
   };
