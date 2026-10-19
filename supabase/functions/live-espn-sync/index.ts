@@ -43,6 +43,12 @@ const DEFAULT_WINDOW_SECONDS = 60;
 const CONFIRM_OUTCOMES = new Set(["touchdown", "field_goal", "turnover", "safety"]);
 const CONFIRM_SECONDS = 30;
 
+// CFBD is the backup feed. If ESPN fails this many ticks in a row (about a
+// minute and a half at the 15s cadence) for a live or about-to-start game, the
+// game is handed to live-cfbd-sync by flipping live_games.data_source to
+// 'cfbd'. It stays there until someone flips it back.
+const FAILOVER_AFTER_FAILURES = 6;
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -337,6 +343,7 @@ interface GameRow {
   away_team: string;
   status: string;
   manual_control: boolean;
+  espn_failures?: number;
 }
 
 const sameTeam = (a: string, b: string) => {
@@ -680,14 +687,29 @@ Deno.serve(async (req: Request) => {
   const soon = new Date(Date.now() + 60 * 60 * 1000).toISOString();
   const { data: games, error: gamesErr } = await supabase
     .from("live_games")
-    .select("id, cfbd_game_id, home_team, away_team, status, manual_control")
+    .select("id, cfbd_game_id, home_team, away_team, status, manual_control, espn_failures")
     .eq("data_source", "espn")
     .or(`status.eq.live,and(status.eq.pregame,kickoff_time.lte.${soon})`);
   if (gamesErr) return json({ error: gamesErr.message }, 500);
 
   const results = [];
   for (const game of (games ?? []) as GameRow[]) {
-    results.push(await syncGame(supabase, game, false));
+    const result = await syncGame(supabase, game, false);
+    const failures = game.espn_failures ?? 0;
+    if (result.ok) {
+      if (failures > 0) await supabase.from("live_games").update({ espn_failures: 0 }).eq("id", game.id);
+      results.push(result);
+      continue;
+    }
+    // ESPN failed this tick: count it, and fail over to CFBD once it's persistent.
+    const next = failures + 1;
+    if (next >= FAILOVER_AFTER_FAILURES) {
+      await supabase.from("live_games").update({ data_source: "cfbd", espn_failures: 0 }).eq("id", game.id);
+      results.push({ ...result, failedOverToCfbd: true });
+    } else {
+      await supabase.from("live_games").update({ espn_failures: next }).eq("id", game.id);
+      results.push({ ...result, espnFailures: next });
+    }
   }
   return json({ ok: true, gamesSynced: results.length, results });
 });
