@@ -334,3 +334,61 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-10-21 — Trivia/poll spotlight
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Re-checked all four pillars and this log (plus the still-open
+  marketing PR branches) before picking a subject. The last three runs
+  were countdown (Oct 16), recap (Oct 19) and recap again would repeat
+  Monday's pillar, so recap was ruled out; Tennessee's next game (at
+  South Carolina, Oct 24) is still 3 days out in `live_games`
+  (`status = 'pregame'`), too far out for a countdown to feel urgent
+  yet. Trivia/poll spotlight was last used Oct 7 — 14 days ago, the
+  most stale of all four pillars — so it was the clear pick. Checked
+  `daily_polls`/`user_poll_responses` and `trivia_questions`/
+  `user_trivia_responses` first: actual vote/response counts on every
+  recent poll and trivia day are extremely thin (1-3 total responses
+  per day site-wide), too thin to honestly present as poll "results" or
+  participation stats without misleadingly implying a crowd — so, as
+  this log's last two trivia/poll posts (Sept 18, Oct 7) also did, this
+  post presents today's real poll and trivia questions themselves as a
+  "play along" prompt, not fabricated response percentages.
+- Subject: today's real `daily_polls` row (`active_date = 2026-10-21`):
+  "After the win over Alabama, where should the Vols be ranked?" —
+  Top 5 / 6 to 10 / 11 to 15 / Outside the top 15 — directly tying into
+  Monday's Alabama recap post (PR #224), a natural, timely follow-up
+  question. Paired with one of today's five real `trivia_questions`
+  rows (`scheduled_date = 2026-10-21`, slot 4, difficulty medium,
+  category "General Vol Athletics"): "Fans in the 'Vol Navy' sail to
+  Neyland Stadium on game day along which river?" — Cumberland River /
+  Holston River / Tennessee River / French Broad River (real correct
+  answer Tennessee River, not shown on the graphic). Checked the last
+  two trivia/poll spotlights in this log (Sept 18: Vol Basketball
+  History category; Oct 7: Vol Football History category/Heisman
+  question) — this General Vol Athletics question is a fresh category
+  and fresh topic, no repeat. Skipped the other four trivia rows for
+  today: slots 1, 2, 3 and 5 are all fine questions but the Vol Navy
+  question reads more cleanly as a short, surprising stand-alone social
+  caption with four short river-name options that fit a clean 2×2 grid.
+- Design: 1080×1080 canvas, `#0F172A` background with the diagonal
+  end-zone stripe motif and a radial glow behind the masthead, Anton
+  for the "TODAY ON GVGD" headline and both question headlines, Inter
+  for labels/body, GVGD monogram + wordmark lockup matching
+  `Header.tsx`. Poll card (red "TODAY'S POLL" eyebrow) and trivia card
+  (orange "DAILY TRIVIA" eyebrow + difficulty/category tag) each show
+  their real options as a 2×2 chip grid, with a real CTA line under
+  each pointing to the live poll/trivia on the site. No stock photos or
+  fabricated stats; every line of copy traces to the two Supabase rows
+  above or is plain site-feature CTA copy.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html` frame
+  `1080×1080`). Verified locally before publishing the same way as
+  this log's recent canvases: extracted the artboard into a standalone
+  page and rendered it with headless Chromium (Google Fonts failed to
+  load through this session's network proxy, giving a genuine
+  fallback-font pass) using a taller capture window cropped to the true
+  1080×1080 frame. Nothing overflowed, wrapped, or clipped, and both
+  cards sit comfortably inside the frame with even margins.
+- Canvas: https://claude.ai/artifact/Ede58B3rNHzcrtipHqfepE
+- Status: ⏳ pending review
