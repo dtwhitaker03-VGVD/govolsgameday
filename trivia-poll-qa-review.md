@@ -678,3 +678,30 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-21 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Checked: trivia 2026-10-21 → 2026-10-24, polls 2026-10-21 → 2026-10-24
+- 10-21 → 10-23 already reviewed/fixed in earlier runs (PRs #222, #223, #226); re-checked, no new issues
+- Also logging yesterday's preview change: the 10-21 poll was reworded from "...where should the Vols land in this week's AP poll?" to "After the win over Alabama, where should the Vols be ranked?" The AP poll comes out Sunday/Monday, so "this week's poll" read as stale by Wednesday.
+- New in window: 2026-10-24 (South Carolina game day) trivia + poll. Issues found: 4, all applied (3 trivia + 1 poll). Slots 3 and 5 clean. No votes or answers yet for 10-24.
+- Heads-up for the next run: the 10-25 poll (day after South Carolina) is an evergreen "greatest Lady Vol" poll. It's outside today's window; the next run will make it a post-game poll.
+
+### daily_polls.4baa54e5-4718-4d4e-8f0e-3f7fda4c67ac — 2026-10-24 — ✅ applied (replaced)
+**Before:** "Should Tennessee build a new baseball stadium?" — Yes, Lindsey Nelson needs an upgrade / No, keep the current stadium / Eventually yes / Only if it helps recruiting
+**After:** "Game day at Williams-Brice! What's the story of today's game?" — The run game carries the Vols / The passing game takes over / The defense dominates / It comes down to the final drive
+**Why:** It's game day at South Carolina, and polls must be about the current game (David, 10-12). 0 votes on the old poll.
+
+### trivia_questions.c725eee5-84ad-4b5f-a2e7-ce2bfbc0f8c8 — 2026-10-24 / slot 1 — ✅ applied (replaced; category → Vol Football History)
+**Before:** "How many times has Tennessee reached the NCAA Tournament's Sweet 16 or better in program history?" — "Exactly once" / "Zero times" / "Tennessee has never made the tournament" / "A handful of times, including Elite Eights in 2010, 2024, 2025, and 2026" ✔
+**After:** "Which Tennessee quarterback was the No. 1 overall pick in the 1998 NFL Draft?" — A Tee Martin / B Heath Shuler / **C Peyton Manning ✔** / D Hendon Hooker
+**Why:** The right answer was the only long, specific option, and the other three were non-answers. A football Easy fits game day. Checked ±30 days for duplicates.
+
+### trivia_questions.e4a1ab9d-3031-4177-93aa-5b5d5f5ba02a — 2026-10-24 / slot 2 — ✅ applied (replaced)
+**Before:** "...NCAA Regional/Super Regional hosting duties became a near-annual expectation beginning in which coach's tenure?" — four long meta options ("Both Delmonico's and Vitello's tenures included hosting duties..." ✔ / "Tennessee has never hosted" / ...)
+**After:** "Which coach led Tennessee baseball to the College World Series in 1995, 2001 and 2005?" — A Dave Serrano / **B Rod Delmonico ✔** / C Todd Raleigh / D Tony Vitello
+**Why:** The right answer was a sentence restating the question, and the other options were non-answers. Verified: Delmonico (1990–2007) took the Vols to Omaha in 1995, 2001 and 2005. All four options are real Tennessee head coaches. I avoided Lindsey Nelson Stadium (10-06, 11-07).
+
+### trivia_questions.5ab0cdc9-676d-4cd0-857e-44c5b32a2718 — 2026-10-24 / slot 4 — ✅ applied
+**Before:** "...approximately how many wins?" — "Exactly 500" / "Over 1,000" ✔ / "Over 2,000" / "Under 200"
+**After:** "How many career wins did Pat Summitt finish with as Lady Vols head coach?" — A 880 / B 1,012 / **C 1,098 ✔** / D 1,202
+**Why:** Absurd distractors. Summitt finished with 1,098 wins. 880 is a fair trap because her 880th win broke Dean Smith's D-I record in 2005.
