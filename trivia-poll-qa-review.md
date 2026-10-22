@@ -678,3 +678,30 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-22 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Checked: trivia 2026-10-22 → 2026-10-25, polls 2026-10-22 → 2026-10-25
+- 10-22 → 10-24 already reviewed/fixed in earlier runs (PRs #223, #226, #227); re-checked, no new issues
+- Also logging yesterday's preview change. 10-22 slot 3 (Wade Houston): the right answer was the only long, specific option. All four are now parallel "He was the first…" claims; the answer is still D, "He was Tennessee's first Black head basketball coach".
+- New in window: 2026-10-25 (day after South Carolina) trivia + poll. Issues found: 4, all applied (3 trivia + 1 poll). Slots 1 and 2 clean. No votes or answers yet for 10-25.
+- Heads-up for the next run: the 10-26 poll ("What would a perfect Tennessee football season look like?") is evergreen. It's outside today's window; the next run will tie it to the South Carolina result or the next opponent.
+
+### daily_polls.26aa93d4-26f8-48f5-a4bc-8c6afecc4458 — 2026-10-25 — ✅ applied (replaced)
+**Before:** "Who is the greatest Lady Vol basketball player of all time?" — Holdsclaw / Parker / Catchings / Pat Summitt (as coach)
+**After:** "How would you grade the Vols' performance at South Carolina?" — A, a statement win / B, solid with a few mistakes / C, up and down / D or F, not good enough
+**Why:** The day after the game, the poll should be about that game (David, 10-12). The grades work whether it was a win or a loss, and they match the 10-18 Alabama grade poll. 0 votes on the old poll.
+
+### trivia_questions.24981a18-6db7-44db-87f1-072c09080330 — 2026-10-25 / slot 3 — ✅ applied (replaced)
+**Before:** "Pat Summitt coached 62 players who went on to coaching... Which two... later led Tennessee itself?" — "Not applicable" / Holly Warlick and Kellie Harper ✔ / two non-answers
+**After:** "The Lady Vols completed a perfect 39-0 season, capped by a national title, in which year?" — A 1996 / **B 1998 ✔** / C 2004 / D 2008
+**Why:** Three non-answers, and Warlick/Harper were already covered on 10-18, 10-22 and 10-25 slot 1. Verified: the 1997-98 team went 39-0 and beat Louisiana Tech for the third straight title. 1996 is a fair trap because it was the first title of the three-peat. I avoided Catchings' gold medals (11-20).
+
+### trivia_questions.e2ad18df-2d3b-4f45-b2ee-d44e2840cf06 — 2026-10-25 / slot 4 — ✅ applied (replaced; category → Vol Football History)
+**Before:** "Tennessee's athletic department is one of the larger... budgets... What is this generally attributed to?" — "no athletic department budget" / "Not applicable" / SEC membership and revenue ✔ / "smallest budget in Division I"
+**After:** "Coach Doug Dickey first put the Power T on Tennessee's football helmets in which year?" — A 1952 / **B 1964 ✔** / C 1977 / D 1989
+**Why:** Non-answer options, and not a trivia fact. Verified: Dickey added the Power T and the checkerboard end zones in his first season, 1964. 1989 is a fair trap because that's when the checkerboards came back.
+
+### trivia_questions.265a86e2-1e0f-49de-a374-9215c3f1b385 — 2026-10-25 / slot 5 — ✅ applied
+**Before:** "Reggie White's Tennessee career sack total is commonly cited as approximately how many?" — Around 60 / Around 32 ✔ / Around 10 / Around 5
+**After:** "Reggie White set Tennessee's career sack record. How many sacks did he finish with?" — A 22 / B 28 / **C 32 ✔** / D 38
+**Why:** "Around 5/10" were throwaways, and "approximately" is hedge wording. Verified: UTSports lists a school-record 32 career sacks.
