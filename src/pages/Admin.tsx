@@ -10,6 +10,7 @@ import { selectMainPageVideos } from '../lib/mainPageVideoSelection';
 
 interface LiveGame {
   id: string;
+  sport?: string;
   cfbd_game_id: number;
   home_team: string;
   away_team: string;
@@ -1243,21 +1244,22 @@ function FinalizedGameStatsPanel({ games, onRefresh }: { games: LiveGame[]; onRe
     { value: '', label: 'Select game…' },
     ...games.filter(g => g.status !== 'calculated').map(g => ({
       value: g.id,
-      label: `${g.away_team} @ ${g.home_team} [${g.status}]`,
+      label: `${g.sport === 'basketball' ? '🏀 ' : ''}${g.away_team} @ ${g.home_team} [${g.status}]`,
     })),
   ];
 
   async function finalize() {
     if (!gameId) return;
     setStatus('loading');
-    const { data, error } = await supabase.functions.invoke('finalize-game', {
+    const isBasketball = games.find(g => g.id === gameId)?.sport === 'basketball';
+    const { data, error } = await supabase.functions.invoke(isBasketball ? 'finalize-game-bb' : 'finalize-game', {
       body: { game_id: gameId },
     });
     if (error) { setStatus('error'); setMsg(error.message); }
     else {
       setStatus('ok');
       const warn = data?.warnings?.length ? ` (warnings: ${data.warnings.join('; ')})` : '';
-      setMsg(`Game finalized — final score/yards pulled from CFBD, pregame points calculated.${warn}`);
+      setMsg(`Game finalized — final score pulled from ESPN/CFBD, pregame points calculated.${warn}`);
       setGameId('');
       onRefresh();
     }
@@ -1826,7 +1828,7 @@ export default function Admin() {
     const { data } = await supabase
       .from('live_games')
       .select(
-        'id, cfbd_game_id, home_team, away_team, kickoff_time, status, home_score, away_score, manual_control, ' +
+        'id, sport, cfbd_game_id, home_team, away_team, kickoff_time, status, home_score, away_score, manual_control, ' +
         'current_quarter, game_clock, possession, down, distance, yardline, ' +
         'home_total_yards, away_total_yards, home_rushing_yards, away_rushing_yards, ' +
         'home_passing_yards, away_passing_yards, home_turnovers, away_turnovers, ' +

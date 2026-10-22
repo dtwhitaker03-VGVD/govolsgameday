@@ -87,6 +87,7 @@ export function GameDayBanner() {
         'home_timeouts_remaining, away_timeouts_remaining, current_quarter, game_clock, ' +
         'possession, down, distance, yardline'
       )
+      .eq('sport', 'football')
       .in('status', ['pregame', 'live', 'final', 'calculated'])
       .order('kickoff_time', { ascending: true })
       .limit(20)
