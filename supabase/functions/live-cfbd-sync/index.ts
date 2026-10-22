@@ -688,6 +688,7 @@ Deno.serve(async (req: Request) => {
   const { data: games, error: gamesErr } = await supabase
     .from("live_games")
     .select("id, cfbd_game_id, home_team, away_team, status, kickoff_time, manual_control, data_source")
+    .eq("sport", "football")
     .or(`status.eq.live,and(status.eq.pregame,kickoff_time.lte.${soon})`);
 
   if (gamesErr) return json({ error: gamesErr.message }, 500);

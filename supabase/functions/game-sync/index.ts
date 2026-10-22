@@ -296,7 +296,8 @@ async function refreshLinesForUpcomingGames(supabase: Client, apiKey: string | u
   const { data: candidates } = await supabase
     .from("live_games")
     .select("id, cfbd_game_id, home_team, lines_manual")
-    .eq("status", "pregame");
+    .eq("status", "pregame")
+    .eq("sport", "football");
 
   const games = (candidates ?? []) as { id: string; cfbd_game_id: number; home_team: string; lines_manual: boolean | null }[];
   if (games.length === 0) {
