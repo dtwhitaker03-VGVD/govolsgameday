@@ -334,3 +334,50 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-10-23 — Gameday hype/countdown (1 day to Vols-Gamecocks)
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Re-checked all four pillars and this log (plus the still-open
+  marketing PR branches) before picking a subject. `live_games` shows
+  Tennessee at South Carolina, Sat Oct 24, 3:30 PM ET on ESPN,
+  `status = 'pregame'` — exactly 1 day out, with no prior countdown
+  graphic for this game. The last pillar used was trivia/poll
+  (Oct 21), so this doesn't repeat a pillar back-to-back, and countdown
+  itself was last used Oct 16 (the Alabama game) — a different
+  matchup, not a repeat.
+- Subject: pulled live from the real `game_previews` row joined to the
+  TN@SC `live_games` row (fetched 2026-10-23). Tennessee is now
+  ranked No. 11 (up from No. 14 pregame vs. Alabama, reflecting the
+  real Oct 17 win) at 6-1; South Carolina is 3-3. Rather than repeat
+  this log's usual favorite-side stat framing, picked a deliberately
+  different angle for this countdown: South Carolina's real `keyStats`
+  show a genuinely dangerous offense (474.7 YPG, 13th in FBS) against
+  Tennessee's real total defense (280.6 YPG allowed, 15th in FBS) — a
+  "don't overlook this team" caution note after the big Alabama win,
+  plus the real `openingLine` ("Tennessee by 2.5"), a modest line for
+  a ranked team against an unranked 3-3 opponent, framed honestly as
+  closer than the records alone would suggest. This avoids repeating
+  the turnover-margin angle (Oct 16's countdown) or the offense-vs-
+  defense PPG framing (also Oct 16) on a third straight countdown post.
+- Design: countdown-hero treatment matching the established Game Week
+  look — rotated red "GAME DAY EVE" pill (kickoff day/time/network to
+  its right), a 320px Anton "1" over a conic-gradient starburst glow
+  with "DAY TIL KICKOFF" label, a ranked matchup line (No. 11
+  Tennessee at South Carolina, venue beneath), a "Don't Sleep on the
+  Gamecocks" stat card, and an orange-bordered opening-line stat strip.
+  `#0F172A` background, `#162038` panel, `#FF8200` orange accent,
+  `#D11919` red pill, Anton + Inter type pairing, diagonal end-zone-
+  stripe motif, GVGD logo lockup matching `Header.tsx`. No stock
+  photos or fabricated player photos.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html`
+  frame `1080×1080`). Verified locally before publishing the same way
+  as this log's recent canvases: extracted the artboard into a
+  standalone page and rendered it with headless Chromium (Google Fonts
+  failed to load through this session's network proxy, giving a
+  genuine fallback-font pass) using a taller capture window cropped to
+  the true 1080×1080 frame — nothing overflowed, wrapped, or clipped,
+  and visual density matched the rest of this log's graphics.
+- Canvas: https://claude.ai/artifact/TnLCKsCby2Tg8QddEw3XZT
+- Status: ⏳ pending review
