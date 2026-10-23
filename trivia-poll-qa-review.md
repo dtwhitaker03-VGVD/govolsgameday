@@ -678,3 +678,30 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-23 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Checked: trivia 2026-10-23 → 2026-10-26, polls 2026-10-23 → 2026-10-26
+- 10-23 → 10-25 already reviewed/fixed in earlier runs (PRs #226, #227, #229); re-checked, no new issues
+- New in window: 2026-10-26 trivia + poll. Issues found: 4, all applied (3 trivia + 1 poll). Slots 1 and 2 clean. No votes or answers yet for 10-26.
+- Schedule context (`live_games`): at South Carolina 10-24, then Wofford and Kentucky at home in early November. Both kickoff times look like TBD placeholders.
+- Heads-up for the next run: the 10-27 poll ("What is the best Vol basketball tradition?") is evergreen, and one option, "The Vol Walk equivalent before tip-off", is vague. It's outside today's window; the next run will rewrite it as a football poll.
+
+### daily_polls.765277cc-c951-4d95-9b49-d3986450d7f8 — 2026-10-26 — ✅ applied (replaced)
+**Before:** "What would a perfect Tennessee football season look like?" — Undefeated regular season / SEC Championship / CFP berth / National Championship
+**After:** "South Carolina is in the books. What's the Vols' biggest need for the November stretch?" — Staying healthy / Sharpening the passing game / Tightening up the defense / Cleaning up penalties and turnovers
+**Why:** It ties the last game to what's next (David, 10-12), and it works for a win or a loss. The old poll was evergreen, and its options overlapped (an undefeated season implies the others). 0 votes.
+
+### trivia_questions.79026417-38be-480b-8ccd-f215092ef579 — 2026-10-26 / slot 3 — ✅ applied (distractor)
+**Before:** option_b = "2001"
+**After:** option_b = "2011"
+**Why:** Parker's WNBA career started in 2008, so 2001 ruled itself out. Answer A 2013 unchanged (MVPs in 2008 and 2013).
+
+### trivia_questions.c46534c8-6567-41fc-9285-e10421d5a4c3 — 2026-10-26 / slot 4 — ✅ applied (distractors)
+**Before:** A 6.50 / B 9.99 / C 3.05 ✔ / D 1.10
+**After:** A 2.71 / B 3.62 / **C 3.05 ✔** / D 2.26
+**Why:** 9.99 and 1.10 were absurd. Verified: UTSports gives a 25-10 career record with a 3.05 ERA. 2.26 is a fair trap because it's his 2005 single-season ERA.
+
+### trivia_questions.54335360-be00-4285-be2c-cf7d5b86bc32 — 2026-10-26 / slot 5 — ✅ applied (replaced)
+**Before:** a broken True/False ("...combined record in SEC Tournament championship games has historically been strongly favorable... True or false?") — "Not applicable" / True ✔ / two non-answers
+**After:** "How many SEC Tournament championships did the Lady Vols win under Pat Summitt?" — A 8 / B 12 / **C 16 ✔** / D 20
+**Why:** Rebuilt as a 4-option question with a checkable fact. Verified: UTSports reports 16 regular-season and 16 tournament crowns under Summitt.
