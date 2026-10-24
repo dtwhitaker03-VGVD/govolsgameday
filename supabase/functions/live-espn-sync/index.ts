@@ -87,6 +87,8 @@ interface EspnPlay {
   clock?: { displayValue?: string };
   start?: EspnSpot;
   end?: EspnSpot;
+  homeScore?: number;
+  awayScore?: number;
 }
 
 interface EspnDrive {
@@ -388,8 +390,24 @@ async function syncGame(supabase: SupabaseClient, game: GameRow, dryRun: boolean
 
   const state = comp.status.type.state; // 'pre' | 'in' | 'post'
   const { period, clock } = parseStatus(comp.status);
-  const homeScore = toInt(home.score) ?? 0;
-  const awayScore = toInt(away.score) ?? 0;
+  let homeScore = toInt(home.score) ?? 0;
+  let awayScore = toInt(away.score) ?? 0;
+  // ESPN's header score can trail its play log by a minute or more (it has sat
+  // a point short for several minutes waiting on an extra point, and missed a
+  // touchdown for a minute). While the game is on, a latest-play running score
+  // that is at least as high on both sides, and within one score of the header,
+  // is the fresher number.
+  if (state === "in") {
+    const lastScored = allDrives(d).flatMap((v) => v.plays ?? []).reverse()
+      .find((p) => typeof p.homeScore === "number" && typeof p.awayScore === "number");
+    if (
+      lastScored && lastScored.homeScore! >= homeScore && lastScored.awayScore! >= awayScore &&
+      lastScored.homeScore! + lastScored.awayScore! - homeScore - awayScore <= 8
+    ) {
+      homeScore = lastScored.homeScore!;
+      awayScore = lastScored.awayScore!;
+    }
+  }
   const nameOf = (id: string | null) =>
     id === home.team.id ? home.team.location ?? "" : id === away.team.id ? away.team.location ?? "" : "";
 
