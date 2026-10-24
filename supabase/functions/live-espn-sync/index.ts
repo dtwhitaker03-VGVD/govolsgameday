@@ -272,16 +272,38 @@ function planDrive(v: EspnDrive, fallbackClock: string): PlannedDrive {
     seconds: kickoff ? KICKOFF_WINDOW_SECONDS : DEFAULT_WINDOW_SECONDS,
   };
 
-  const outcome = inProgress ? null : mapDriveResult(rawResult);
+  let outcome = inProgress ? null : mapDriveResult(rawResult);
+  let suspectDowns = false;
+  // ESPN can label a drive that ran out the half "Downs" for a while before
+  // correcting it to "End Of Half" (2026-10-24: an incomplete Hail Mary on 2nd
+  // down). A turnover on downs needs a 4th-down play, so when the drive's last
+  // real play came on an earlier down, in the last two minutes of a half, the
+  // clock ended it.
+  if (outcome === "turnover_on_downs") {
+    const lastPlay = [...scrimmage].reverse().find((p) => !/timeout|end period|end of|official|penalty/i.test(p.type?.text ?? ""));
+    const lp = lastPlay?.period?.number ?? 0;
+    const m = (lastPlay?.clock?.displayValue ?? "").match(/^(\d+):(\d{2})/);
+    const secsLeft = m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : 999;
+    if ((lp === 2 || lp >= 4) && secsLeft <= 120 && (lastPlay?.start?.down ?? 4) < 4) outcome = "end_of_quarter";
+    // Otherwise a "Downs" result needs a 4th-down last play. ESPN has shown it
+    // mid-drive (2026-10-24: two drives that went on to score touchdowns were
+    // settled as downs on 1st/3rd down), so until the last play is a 4th-down
+    // one, treat the drive as still going. A missed field goal also maps to
+    // turnover_on_downs but is not a "Downs" result, so it is left alone.
+    else if (/DOWNS/i.test(rawResult) && !/MISSED/i.test(rawResult) && (lastPlay?.start?.down ?? 4) !== 4) {
+      outcome = null;
+      suspectDowns = true;
+    }
+  }
   return {
     id: v.id,
-    inProgress,
+    inProgress: inProgress || suspectDowns,
     offenseId,
     open,
     outcome,
     rawResult,
     startsWithKickoff: !!kickoff,
-    next: inProgress ? null : earlyNextStart(v, outcome, rawResult),
+    next: inProgress || suspectDowns ? null : earlyNextStart(v, outcome, rawResult),
   };
 }
 
