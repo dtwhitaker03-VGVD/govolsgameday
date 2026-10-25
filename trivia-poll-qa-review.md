@@ -678,3 +678,41 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-25 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-10-25 → 2026-10-28 (4 polls, 20 trivia rows checked).
+- 10-25 through 10-27 were cleaned in earlier runs (10-27 in PR #232). Today I made one small wording fix to the 10-25 poll and rebuilt 10-28: the poll plus 4 of 5 trivia rows (slots 1, 3, 4 and 5 had "Not applicable"/self-eliminating distractors). No user responses existed on any edited row.
+- Game context: `live_games` shows South Carolina 27, Tennessee 24 (10-24, status calculated). I couldn't confirm it on the web, so polls stay result-neutral.
+
+### daily_polls.26aa93d4 — 2026-10-25 — ✅ applied
+**Before:** option_a "A, a statement win"
+**After:** option_a "A, couldn't ask for more"
+**Why:** "Statement win" assumes a result the web hasn't confirmed (live_games shows a 27-24 loss). The new wording works either way.
+
+### daily_polls.7f2eb9be — 2026-10-28 — ✅ applied
+**Before:** "What single game changed Tennessee football history the most?" 1998 national championship / 2022 Alabama upset / 2001 SEC championship / 1990 Sugar Bowl
+**After:** "With South Carolina behind them, how do you see the Vols finishing the November stretch?" Win out / Drop one game / Drop two games / Three or more losses
+**Why:** Polls must be about the current season and tied to the last or next game. (The old "2001 SEC championship" option was also wrong: Tennessee lost that game to LSU.)
+
+### trivia_questions.8772c9ec — 2026-10-28 / slot 1 — ✅ applied
+**Before:** "Which Tennessee sport is the only one to have retained standalone "Lady Vols" branding after a broader athletic department rebrand in the 2010s?" Women's basketball ✅ / Baseball / Not applicable / Football
+**After:** "Tennessee's "Volunteer State" nickname, the source of the Vols name, is most often traced to Tennesseans who volunteered in which war?" The Revolutionary War / The War of 1812 ✅ / The Civil War / The Spanish-American War
+**Why:** The question had a "Not applicable" distractor and men's-only sports as the other wrong answers. Lady Vols branding is also covered on 11-21. The Mexican-American War is left out of the options so there's only one defensible answer.
+
+### trivia_questions.2449538c — 2026-10-28 / slot 3 — ✅ applied
+**Before:** "Has Tennessee baseball's average home crowd size … ranked among the top programs nationally during the Vitello era?" Among the top ✅ / Not applicable, no fans attend / Among the lowest / Exactly average, never notable
+**After:** "Which Vol was named Most Outstanding Player of the 2024 College World Series after homering in all three games of the finals?" Christian Moore / Blake Burke / Dylan Dreiling ✅ / Billy Amick
+**Why:** The question was a yes/no with joke distractors. Dreiling was the 2024 CWS MOP and the first player to homer in all three finals games.
+
+### trivia_questions.66d98992 — 2026-10-28 / slot 4 — ✅ applied
+**Before:** "By which recruiting cycle did Tennessee's football recruiting rankings under Josh Heupel climb into the nation's top classes?" Recruiting rankings do not apply / Never cracked the top 25 / Only in the 1990s / By the 2023-2024 cycles ✅
+**After:** "Eric Berry won which national award as the nation's top defensive back in 2009?" Bronko Nagurski Trophy / Chuck Bednarik Award / Jim Thorpe Award ✅ / Lott IMPACT Trophy
+**Why:** Every distractor eliminated itself, and the "answer" was vague. Berry won the 2009 Thorpe Award. (11-14 asks about his draft slot, a different topic.)
+
+### trivia_questions.61f2b79a — 2026-10-28 / slot 5 — ✅ applied
+**Before:** "Which veteran Tennessee player's college career overlapped both a coaching change and a Sweet 16/Elite Eight run…?" All rosters turn over completely / Not applicable / Admiral Schofield… ✅ / No such overlap has ever occurred
+**After:** "Tobias Harris played one season at Tennessee (2010-11). With which overall pick was he selected in the 2011 NBA Draft?" 9th / 14th / 19th ✅ / 24th
+**Why:** The answer text was the only real option, and Schofield's career never spanned a coaching change (he played 2015-19, all under Barnes). Harris went 19th overall to Charlotte in 2011.
+
+10-28 slot 2 (Orange & White Game) was verified and left as is.
