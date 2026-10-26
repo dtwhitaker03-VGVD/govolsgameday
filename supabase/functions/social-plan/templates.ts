@@ -91,7 +91,7 @@ export function countdown(d: CountdownData): Node {
       h("div", { ...anton(60, { color: "#fff" }) }, `${d.home ? "" : "AT "}${shorten(d.opponent, 22)}${d.home ? " AT TENNESSEE" : ""}`.replace(/^AT TENNESSEE$/, "")),
       h("div", { fontSize: 30, fontWeight: 700, color: MUTED, marginTop: 8 }, d.kickoffText),
     ]),
-  ], "Make your picks before kickoff");
+  ], d.sport === "basketball" ? "Make your picks before tip-off" : "Make your picks before kickoff");
 }
 
 // ─── Final game stats chart ──────────────────────────────────────────────────
