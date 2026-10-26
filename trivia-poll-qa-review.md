@@ -571,3 +571,110 @@ The poll for 09-22 has a wording issue — see entry below.
 - Issues found: 0
 
 **Status:** ⏳ pending review
+
+## 2026-09-28 — run summary
+- Checked: trivia 2026-09-28 to 2026-10-01 (20 rows, 5 slots × 4 days), polls 2026-09-28 to 2026-10-01 (4 rows)
+- Issues found: 11 (4 factual-accuracy errors, 2 of which are unsalvageable-premise replacements; 4 self-eliminating-distractor/broken-structure issues; 2 minor style notes), plus 1 informational-only note — poll section below has 2 additional factual errors
+- Web search was used to verify every factual claim below rather than relying on recollection alone; this window (09-28 through 10-01) had not been reviewed in any prior run.
+
+### trivia_questions.4ed76caa-616e-4504-971f-b9a9ea0035cc — 2026-09-28 / slot 1 — factual error (wrong ranking) + self-eliminating distractor
+**Current:** Q: "As of the mid-2020s, Tennessee's all-time win total ranks in roughly what position among all FBS programs?" A "2nd", B "Around 10th" (correct), C "Outside the top 100", D "50th"
+**Suggested fix:** Change option_b to "Around 14th" (correct_answer stays B); separately replace option_c "Outside the top 100" with a more plausible wrong ranking, e.g. "Around 25th".
+**Reason:** Verified via multiple sources (Sports Illustrated's 2025 winningest-programs ranking, Sports-Reference) — Tennessee's all-time record (881-420-53, .670) currently ranks 14th, not "around 10th," a large enough gap that "roughly" doesn't cover it. Separately, "Outside the top 100" is self-eliminating for a 130+-year blue-blood program — no knowledgeable fan needs any specific ranking knowledge to rule it out. §32 factual accuracy + self-eliminating distractor.
+**Status:** ⏳ pending review
+
+### trivia_questions.bac11872-57e9-4046-bbf8-753f3b49de5d — 2026-09-28 / slot 4 — broken structure, non-answer distractors (unsalvageable)
+**Current:** Q: "Has Tennessee had multiple players contend for the program's all-time career stolen-base record across different eras?" A "Not applicable", B "The record belongs to a football player", C "No stolen bases have ever been recorded for Tennessee", D "Yes, across both earlier eras and the modern Vitello era" (correct)
+**Suggested fix:** Full replacement recommended — rebuild as a direct question naming the actual career stolen-base record holder(s), with three other real Tennessee baseball player names as distractors, rather than a yes/no dressed up as 4 options.
+**Reason:** §32 — three of four options are non-answers or absurd/self-eliminating rather than genuine competing facts ("Not applicable" and "no stolen bases ever recorded" are transparently false for any real baseball program; "belongs to a football player" doesn't answer a stolen-base question). This is the same broken pattern flagged repeatedly in past runs (e.g. 09-01's "Not applicable"/True-False issues). **Flagging as uncertain** — I have not verified who actually holds Tennessee's career stolen-base record, so I'm not proposing specific replacement names; recommend verifying before drafting the replacement.
+**Status:** ⏳ pending review — flagged as uncertain (replacement names unverified)
+
+### trivia_questions.9dba8f09-2f10-40ef-827b-3ba6ca6cb5bd — 2026-09-28 / slot 5 — self-eliminating distractor
+**Current:** Q: "What is the general historical head-to-head trend between Tennessee and Kentucky in football?" A "The series is dead even", B "Kentucky leads the all-time series", C "Tennessee holds a large historical advantage" (correct), D "They have never met"
+**Suggested fix:** Replace D with a plausible wrong answer, e.g. "Kentucky leads by a slim margin."
+**Reason:** §32 — D is self-eliminating; Tennessee-Kentucky ("Battle for the Beer Barrel") is a long-running annual SEC series, obviously false to any fan regardless of specific knowledge of the series record. Minor secondary note: the "general historical trend" framing is vaguer than the site's usual crisp-fact format — the correct answer is directionally accurate (Tennessee leads by a wide margin) but not tied to a specific number; consider tightening to the actual series record if verified.
+**Status:** ⏳ pending review
+
+### trivia_questions.050a6884-3e92-4360-a468-ddcb48ebd251 — 2026-09-29 / slot 2 — self-eliminating distractor
+**Current:** Q: "Neyland Stadium's seating capacity exceeds how many fans?" A "50,000", B "150,000", C "100,000" (correct), D "25,000"
+**Suggested fix:** Replace B "150,000" with a more plausible number in range, e.g. "85,000."
+**Reason:** §32 — no college football stadium in the country has anywhere near 150,000 capacity (the largest, Michigan Stadium, is ~107k), so B is immediately eliminable as absurd without any Neyland-specific knowledge. Neyland's actual capacity (~101,915) confirms C is correctly the intended answer.
+**Status:** ⏳ pending review
+
+### trivia_questions.d979f4ad-1600-4d65-9759-4e6978e921b5 — 2026-09-29 / slot 5 — minor style: hedge/compound correct answer
+**Current:** Q: "...how many Olympians...per the program's own count through the 2020s?" correct_answer A "Around 24 (men's) plus additional Lady Vol Olympians"
+**Suggested fix:** Tighten to a single specific figure rather than a compound/hedged answer — e.g. a verified combined men's+women's total, if available, or keep strictly to the men's-only framing and drop the "plus additional" qualifier.
+**Reason:** Verified the "~24 men's Olympians" figure is roughly accurate (UT Athletics has cited 24 men's Olympians over program history; one source separately cites 43 combined men's+women's). Not a factual error, but the "plus additional" phrasing is a soft hedge rather than a single defensible fact, per §32's hedge guidance. Low priority style note.
+**Status:** ⏳ pending review
+
+### trivia_questions.d507096f-9f76-445b-8ad1-8df6a5927c8a — 2026-09-30 / slot 1 — informational only (editorial note, not a §32 violation)
+**Current:** Q: "Tennessee's official fight song, distinct from 'Rocky Top,' is called what?" A "Dixie", B "Down the Field" (correct), C "Fight, Vols, Fight", D "Sweet Caroline"
+**Suggested fix:** No factual correction needed — verified "Down the Field" is in fact Tennessee's official fight song. Optional: consider swapping "Dixie" for a different wrong answer given the song's strong Confederacy/racial associations, even used only as an intentionally-wrong distractor on a public-facing site.
+**Reason:** Flagging for awareness only, consistent with prior "informational only" notes logged in this file — not a factual-accuracy or structural issue.
+**Status:** ⏳ pending review (informational only)
+
+### trivia_questions.bdfc744d-520c-413c-b1da-6dd849aa98e5 — 2026-09-30 / slot 4 — factual error, false premise (unsalvageable)
+**Current:** Q: "Tennessee's first-ever #1 overall NCAA Tournament seed came in which season?" A "2007-08", B "2018-19" (correct), C "2000-01", D "1976-77"
+**Suggested fix:** Full replacement — Tennessee men's basketball has never received a #1 overall NCAA Tournament seed in program history (verified via multiple current sources, including an NCAA.com all-time #1-seeds piece that doesn't list Tennessee). The 2018-19 team actually received a #2 seed (South Region; beat Colgate and Iowa, lost the Sweet 16 to Purdue). Recommend replacing with: "What seed did Tennessee's 2018-19 team — which reached the Sweet 16 — receive in the NCAA Tournament?" A "1-seed", B "2-seed" (correct), C "4-seed", D "6-seed."
+**Reason:** §32 factual accuracy — the entire premise is false, not just the specific year, so no option in the current set can be made correct by patching alone.
+**Status:** ⏳ pending review
+
+### trivia_questions.e3dda0d2-e1cb-47f6-9e92-969b06bfc2a4 — 2026-09-30 / slot 5 — factual error: wrong decade, correct decade missing from options
+**Current:** Q: "Permanent lighting for regular night games was added to Neyland Stadium in which decade?" A "1950s", B "1920s", C "1990s" (correct), D "2000s"
+**Suggested fix:** Replace option_b "1920s" (least plausible of the current wrong options) with "1970s," and change correct_answer to that letter.
+**Reason:** Verified via multiple sources — lights were installed as part of the 1972 south-end upper-deck expansion specifically to enable Neyland Stadium's first-ever night game (Sept. 16, 1972 vs. Penn State). No source found supports a separate "1990s" permanent-lighting installation; every account of the stadium's lighting history points to 1972. §32 factual accuracy.
+**Status:** ⏳ pending review
+
+### trivia_questions.22487837-bef2-45ac-85a4-9e2e74ac57d1 — 2026-10-01 / slot 3 — broken True/False structure, non-answer distractors (unsalvageable)
+**Current:** Q: "The Lady Vols program has produced multiple dominant single-season rebounding performances across different eras, including Chamique Holdsclaw's. True or false?" A "Not applicable", B "Only guards have led in rebounding", C "No rebounding records exist for the Lady Vols", D "Yes" (correct)
+**Suggested fix:** Full replacement recommended — rebuild as a standard 4-option question naming actual single-season rebounding record-holders across eras (e.g. Holdsclaw-era vs. a more modern name) as concrete, verifiable answer options, rather than a True/False dressed up to satisfy the NOT NULL constraint.
+**Reason:** §32 — same recurring broken-structure pattern: none of A/B/C is a real competing answer (all are non-answers or self-eliminating), and the underlying True/False framing itself needs rebuilding per the guardrail on broken True/False questions. **Flagging as uncertain** — I have not independently verified specific record-holder names to propose as replacement options, so recommend verifying before drafting.
+**Status:** ⏳ pending review — flagged as uncertain (replacement names unverified)
+
+### trivia_questions.0e94db66-3b04-4ab4-972e-b1d19e8be851 — 2026-10-01 / slot 4 — self-eliminating distractor + unverified hedge correct answer
+**Current:** Q: "Under Josh Heupel, how has Tennessee generally fared in games decided by one score?" A "Exactly .500", B "Overwhelmingly poor", C "Generally favorably, contributing to a strong overall winning percentage" (correct), D "No such games have occurred"
+**Suggested fix:** Replace D with a plausible wrong answer (e.g. "Roughly break-even, slightly above .500"). Separately, consider replacing the correct answer with a specific verified won-loss record in one-score games rather than the current vague "generally favorably" phrasing.
+**Reason:** §32 — D is self-eliminating (Heupel has coached numerous one-score games, e.g. the 52-49 2022 win over Alabama), obviously false regardless of Heupel-specific knowledge. Separately, **flagging as uncertain**: I could not verify Heupel's exact record in one-score games this run, so I can't confirm "generally favorably" is accurate — recommend verifying with a specific W-L figure before this airs, rather than trusting the current hedge phrasing.
+**Status:** ⏳ pending review — flagged as uncertain (correct-answer accuracy unverified)
+
+### trivia_questions.c77779e6-1d5c-49c1-8cb2-5c823a2c78e6 — 2026-10-01 / slot 5 — broken structure + embedded factual error in a distractor
+**Current:** Q: "Which Tennessee slugger broke the program's career home run record with his 41st homer in April 2024, before Christian Moore later tied him?" A "Not applicable", B "Todd Helton's total, unchanged, remains the sole record", C "No Tennessee player has ever hit a home run", D "Blake Burke" (correct)
+**Suggested fix:** Replace A/B/C with real Tennessee baseball player names (e.g. "Luc Lipcius," "Todd Helton," "Christian Moore" as plain name-only distractors) rather than non-answer/false filler text. Keep D "Blake Burke" as correct.
+**Reason:** Verified the core premise is accurate — Blake Burke broke Luc Lipcius's record with career HR #41 on April 6, 2024, and Christian Moore did tie Burke's total multiple times that season (at 42 and again at 43) before ultimately surpassing it to finish with 61. However, three of four options are non-answers rather than real competing names, matching the recurring broken-structure pattern — and option B additionally asserts a separate factual error on its own terms: Todd Helton was never the prior record holder (that was Luc Lipcius), so B is misleading even as throwaway text. §32 factual accuracy + broken distractor structure.
+**Status:** ⏳ pending review
+
+### General note — thematic overlap check, 2026-09-28 to 2026-10-01 (informational only)
+**Current:** No duplicate or near-duplicate trivia questions found within this window or against the trailing few days already logged in this file.
+**Suggested fix:** None needed.
+**Reason:** §32 duplicate check — clean.
+**Status:** ✅ no action needed
+
+## Poll check — 2026-09-28 to 2026-10-01
+- Checked 4 rows (one per date).
+- Issues found: 2 factual errors (both premise-breaking, both below), 2 clean.
+
+### daily_polls.35e7c3f9-ead3-45d3-9e75-5ce829ade780 — 2026-09-28 — factual error: two options don't meet the poll's own "from the state of Tennessee" criterion
+**Current:** Q: "Who is the best Vol football player from the state of Tennessee?" A "Peyton Manning", B "Eric Berry", C "Al Wilson", D "Trey Smith"
+**Suggested fix:** Replace Peyton Manning and Eric Berry with verified in-state (Tennessee-born) Vol football legends. Verified one strong replacement: Reggie White (born Chattanooga, TN). Recommend David pick the second replacement name rather than me guessing a second one under time pressure.
+**Reason:** Verified via web search — Peyton Manning was born and raised in New Orleans, Louisiana (Isidore Newman School), and Eric Berry was born in Fairburn, Georgia (Creekside High School) — neither is "from the state of Tennessee" despite both being Vol legends. Only Al Wilson (Jackson, TN) and Trey Smith (Humboldt, TN) actually satisfy the poll's own stated criterion. §33 factual accuracy.
+**Status:** ⏳ pending review — flagged as uncertain (second replacement name not yet chosen)
+
+### daily_polls.2beff22b-21fc-43fa-a3a3-4482ade09ea1 — 2026-09-29 — factual error: one "Tennessee baseball alum" never played at Tennessee
+**Current:** Q: "Which Tennessee baseball alum had the best MLB career?" A "David Price", B "Todd Helton", C "R.A. Dickey", D "Nick Senzel"
+**Suggested fix:** Replace David Price with a verified actual Tennessee baseball alum with a notable MLB career. I don't have a specific name I'm confident enough in to propose without guessing — recommend David pick the replacement.
+**Reason:** Verified via web search — David Price played his college baseball at Vanderbilt University (three seasons, 2005-2007, College Baseball Hall of Fame 2025 as a Vanderbilt alum), not Tennessee. Todd Helton, R.A. Dickey, and Nick Senzel are all confirmed genuine Tennessee baseball alums. §33 factual accuracy.
+**Status:** ⏳ pending review — flagged as uncertain (replacement name not yet chosen)
+
+### daily_polls.7e2a6c65-1f59-4dd0-8041-7249f9b7acd2 — 2026-09-30 — clean
+**Current:** Q: "Who is the best coach in Tennessee basketball history?" A "Ray Mears", B "Don DeVoe", C "Bruce Pearl", D "Rick Barnes"
+**Suggested fix:** None needed.
+**Reason:** All four are real Tennessee men's basketball head coaches; clear single-topic, non-overlapping, no leading bias.
+**Status:** ✅ no action needed
+
+### daily_polls.18d2daef-b39c-4807-88a0-778b85e36c64 — 2026-10-01 — clean
+**Current:** Q: "Who was the best Vol head coach since 2000?" A "Phillip Fulmer", B "Lane Kiffin", C "Derek Dooley", D "Josh Heupel"
+**Suggested fix:** None needed.
+**Reason:** All four are real Tennessee football head coaches since 2000; clear single-topic, non-overlapping, no leading bias.
+**Status:** ✅ no action needed
+
+**Status:** ⏳ pending review
