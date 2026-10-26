@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { DashboardCard } from '../components/ui/DashboardCard';
 import { CheckCircle, AlertCircle, Loader, EyeOff, Trash2, RefreshCw, Pin, Plus, X, Search, Pencil, Play, Check } from 'lucide-react';
 import { selectMainPageVideos } from '../lib/mainPageVideoSelection';
+import { SocialPostsPanel } from '../components/admin/SocialPostsPanel';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1855,6 +1856,7 @@ export default function Admin() {
       <LiveDriveControlPanel games={games} onRefresh={loadGames} />
       <WeeklyPropBetsPanel games={games} />
       <FinalizedGameStatsPanel games={games} onRefresh={loadGames} />
+      <SocialPostsPanel />
 
       <ScrapedContentReview />
     </div>
