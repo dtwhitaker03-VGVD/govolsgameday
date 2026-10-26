@@ -62,10 +62,25 @@ async function postToInstagram(s: Settings, p: Post, token: string): Promise<str
   return String(pub.id);
 }
 
-Deno.serve(async () => {
+/** Read-only connection check: confirms the token can see the Page and the Instagram account. Posts nothing. */
+async function check(s: Settings): Promise<Record<string, unknown>> {
+  const token = Deno.env.get("META_PAGE_TOKEN");
+  if (!token) return { ok: false, error: "META_PAGE_TOKEN secret is not set" };
+  const get = async (path: string) => {
+    const res = await fetch(`${GRAPH}/${path}${path.includes("?") ? "&" : "?"}access_token=${encodeURIComponent(token)}`);
+    return await res.json().catch(() => ({}));
+  };
+  const page = await get(`${s.page_id}?fields=id,name`);
+  const ig = await get(`${s.ig_user_id}?fields=id,username`);
+  return { ok: !page.error && !ig.error, page: page.error ?? page, instagram: ig.error ?? ig };
+}
+
+Deno.serve(async (req: Request) => {
   const supabase: Client = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const { data: s } = await supabase.from("social_settings").select("*").eq("id", true).maybeSingle();
   const settings = s as Settings | null;
+  const body = await req.json().catch(() => ({}));
+  if (body?.check === true && settings) return json(await check(settings));
   if (!settings?.enabled) return json({ ok: true, skipped: "disabled" });
 
   const nowIso = new Date().toISOString();
