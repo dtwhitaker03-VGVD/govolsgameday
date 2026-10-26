@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light only" />
+  <meta name="supported-color-schemes" content="light only" />
+  <title>Your verification code</title>
+</head>
+<body style="margin:0;padding:0;background-color:#EEF1F6;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+
+  <!-- Preheader: the grey preview text shown next to the subject in an inbox. -->
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;font-size:1px;line-height:1px;">
+    Your Go Vols Gameday verification code is {{ .Token }}.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#EEF1F6;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
+
+          <!-- Header -->
+          <tr>
+            <td align="center" style="background-color:#0F172A;border-radius:12px 12px 0 0;padding:32px 24px 28px 24px;">
+              <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:16px;letter-spacing:3px;font-weight:700;color:#FF8200;text-transform:uppercase;">
+                Tennessee Football
+              </div>
+              <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:30px;line-height:36px;font-weight:800;color:#FFFFFF;padding-top:6px;letter-spacing:0.5px;">
+                GO VOLS <span style="color:#FF8200;">GAMEDAY</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#FF8200;height:4px;line-height:4px;font-size:4px;">&nbsp;</td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="background-color:#FFFFFF;padding:40px 40px 32px 40px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;color:#1E293B;">
+
+              <h1 style="margin:0 0 16px 0;font-size:24px;line-height:30px;font-weight:700;color:#0F172A;">
+                Your verification code
+              </h1>
+
+              <p style="margin:0 0 16px 0;font-size:16px;line-height:25px;color:#334155;">
+                {{ if .Data.username }}Hi {{ .Data.username }},{{ else }}Hi there,{{ end }}
+              </p>
+
+              <p style="margin:0 0 16px 0;font-size:16px;line-height:25px;color:#334155;">
+                Enter this code to confirm it&rsquo;s you and finish the change you&rsquo;re making on Go Vols Gameday:
+              </p>
+
+              <!-- One-time code -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:12px auto 28px auto;">
+                <tr>
+                  <td align="center" style="background-color:#F1F5F9;border:1px solid #E2E8F0;border-radius:10px;padding:18px 36px;font-family:'Courier New',Courier,monospace;font-size:34px;line-height:40px;font-weight:700;letter-spacing:10px;color:#0F172A;">
+                    {{ .Token }}
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Divider -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr><td style="border-top:1px solid #E2E8F0;font-size:1px;line-height:1px;">&nbsp;</td></tr>
+              </table>
+
+              <p style="margin:20px 0 0 0;font-size:14px;line-height:22px;color:#64748B;">
+                This code expires after a short time and can only be used once. Didn&rsquo;t request it? Ignore this email and consider changing your password &mdash; and never share this code with anyone.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="background-color:#0F172A;border-radius:0 0 12px 12px;padding:24px 24px 28px 24px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
+              <div style="font-size:14px;line-height:20px;font-weight:700;color:#FFFFFF;">
+                Go Vols Gameday
+              </div>
+              <div style="font-size:12px;line-height:18px;color:#94A3B8;padding-top:4px;">
+                The home for Tennessee football fans &middot;
+                <a href="{{ .SiteURL }}" target="_blank" style="color:#FF8200;text-decoration:none;">govolsgameday.com</a>
+              </div>
+              <div style="font-size:11px;line-height:16px;color:#64748B;padding-top:14px;">
+                This message was sent to {{ .Email }} because of activity on a Go Vols Gameday account with this address.
+              </div>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

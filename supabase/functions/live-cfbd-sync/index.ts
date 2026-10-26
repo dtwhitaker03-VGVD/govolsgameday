@@ -59,12 +59,19 @@ function mapDriveResult(result: string): string | null {
   // (full) and "FG"/"Field Goal" (makes) — this left drive 18 permanently
   // stuck unresolved (mapDriveResult returned null every poll) until this
   // fix. Check both "FIELD GOAL" and bare "FG" alongside "MISSED".
+  //
+  // Punts and turnovers must also be checked before "TOUCHDOWN": a return TD
+  // by the defense ("Punt Return Touchdown", "Interception Return
+  // Touchdown") is still a punt/turnover for the offense this drive belongs
+  // to — confirmed on drive 14 of the 2026-09-26 Texas game, where Texas
+  // punted, Tennessee returned it for a TD, and the drive settled as a Texas
+  // touchdown.
   const r = result.toUpperCase().trim();
   if (r.includes("MISSED") && (r.includes("FIELD GOAL") || r.includes("FG"))) return "turnover_on_downs";
+  if (r.includes("PUNT")) return "punt";
+  if ((r.includes("FUMBLE") && !r.includes("OWN")) || r.includes("INTERCEPTION") || r === "INT") return "turnover";
   if (r.includes("FIELD GOAL") || r === "FG") return "field_goal";
   if (r.includes("TOUCHDOWN") || r === "TD") return "touchdown";
-  if (r === "PUNT") return "punt";
-  if (r.includes("FUMBLE") || r.includes("INTERCEPTION") || r === "INT") return "turnover";
   if (r.includes("DOWNS")) return "turnover_on_downs";
   if (r.includes("SAFETY")) return "safety";
   if (r.includes("END OF")) return "end_of_quarter";
@@ -83,9 +90,52 @@ interface LiveGamePlay {
   yardsGained: number | null;
   rushPass: string | null;
   playType: string | null;
+  playText?: string | null;
   team: string;
   period: number | null;
+  yardsToGoal: number | null;
 }
+
+// CFBD (like ESPN) files the kickoff as the first play of the RECEIVING
+// team's drive, but that play's yardsToGoal is the kicking team's tee spot
+// (65 = their own 35) — confirmed on the 2026-09-26 Texas game, where drive 1
+// opened at yardline 35 instead of the TEX 25 touchback spot.
+function isKickoff(play: LiveGamePlay): boolean {
+  return /kickoff|onside/i.test(play.playType ?? "");
+}
+
+// Where the receiving team starts, read from a kickoff play's own text, so
+// the pick window can open as soon as the kickoff is logged instead of
+// waiting for the first snap. Returns the receiving team's yardsToGoal, or
+// null when it can't be settled with confidence (the caller then waits for
+// the first scrimmage play, as before). Rules: a touchback or a fair catch
+// is the 25 and a kick out of bounds is the 35; a returned kick is worked
+// out from the kick and return distances and cross-checked against the spot
+// the text itself names. Penalties, onside kicks, fumbles and return
+// touchdowns are never guessed.
+function kickoffStartYardsToGoal(play: LiveGamePlay): number | null {
+  const text = play.playText ?? "";
+  if (!text) return null;
+  if (/penalty|onside|fumble|touchdown|\bTD\b/i.test(text)) return null;
+  if (/touchback/i.test(text) || /fair catch/i.test(text)) return 75;
+  if (/out of bounds/i.test(text)) return 65;
+
+  const m = text.match(/kickoff\s+(\d+)\s+yards?\b.*?\breturn\s+(\d+)\s+yards?\s+to\s+the\s+[A-Za-z]+(\d+)/i);
+  const kickerYtg = play.yardsToGoal;
+  if (!m || kickerYtg == null) return null;
+  const kickYards = parseInt(m[1], 10);
+  const returnYards = parseInt(m[2], 10);
+  const namedSpot = parseInt(m[3], 10);
+  const ytg = 100 - kickerYtg + kickYards - returnYards;
+  if (ytg < 1 || ytg > 99) return null;
+  return ytg === 100 - namedSpot || ytg === namedSpot ? ytg : null;
+}
+
+// Pick-window length by how the drive starts: a drive that starts off a
+// kickoff (after a score, start of a half) gets 30s; one that starts off a
+// punt, turnover, missed field goal or turnover on downs gets 60s.
+const KICKOFF_WINDOW_SECONDS = 30;
+const DEFAULT_WINDOW_SECONDS = 60;
 
 interface LiveGameDrive {
   id: string;
@@ -293,11 +343,15 @@ interface GameRow {
   status: string;
   manual_control: boolean;
   kickoff_time: string;
+  data_source?: string;
 }
 
 async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow) {
   if (game.status === "final" || game.status === "calculated") {
     return { game_id: game.id, ok: true, skipped: `status is ${game.status}` };
+  }
+  if (game.data_source === "espn") {
+    return { game_id: game.id, ok: true, skipped: "data_source is espn" };
   }
 
   const res = await fetch(
@@ -472,21 +526,6 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
   let nextDriveNumber =
     Math.max(0, ...(existingWindows ?? []).map((w) => w.drive_number)) + 1;
 
-  // Deliberate pause between drives (auto mode only — manual_control games
-  // never reach this code): as soon as a drive resolves, hold off opening
-  // the NEXT drive's pick window for ~15s, rather than the instant CFBD's
-  // data allows, so picks don't feel like they're firing back-to-back.
-  // live-cfbd-sync is a stateless 15s poller, so this is enforced by
-  // checking drive_windows.resolved_at across polls, not a real in-memory
-  // timer — the actual gap ends up being one poll cycle (~15-30s), not an
-  // exact 15.000s.
-  const NEW_DRIVE_OPEN_DELAY_MS = 15_000;
-  const mostRecentResolvedAt = (existingWindows ?? [])
-    .map((w) => (w.resolved_at ? new Date(w.resolved_at).getTime() : null))
-    .filter((t): t is number => t !== null)
-    .reduce((max, t) => (t > max ? t : max), 0);
-  const readyToOpenNext = Date.now() - mostRecentResolvedAt >= NEW_DRIVE_OPEN_DELAY_MS;
-
   let opened = 0;
   let settled = 0;
   const settleErrors: string[] = [];
@@ -495,7 +534,6 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
     const existing = windowByCfbdId.get(drive.id);
     const driveNumber = existing ? existing.drive_number : nextDriveNumber;
     const hasResult = !!drive.result;
-    const lastPlay = drive.plays[drive.plays.length - 1];
 
     if (!hasResult) {
       // Drive still in progress. open_drive_window upserts and resets
@@ -506,23 +544,59 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
       // offense-relative (offense's own score minus the opponent's),
       // matching how open_drive_window's odds heuristics are written.
       if (existing) continue;
-      if (!readyToOpenNext) continue; // still inside the post-drive pause
 
-      const offenseIsHome = drive.offense === homeTeam?.team;
+      // Open as soon as the drive's starting spot is known, never mid-drive:
+      // the FIRST scrimmage play's spot if there is one (using the latest
+      // play put drive 2 of the 2026-10-10 Arkansas game at the 48 instead
+      // of Tennessee's real start at its own 33); else, for a kickoff-only
+      // drive, the spot read from the kickoff's own text; else CFBD's drive
+      // start once it has moved off the kickoff tee spot. Until then, wait
+      // for the next poll rather than open wrong.
+      // yardsToGoal of 0 or 100 is never a real line of scrimmage — CFBD
+      // reported those as the start of kickoff-only drives 13 and 15 of the
+      // 2026-09-26 Texas game — so treat them as "not known yet" too.
+      const isRealSpot = (y: number | null | undefined): y is number =>
+        y != null && y > 0 && y < 100;
+      const scrimmagePlays = drive.plays.filter((p) => !isKickoff(p));
+      const situationPlay = scrimmagePlays[0];
+      const kickoffPlay = drive.plays.find(isKickoff);
+      const kickoffSpot =
+        kickoffPlay && scrimmagePlays.length === 0 ? kickoffStartYardsToGoal(kickoffPlay) : null;
+      let startYardsToGoal: number;
+      if (isRealSpot(situationPlay?.yardsToGoal)) {
+        startYardsToGoal = situationPlay.yardsToGoal;
+      } else if (kickoffSpot !== null) {
+        startYardsToGoal = kickoffSpot;
+      } else if (
+        !isRealSpot(drive.startYardsToGoal) ||
+        (kickoffPlay && drive.startYardsToGoal === kickoffPlay.yardsToGoal)
+      ) {
+        continue;
+      } else {
+        startYardsToGoal = drive.startYardsToGoal;
+      }
+
+      // A kickoff-only drive is labelled with the KICKING team until the
+      // first snap, so the real offense is the other side.
+      const realOffense =
+        kickoffPlay && scrimmagePlays.length === 0
+          ? (kickoffPlay.team === homeTeam?.team ? awayTeam?.team : homeTeam?.team)
+          : drive.offense;
+      const offenseIsHome = realOffense === homeTeam?.team;
       const offenseScore = offenseIsHome ? homeScore : awayScore;
       const defenseScore = offenseIsHome ? awayScore : homeScore;
 
       const { error } = await supabase.rpc("open_drive_window", {
         p_game_id: game.id,
         p_drive_number: driveNumber,
-        p_yardline: 100 - (lastPlay?.yardsToGoal ?? drive.startYardsToGoal),
+        p_yardline: 100 - startYardsToGoal,
         p_quarter: drive.startPeriod,
         p_game_clock: drive.startClock ?? live.clock,
         p_score_diff: offenseScore - defenseScore,
-        p_down: lastPlay?.down ?? 1,
-        p_distance: lastPlay?.distance ?? 10,
+        p_down: situationPlay?.down ?? 1,
+        p_distance: situationPlay?.distance ?? 10,
         p_cfbd_drive_id: drive.id,
-        p_window_seconds: 60,
+        p_window_seconds: kickoffPlay ? KICKOFF_WINDOW_SECONDS : DEFAULT_WINDOW_SECONDS,
       });
       if (!error) opened++;
       if (!existing) nextDriveNumber = driveNumber + 1;
@@ -530,9 +604,8 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
       // Drive already ended by the time we saw it (possible if a poll is
       // missed) — open its window with the drive's starting situation
       // first so settle_drive_outcome has a row to resolve against. This
-      // is a catch-up path (the drive is already over), so the post-drive
-      // pause doesn't apply — there's no "next pick window" being shown
-      // early, just history being recorded.
+      // is a catch-up path (the drive is already over), so there's no
+      // "next pick window" being shown early, just history being recorded.
       if (!existing) {
         await supabase.rpc("open_drive_window", {
           p_game_id: game.id,
@@ -544,7 +617,7 @@ async function syncGame(supabase: SupabaseClient, apiKey: string, game: GameRow)
           p_down: 1,
           p_distance: 10,
           p_cfbd_drive_id: drive.id,
-          p_window_seconds: 60,
+          p_window_seconds: drive.plays.some(isKickoff) ? KICKOFF_WINDOW_SECONDS : DEFAULT_WINDOW_SECONDS,
         });
         nextDriveNumber = driveNumber + 1;
       }
@@ -596,7 +669,7 @@ Deno.serve(async (req: Request) => {
     // Single-game mode — used for manual/debug calls.
     const { data: game, error: gameErr } = await supabase
       .from("live_games")
-      .select("id, cfbd_game_id, home_team, away_team, status, manual_control, kickoff_time")
+      .select("id, cfbd_game_id, home_team, away_team, status, manual_control, kickoff_time, data_source")
       .eq("id", body.game_id)
       .maybeSingle();
 
@@ -614,7 +687,8 @@ Deno.serve(async (req: Request) => {
   const soon = new Date(Date.now() + 60 * 60 * 1000).toISOString();
   const { data: games, error: gamesErr } = await supabase
     .from("live_games")
-    .select("id, cfbd_game_id, home_team, away_team, status, kickoff_time, manual_control")
+    .select("id, cfbd_game_id, home_team, away_team, status, kickoff_time, manual_control, data_source")
+    .eq("sport", "football")
     .or(`status.eq.live,and(status.eq.pregame,kickoff_time.lte.${soon})`);
 
   if (gamesErr) return json({ error: gamesErr.message }, 500);

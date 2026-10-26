@@ -34,6 +34,87 @@ interface CfbdGameLines {
 
 type Client = ReturnType<typeof createClient>;
 
+// ─── ESPN source (free, no key) ──────────────────────────────────────────────
+// ESPN is tried first for the schedule and the betting lines; CFBD is the
+// fallback when ESPN fails or has nothing. ESPN's event ids are the same
+// numbers as CFBD's game ids (live_games.cfbd_game_id) and its team
+// "location" strings match the names already stored (e.g. "Georgia Tech",
+// "Kennesaw State"), so existing rows line up with no remapping.
+const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/football/college-football";
+const ESPN_HEADERS = { "User-Agent": "Mozilla/5.0 (compatible; GoVolsGameDay/1.0)", Accept: "application/json" };
+const TENNESSEE_ESPN_ID = 2633;
+
+interface ScheduleGame extends CfbdGame {
+  timeValid: boolean;
+}
+
+// deno-lint-ignore no-explicit-any
+type Json = any;
+
+async function espnGet(url: string): Promise<Json | null> {
+  try {
+    const res = await fetch(url, { headers: ESPN_HEADERS });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+/** Tennessee's regular-season schedule from ESPN, in the shape syncSchedule uses. */
+async function scheduleFromEspn(year: number): Promise<ScheduleGame[] | null> {
+  const d = await espnGet(`${ESPN_BASE}/teams/${TENNESSEE_ESPN_ID}/schedule?season=${year}&seasontype=2`);
+  const events: Json[] | undefined = d?.events;
+  if (!Array.isArray(events) || events.length === 0) return null;
+
+  const games: ScheduleGame[] = [];
+  for (const e of events) {
+    const c = e.competitions?.[0];
+    const home = c?.competitors?.find((x: Json) => x.homeAway === "home");
+    const away = c?.competitors?.find((x: Json) => x.homeAway === "away");
+    const id = Number(e.id);
+    if (!c || !home || !away || !Number.isFinite(id) || !e.date) return null; // unexpected shape: let CFBD handle it
+    const pts = (x: Json) => {
+      const v = typeof x.score === "object" ? x.score?.value : x.score;
+      const n = Number(v);
+      return v == null || !Number.isFinite(n) ? null : n;
+    };
+    games.push({
+      id,
+      startDate: new Date(e.date).toISOString(),
+      completed: c.status?.type?.completed === true,
+      homeTeam: home.team?.location ?? "",
+      awayTeam: away.team?.location ?? "",
+      homePoints: pts(home),
+      awayPoints: pts(away),
+      timeValid: c.timeValid !== false,
+    });
+  }
+  return games.every((g) => g.homeTeam && g.awayTeam) ? games : null;
+}
+
+/**
+ * Betting line for one game from ESPN's pickcenter (DraftKings, usually).
+ * `spread` is HOME-relative, negative = home favored — same convention as
+ * CFBD. It is only trusted when the provider's own home-favorite flag agrees
+ * with the sign; anything inconsistent returns null so CFBD (or a manual
+ * line) is used instead of guessing.
+ */
+async function lineFromEspn(eventId: number): Promise<{ spread: number | null; overUnder: number | null; provider: string } | null> {
+  const d = await espnGet(`${ESPN_BASE}/summary?event=${eventId}`);
+  const picks: Json[] = d?.pickcenter ?? [];
+  const pick = picks.find((p) => p.provider?.name === "DraftKings" && typeof p.spread === "number")
+    ?? picks.find((p) => typeof p.spread === "number");
+  if (!pick) return null;
+  const homeFav = pick.homeTeamOdds?.favorite;
+  if (typeof homeFav === "boolean" && ((pick.spread < 0 && !homeFav) || (pick.spread > 0 && homeFav))) return null;
+  return {
+    spread: pick.spread,
+    overUnder: typeof pick.overUnder === "number" ? pick.overUnder : null,
+    provider: pick.provider?.name ?? "ESPN",
+  };
+}
+
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -92,10 +173,15 @@ function getSyncWindow(): SyncWindow {
   return null;
 }
 
-/** Upserts one game, skipping it entirely once it's already 'calculated'. */
+/**
+ * Creates or updates one game, skipping it entirely once it's already
+ * 'calculated'. An existing row keeps its stored team names (and its
+ * kickoff time when the source says the time isn't set yet); a new row is
+ * inserted and takes the column default for data_source (ESPN).
+ */
 async function upsertGame(
   supabase: Client,
-  g: CfbdGame,
+  g: ScheduleGame,
   existingStatus: string | undefined
 ): Promise<"created" | "updated" | "skipped" | "error"> {
   if (existingStatus === "calculated") return "skipped";
@@ -104,8 +190,8 @@ async function upsertGame(
   const kickoff = new Date(g.startDate).getTime();
   const status = g.completed ? "final" : kickoff <= now ? "live" : "pregame";
 
-  const { error } = await supabase.from("live_games").upsert(
-    {
+  if (existingStatus === undefined) {
+    const { error } = await supabase.from("live_games").insert({
       cfbd_game_id: g.id,
       home_team: g.homeTeam,
       away_team: g.awayTeam,
@@ -114,15 +200,27 @@ async function upsertGame(
       home_score: g.homePoints ?? 0,
       away_score: g.awayPoints ?? 0,
       updated_at: new Date().toISOString(),
-    },
-    { onConflict: "cfbd_game_id" }
-  );
+    });
+    if (error) {
+      console.error(`game-sync: insert failed for cfbd_game_id=${g.id}: ${error.message}`);
+      return "error";
+    }
+    return "created";
+  }
 
+  const update: Record<string, unknown> = {
+    status,
+    home_score: g.homePoints ?? 0,
+    away_score: g.awayPoints ?? 0,
+    updated_at: new Date().toISOString(),
+  };
+  if (g.timeValid) update.kickoff_time = g.startDate;
+  const { error } = await supabase.from("live_games").update(update).eq("cfbd_game_id", g.id);
   if (error) {
-    console.error(`game-sync: upsert failed for cfbd_game_id=${g.id}: ${error.message}`);
+    console.error(`game-sync: update failed for cfbd_game_id=${g.id}: ${error.message}`);
     return "error";
   }
-  return existingStatus === undefined ? "created" : "updated";
+  return "updated";
 }
 
 async function existingStatusFor(supabase: Client, gameIds: number[]): Promise<Map<number, string>> {
@@ -134,18 +232,25 @@ async function existingStatusFor(supabase: Client, gameIds: number[]): Promise<M
   return new Map(((data as { cfbd_game_id: number; status: string }[]) ?? []).map((r) => [r.cfbd_game_id, r.status]));
 }
 
-async function syncFromCfbd(supabase: Client, apiKey: string) {
+async function syncSchedule(supabase: Client, apiKey: string | undefined) {
   const year = new Date().getFullYear();
-  const res = await fetch(
-    `${CFBD_BASE}/games?year=${year}&team=Tennessee&seasonType=regular&division=fbs`,
-    { headers: { Authorization: `Bearer ${apiKey}` } }
-  );
 
-  if (!res.ok) {
-    return { ok: false as const, error: `CFBD API returned HTTP ${res.status}` };
+  let source: "espn" | "cfbd" = "espn";
+  let schedule = await scheduleFromEspn(year);
+  if (!schedule) {
+    // ESPN failed or looked wrong — fall back to CFBD.
+    if (!apiKey) return { ok: false as const, error: "ESPN schedule unavailable and no CFBD API key configured" };
+    source = "cfbd";
+    const res = await fetch(
+      `${CFBD_BASE}/games?year=${year}&team=Tennessee&seasonType=regular&division=fbs`,
+      { headers: { Authorization: `Bearer ${apiKey}` } }
+    );
+    if (!res.ok) {
+      return { ok: false as const, error: `ESPN schedule unavailable; CFBD API returned HTTP ${res.status}` };
+    }
+    schedule = ((await res.json()) as CfbdGame[]).map((g) => ({ ...g, timeValid: true }));
   }
 
-  const schedule = (await res.json()) as CfbdGame[];
   const now = Date.now();
   const relevant = schedule.filter((g) => {
     if (g.completed) return true;
@@ -153,7 +258,7 @@ async function syncFromCfbd(supabase: Client, apiKey: string) {
   });
 
   if (relevant.length === 0) {
-    return { ok: true as const, created: 0, updated: 0, skipped: 0 };
+    return { ok: true as const, source, created: 0, updated: 0, skipped: 0 };
   }
 
   const existing = await existingStatusFor(supabase, relevant.map((g) => g.id));
@@ -166,7 +271,7 @@ async function syncFromCfbd(supabase: Client, apiKey: string) {
     else if (outcome === "skipped") skipped++;
   }
 
-  return { ok: true as const, created, updated, skipped };
+  return { ok: true as const, source, created, updated, skipped };
 }
 
 const PREFERRED_LINE_PROVIDERS = ["DraftKings", "consensus"];
@@ -187,51 +292,67 @@ function pickLine(lines: CfbdLineEntry[]): CfbdLineEntry | null {
  * Wednesday, and Saturday simply each re-fetch and overwrite whatever CFBD
  * currently reports for every pregame game.
  */
-async function refreshLinesForUpcomingGames(supabase: Client, apiKey: string) {
+async function refreshLinesForUpcomingGames(supabase: Client, apiKey: string | undefined) {
   const { data: candidates } = await supabase
     .from("live_games")
-    .select("id, cfbd_game_id, home_team")
-    .eq("status", "pregame");
+    .select("id, cfbd_game_id, home_team, lines_manual")
+    .eq("status", "pregame")
+    .eq("sport", "football");
 
-  const games = (candidates ?? []) as { id: string; cfbd_game_id: number; home_team: string }[];
+  const games = (candidates ?? []) as { id: string; cfbd_game_id: number; home_team: string; lines_manual: boolean | null }[];
   if (games.length === 0) {
     return { checked: 0, refreshed: 0 };
   }
 
-  let refreshed = 0;
+  let refreshed = 0, viaEspn = 0, viaCfbd = 0, pinned = 0;
   for (const g of games) {
+    // An admin pinned this game's lines (see lines_manual) — leave them be.
+    if (g.lines_manual) {
+      pinned++;
+      continue;
+    }
     try {
-      const res = await fetch(`${CFBD_BASE}/lines?gameId=${g.cfbd_game_id}`, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-      });
-      if (!res.ok) continue;
-      const arr = (await res.json()) as CfbdGameLines[];
-      const gameLines = arr[0];
-      const chosen = gameLines ? pickLine(gameLines.lines ?? []) : null;
-      if (!chosen) continue;
+      let line = await lineFromEspn(g.cfbd_game_id);
+      let source: "espn" | "cfbd" = "espn";
 
-      // Normalize to TN-relative (negative = TN favored). CFBD's spread is
-      // home-team-relative, so flip the sign when TN is the away team.
+      if (!line && apiKey) {
+        const res = await fetch(`${CFBD_BASE}/lines?gameId=${g.cfbd_game_id}`, {
+          headers: { Authorization: `Bearer ${apiKey}` },
+        });
+        if (res.ok) {
+          const arr = (await res.json()) as CfbdGameLines[];
+          const chosen = arr[0] ? pickLine(arr[0].lines ?? []) : null;
+          if (chosen) {
+            line = { spread: chosen.spread, overUnder: chosen.overUnder, provider: chosen.provider };
+            source = "cfbd";
+          }
+        }
+      }
+      if (!line) continue;
+
+      // Normalize to TN-relative (negative = TN favored). Both sources give a
+      // home-team-relative spread, so flip the sign when TN is the away team.
       const spreadTnRelative =
         g.home_team === "Tennessee"
-          ? chosen.spread
-          : chosen.spread == null ? null : -chosen.spread;
+          ? line.spread
+          : line.spread == null ? null : -line.spread;
 
       await supabase
         .from("live_games")
         .update({
           spread_line_tn: spreadTnRelative,
-          total_points_line: chosen.overUnder,
-          lines_provider: chosen.provider,
+          total_points_line: line.overUnder,
+          lines_provider: `${line.provider}${source === "espn" ? " (ESPN)" : ""}`,
           lines_captured_at: new Date().toISOString(),
         })
         .eq("id", g.id);
       refreshed++;
+      if (source === "espn") viaEspn++; else viaCfbd++;
     } catch (err) {
       console.error(`game-sync: line refresh failed for cfbd_game_id=${g.cfbd_game_id}: ${err}`);
     }
   }
-  return { checked: games.length, refreshed };
+  return { checked: games.length, refreshed, viaEspn, viaCfbd, pinned };
 }
 
 /**
@@ -254,7 +375,7 @@ async function refreshUpcomingCache(serviceKey: string) {
 }
 
 /**
- * Keeps live_games in sync with Tennessee Football's real CFBD schedule so
+ * Keeps live_games in sync with Tennessee Football's real schedule (ESPN first, CFBD fallback) so
  * the pregame predictor has a row to attach picks to without anyone
  * manually re-creating it via the Admin Dashboard every week.
  *
@@ -286,22 +407,14 @@ Deno.serve(async (req: Request) => {
 
   // Betting-line check runs inside all three weekly windows (Mon/Wed/Sat) —
   // see refreshLinesForUpcomingGames.
-  let linesResult: unknown = { skipped: "no api key" };
-  if (apiKey) {
-    linesResult = await refreshLinesForUpcomingGames(supabase, apiKey).catch((err) => ({ error: String(err) }));
-  }
+  const linesResult: unknown = await refreshLinesForUpcomingGames(supabase, apiKey).catch((err) => ({ error: String(err) }));
 
   if (window === "midweek-line-check") {
     return json({ ok: true, window, lines: linesResult });
   }
 
   try {
-    if (!apiKey) {
-      await reportHealth(supabase, "stalled");
-      return json({ error: "CFBD API key not configured" }, 500);
-    }
-
-    const result = await syncFromCfbd(supabase, apiKey);
+    const result = await syncSchedule(supabase, apiKey);
 
     if (window === "weekly-upcoming") {
       const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");

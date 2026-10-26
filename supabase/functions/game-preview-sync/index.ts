@@ -263,7 +263,11 @@ Deno.serve(async (req: Request) => {
     .eq("game_id", gameId)
     .maybeSingle();
 
-  if (cached && Date.now() - new Date(cached.fetched_at).getTime() < CACHE_TTL_MS) {
+  // content.manual marks a preview entered by hand (e.g. when the ESPN scrape
+  // came back empty, as it did for the 2026-09-26 Texas game) — never
+  // re-scrape over it.
+  const isManual = (cached?.content as { manual?: boolean } | undefined)?.manual === true;
+  if (cached && (isManual || Date.now() - new Date(cached.fetched_at).getTime() < CACHE_TTL_MS)) {
     return new Response(JSON.stringify({ available: true, content: cached.content, cached: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

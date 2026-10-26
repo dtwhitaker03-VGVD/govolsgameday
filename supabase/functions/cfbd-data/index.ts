@@ -36,10 +36,9 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
+  // CFBD is now only the fallback for the upcoming-game card (ESPN is tried
+  // first), so a missing key is no longer fatal on its own.
   const apiKey = Deno.env.get("CFBC_API_KEY");
-  if (!apiKey) {
-    return json({ error: "CFBD API key not configured" }, 500);
-  }
 
   let body: RequestBody = {};
   try {
@@ -350,9 +349,128 @@ async function cfbdFetchCritical(
   }
 }
 
+// ─── ESPN source (free, no key) ──────────────────────────────────────────────
+// Builds the same payload getUpcomingGame produces from CFBD, from ESPN: the
+// next game from Tennessee's ESPN schedule (event ids match CFBD's), records
+// and logos from each team's page, AP / Coaches rankings from the rankings
+// feed, and season offensive ranks from ESPN's core stats API (which, unlike
+// CFBD's, gives real national ranks). Defensive numbers aren't available from
+// ESPN's free stats either (they come back as zeros), so scoringDefense /
+// totalDefense stay null exactly as before and the card keeps using the game
+// preview for those. Returns null when ESPN can't answer, so CFBD is used.
+
+const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/football/college-football";
+const ESPN_CORE = "https://sports.core.api.espn.com/v2/sports/football/leagues/college-football";
+const ESPN_HEADERS = { "User-Agent": "Mozilla/5.0 (compatible; GoVolsGameDay/1.0)", Accept: "application/json" };
+const TENNESSEE_ESPN_ID = "2633";
+
+// deno-lint-ignore no-explicit-any
+type Json = any;
+
+async function espnGet(url: string): Promise<Json | null> {
+  try {
+    const res = await fetch(url, { headers: ESPN_HEADERS });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+async function buildUpcomingFromEspn(year: number): Promise<{ payload: Record<string, unknown> } | null> {
+  const sched = await espnGet(`${ESPN_BASE}/teams/${TENNESSEE_ESPN_ID}/schedule?season=${year}&seasontype=2`);
+  const events: Json[] | undefined = sched?.events;
+  if (!Array.isArray(events) || events.length === 0) return null;
+
+  const now = Date.now();
+  const future = events
+    .filter((e) => e.competitions?.[0]?.status?.type?.completed !== true && new Date(e.date).getTime() > now)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  if (future.length === 0) return { payload: { upcoming: null, reason: "no_games" } };
+
+  const ev = future[0];
+  const comp = ev.competitions[0];
+  const home = comp.competitors?.find((c: Json) => c.homeAway === "home");
+  const away = comp.competitors?.find((c: Json) => c.homeAway === "away");
+  if (!home || !away) return null;
+  const tennesseeIsHome = home.team?.id === TENNESSEE_ESPN_ID;
+  const opp = tennesseeIsHome ? away : home;
+  const oppId: string = opp.team?.id;
+  const oppName: string = opp.team?.location;
+  if (!oppId || !oppName) return null;
+
+  const [tnTeam, oppTeam, rankings, tnStats, oppStats] = await Promise.all([
+    espnGet(`${ESPN_BASE}/teams/${TENNESSEE_ESPN_ID}`),
+    espnGet(`${ESPN_BASE}/teams/${oppId}`),
+    espnGet(`${ESPN_BASE}/rankings`),
+    espnGet(`${ESPN_CORE}/seasons/${year}/types/2/teams/${TENNESSEE_ESPN_ID}/statistics?lang=en&region=us`),
+    espnGet(`${ESPN_CORE}/seasons/${year}/types/2/teams/${oppId}/statistics?lang=en&region=us`),
+  ]);
+
+  const record = (t: Json): { wins: number; losses: number } | null => {
+    const summary: string | undefined = t?.team?.record?.items?.find((i: Json) => i.type === "total")?.summary
+      ?? t?.team?.record?.items?.[0]?.summary;
+    const m = summary?.match(/^(\d+)-(\d+)/);
+    return m ? { wins: parseInt(m[1], 10), losses: parseInt(m[2], 10) } : null;
+  };
+  const logo = (t: Json, fallback: Json): string | null =>
+    t?.team?.logos?.[0]?.href ?? fallback?.team?.logo ?? fallback?.team?.logos?.[0]?.href ?? null;
+
+  const rankOf = (teamId: string, pollName: string): number | null => {
+    const poll = rankings?.rankings?.find((r: Json) => r.name === pollName);
+    const hit = poll?.ranks?.find((r: Json) => r.team?.id === teamId);
+    return typeof hit?.current === "number" ? hit.current : null;
+  };
+
+  // value/rank for one named stat in ESPN's core season statistics.
+  const statOf = (stats: Json, category: string, name: string): { value: number; rank: number } | null => {
+    const st = stats?.splits?.categories?.find((c: Json) => c.name === category)?.stats?.find((x: Json) => x.name === name);
+    return st && typeof st.value === "number" && typeof st.rank === "number" ? { value: st.value, rank: st.rank } : null;
+  };
+  const teamStats = (stats: Json) => ({
+    scoringOffense: statOf(stats, "scoring", "totalPointsPerGame"),
+    totalOffense: statOf(stats, "passing", "yardsPerGame"),
+    passingYards: statOf(stats, "passing", "passingYardsPerGame"),
+    rushingYards: statOf(stats, "rushing", "rushingYardsPerGame"),
+    scoringDefense: null as { value: number; rank: number } | null,
+    totalDefense: null as { value: number; rank: number } | null,
+  });
+
+  return {
+    payload: {
+      upcoming: {
+        game: {
+          id: Number(ev.id),
+          date: new Date(ev.date).toISOString(),
+          homeTeam: home.team.location,
+          awayTeam: away.team.location,
+          venue: comp.venue?.fullName ?? "",
+          neutralSite: comp.neutralSite ?? false,
+        },
+        tennesseeIsHome,
+        tennessee: {
+          record: record(tnTeam),
+          ranking_ap: rankOf(TENNESSEE_ESPN_ID, "AP Top 25"),
+          ranking_coaches: rankOf(TENNESSEE_ESPN_ID, "AFCA Coaches Poll"),
+          logo: logo(tnTeam, tennesseeIsHome ? home : away),
+          stats: teamStats(tnStats),
+        },
+        opponent: {
+          name: oppName,
+          record: record(oppTeam),
+          ranking_ap: rankOf(oppId, "AP Top 25"),
+          ranking_coaches: rankOf(oppId, "AFCA Coaches Poll"),
+          logo: logo(oppTeam, opp),
+          stats: teamStats(oppStats),
+        },
+      },
+    },
+  };
+}
+
 // ─── Main logic ──────────────────────────────────────────────────────────────
 
-async function getUpcomingGame(apiKey: string, force: boolean) {
+async function getUpcomingGame(apiKey: string | undefined, force: boolean) {
   const supabase = getSupabaseClient();
   const cacheKey = "upcoming_game";
 
@@ -369,6 +487,19 @@ async function getUpcomingGame(apiKey: string, force: boolean) {
   // Real fetch — either a forced, scheduled refresh, or a one-time bootstrap.
   const year = new Date().getFullYear();
   const todayIso = new Date().toISOString();
+
+  // ESPN first (free); CFBD below is the fallback.
+  const fromEspn = await buildUpcomingFromEspn(year);
+  if (fromEspn) {
+    await setCached(supabase, cacheKey, fromEspn.payload);
+    return json({ ...fromEspn.payload, cached: false, source: "espn" });
+  }
+
+  if (!apiKey) {
+    const { data: stale } = await supabase.from("cfbd_cache").select("payload").eq("cache_key", cacheKey).maybeSingle();
+    if (stale?.payload) return json({ ...stale.payload, cached: true, stale: true });
+    return json({ upcoming: null, reason: "api_error", message: "ESPN unavailable and no CFBD API key configured" }, 502);
+  }
 
   // Schedule is the critical call
   const scheduleResult = await cfbdFetchCritical(
@@ -420,7 +551,7 @@ async function getUpcomingGame(apiKey: string, force: boolean) {
   //    - Teams (for logos, both TN + opponent in one call each)
   //    - Records (for current season)
   //    Skip rankings and stats during pre-season (they're empty anyway)
-  const hasSeasonStarted = schedule.some((g) => g.completed);
+  const hasSeasonStarted = (schedule as GameEntry[]).some((g) => g.completed);
 
   const [records, tnTeam, opponentTeam] = await Promise.all([
     cfbdFetch(`/records?year=${year}`, apiKey),
