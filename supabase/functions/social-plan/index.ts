@@ -223,7 +223,7 @@ const BUILDERS: Record<string, Builder> = {
     const options = [p.option_a, p.option_b, p.option_c, p.option_d].filter(Boolean);
     return [{
       kind: "poll_teaser", subject_key: `poll:${today}`, target,
-      caption: `Today's Vols poll:\n\n${p.question}\n\n${options.map((o, i) => `${"ABCD"[i]}) ${o}`).join("\n")}\n\nCast your vote at ${SITE}.\n\n${HASHTAGS} #VolNation`,
+      caption: `Today's Vols poll:\n\n${p.question}\n\n${options.map((o, i) => `${"ABCD"[i]}) ${o}`).join("\n")}\n\nCast your vote at ${SITE}.\n\n${HASHTAGS} #VolPoll`,
       payload: { template: "teaser", data: { kind: "poll", question: p.question, options } },
     }];
   },
