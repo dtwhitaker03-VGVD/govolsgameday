@@ -94,39 +94,142 @@ export function countdown(d: CountdownData): Node {
   ], "Make your picks before kickoff");
 }
 
-// ─── Final recap ─────────────────────────────────────────────────────────────
+// ─── Final game stats chart ──────────────────────────────────────────────────
 
-export interface FinalData {
+export interface StatRow {
+  label: string;
+  tn: string; // display text, e.g. "344" or "43%"
+  opp: string;
+  tnVal: number; // numeric values size the bar
+  oppVal: number;
+}
+
+export interface FinalStatsData {
   sport: "football" | "basketball";
   tn: number;
   opp: number;
   opponent: string;
   home: boolean;
-  top: { name: string; points: number }[]; // up to 3
+  rows: StatRow[]; // up to 5
 }
 
-export function finalRecap(d: FinalData): Node {
+export function finalStats(d: FinalStatsData): Node {
   const won = d.tn > d.opp;
+  const rows = d.rows.slice(0, 5);
   return frame([
     pill(`${sportTag(d.sport)} · FINAL`, won ? ORANGE : RED),
-    h("div", { alignItems: "center", marginTop: 26, ...anton(280, { lineHeight: 1 }) }, [
+    h("div", { alignItems: "center", marginTop: 14, ...anton(150, { lineHeight: 1 }) }, [
       h("span", { color: won ? ORANGE : "#fff" }, String(d.tn)),
-      h("div", { width: 64, height: 14, background: MUTED, margin: "0 38px", borderRadius: 4 }),
+      h("div", { width: 44, height: 10, background: MUTED, margin: "0 28px", borderRadius: 4 }),
       h("span", { color: won ? "#fff" : ORANGE }, String(d.opp)),
     ]),
-    h("div", { ...anton(54, { color: "#fff", marginTop: 8 }) }, `TENNESSEE ${d.home ? "VS" : "AT"} ${shorten(d.opponent, 22)}`),
-    d.top.length > 0
-      ? h("div", { marginTop: 34, flexDirection: "column", width: 780, background: PANEL, borderRadius: 20, padding: "22px 34px", border: "2px solid rgba(255,255,255,0.1)" }, [
-          h("div", { fontSize: 24, fontWeight: 800, letterSpacing: 3, color: ORANGE, marginBottom: 10 }, "TOP PREDICTORS"),
-          ...d.top.map((r, i) =>
-            h("div", { justifyContent: "space-between", fontSize: 34, fontWeight: 700, padding: "5px 0" }, [
-              h("span", {}, `${i + 1}. ${shorten(r.name, 20)}`),
-              h("span", { color: ORANGE }, `${r.points.toLocaleString("en-US")} pts`),
-            ])
-          ),
+    h("div", { ...anton(40, { color: "#fff", marginTop: 4 }) }, `TENNESSEE ${d.home ? "VS" : "AT"} ${shorten(d.opponent, 24)}`),
+    rows.length > 0
+      ? h("div", { marginTop: 26, flexDirection: "column", width: 900 }, [
+          h("div", { justifyContent: "space-between", fontSize: 24, fontWeight: 800, letterSpacing: 3, marginBottom: 6 }, [
+            h("span", { color: ORANGE }, "TENNESSEE"),
+            h("span", { color: "#fff" }, shorten(d.opponent, 18).toUpperCase()),
+          ]),
+          ...rows.map((r) => {
+            const total = r.tnVal + r.oppVal;
+            const tnShare = total > 0 ? Math.max(4, Math.min(96, Math.round((r.tnVal / total) * 100))) : 50;
+            return h("div", { flexDirection: "column", marginTop: 10 }, [
+              h("div", { justifyContent: "space-between", alignItems: "flex-end", fontWeight: 800 }, [
+                h("span", { fontSize: 36, color: ORANGE }, r.tn),
+                h("span", { fontSize: 24, color: MUTED, letterSpacing: 2 }, r.label.toUpperCase()),
+                h("span", { fontSize: 36, color: "#fff" }, r.opp),
+              ]),
+              h("div", { height: 16, borderRadius: 8, overflow: "hidden", marginTop: 4, background: "#fff" }, [
+                h("div", { width: `${tnShare}%`, height: 16, background: ORANGE }),
+              ]),
+            ]);
+          }),
         ])
       : h("div", {}),
-  ], "Think you can beat them? Play free");
+  ], "Final game stats");
+}
+
+// ─── Site promotion ──────────────────────────────────────────────────────────
+
+export interface PromoData {
+  tag: string; // pill text
+  headline: string;
+  sub?: string; // optional line under the headline (e.g. today's matchup)
+  features: { title: string; text: string }[]; // 3
+}
+
+export function promo(d: PromoData): Node {
+  return frame([
+    pill(d.tag),
+    h("div", { ...anton(d.headline.length > 28 ? 84 : 104, { color: "#fff", textAlign: "center", lineHeight: 1.05, marginTop: 28, maxWidth: 940, textShadow: "6px 6px 0 #D11919" }) }, d.headline),
+    d.sub ? h("div", { fontSize: 32, fontWeight: 700, color: ORANGE, marginTop: 16, textAlign: "center" }, d.sub) : h("div", {}),
+    h("div", { flexDirection: "column", marginTop: 30, width: 900 }, d.features.slice(0, 3).map((f, i) =>
+      h("div", { alignItems: "center", background: PANEL, borderRadius: 18, padding: "16px 26px", marginTop: 12, border: "2px solid rgba(255,255,255,0.1)" }, [
+        h("div", { width: 56, height: 56, borderRadius: 14, background: ORANGE, color: "#fff", alignItems: "center", justifyContent: "center", ...anton(34), marginRight: 22, flexShrink: 0 }, String(i + 1)),
+        h("div", { flexDirection: "column" }, [
+          h("div", { fontSize: 32, fontWeight: 800, color: "#fff" }, f.title),
+          h("div", { fontSize: 25, fontWeight: 400, color: MUTED, marginTop: 2 }, f.text),
+        ]),
+      ])
+    )),
+  ], "Join in at");
+}
+
+// ─── Player of the game ──────────────────────────────────────────────────────
+
+export interface PotgData {
+  name: string;
+  position?: string | null;
+  jersey?: string | null;
+  stats: { label: string; value: string }[]; // up to 4
+  opponent: string;
+  home: boolean;
+  resultLine: string; // e.g. "L 24-27"
+}
+
+export function playerOfGame(d: PotgData): Node {
+  const sub = [d.jersey ? `#${d.jersey}` : "", d.position ?? ""].filter(Boolean).join(" · ");
+  const nameSize = d.name.length > 22 ? 84 : d.name.length > 16 ? 104 : 128;
+  const stats = d.stats.slice(0, 4);
+  return frame([
+    pill("PLAYER OF THE GAME"),
+    h("div", { ...anton(nameSize, { color: "#fff", textAlign: "center", lineHeight: 1.02, marginTop: 30, maxWidth: 960, textShadow: "7px 7px 0 #D11919" }) }, d.name),
+    sub ? h("div", { ...anton(46, { color: ORANGE, marginTop: 12 }) }, sub) : h("div", {}),
+    stats.length > 0
+      ? h("div", { marginTop: 36, width: 920, flexWrap: "wrap", justifyContent: "center" }, stats.map((st) =>
+          h("div", { width: stats.length === 1 ? 420 : 440, flexDirection: "column", alignItems: "center", background: PANEL, borderRadius: 18, padding: "18px 12px", margin: 8, border: "2px solid rgba(255,255,255,0.1)" }, [
+            h("div", { ...anton(76, { color: ORANGE, lineHeight: 1 }) }, shorten(st.value, 10)),
+            h("div", { fontSize: 24, fontWeight: 800, letterSpacing: 2, color: MUTED, marginTop: 6 }, shorten(st.label, 22).toUpperCase()),
+          ])
+        ))
+      : h("div", {}),
+    h("div", { fontSize: 30, fontWeight: 700, color: "#fff", marginTop: 24 }, `${d.home ? "vs" : "at"} ${shorten(d.opponent, 24)} · ${d.resultLine}`),
+  ], "Stats and predictions at");
+}
+
+// ─── Next game preview ───────────────────────────────────────────────────────
+
+export interface PreviewData {
+  sport: "football" | "basketball";
+  opponent: string;
+  home: boolean;
+  whenText: string; // "SAT, NOV 7 · 3:30 PM ET" or "... · TIME TBA"
+  context?: string | null; // one real line, e.g. "No. 11 Tennessee (6-1) at South Carolina (3-3)"
+  watch?: string | null; // "ESPN"
+}
+
+export function preview(d: PreviewData): Node {
+  const oppSize = d.opponent.length > 18 ? 96 : d.opponent.length > 12 ? 124 : 160;
+  return frame([
+    pill(`NEXT UP · ${sportTag(d.sport)}`),
+    h("div", { ...anton(40, { color: MUTED, marginTop: 30 }) }, d.home ? "TENNESSEE HOSTS" : "TENNESSEE VISITS"),
+    h("div", { ...anton(oppSize, { color: "#fff", textAlign: "center", lineHeight: 1.02, marginTop: 8, maxWidth: 960, textShadow: "7px 7px 0 #D11919" }) }, d.opponent),
+    h("div", { marginTop: 34, flexDirection: "column", alignItems: "center", background: PANEL, padding: "24px 44px", borderRadius: 20, border: "2px solid rgba(255,255,255,0.1)" }, [
+      h("div", { ...anton(52, { color: "#fff" }) }, d.whenText),
+      d.watch ? h("div", { fontSize: 30, fontWeight: 700, color: ORANGE, marginTop: 8 }, `Watch on ${d.watch}`) : h("div", {}),
+    ]),
+    d.context ? h("div", { fontSize: 28, fontWeight: 700, color: MUTED, marginTop: 24, textAlign: "center", maxWidth: 900 }, shorten(d.context, 110)) : h("div", {}),
+  ], "Make your picks at");
 }
 
 // ─── Trivia / poll teaser (the question only, never the answer) ──────────────

@@ -6,6 +6,8 @@ import { DashboardCard } from '../components/ui/DashboardCard';
 import { CheckCircle, AlertCircle, Loader, EyeOff, Trash2, RefreshCw, Pin, Plus, X, Search, Pencil, Play, Check } from 'lucide-react';
 import { selectMainPageVideos } from '../lib/mainPageVideoSelection';
 import { SocialPostsPanel } from '../components/admin/SocialPostsPanel';
+import { SocialSchedulePanel } from '../components/admin/SocialSchedulePanel';
+import { PlayerOfGamePanel } from '../components/admin/PlayerOfGamePanel';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1857,6 +1859,8 @@ export default function Admin() {
       <WeeklyPropBetsPanel games={games} />
       <FinalizedGameStatsPanel games={games} onRefresh={loadGames} />
       <SocialPostsPanel />
+      <SocialSchedulePanel />
+      <PlayerOfGamePanel />
 
       <ScrapedContentReview />
     </div>

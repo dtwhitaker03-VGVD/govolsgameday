@@ -32,7 +32,11 @@ interface SocialPost {
 
 const KIND_LABEL: Record<string, string> = {
   countdown: 'Countdown',
-  final_recap: 'Final recap',
+  final_stats: 'Final stats chart',
+  promo_pregame: 'Gameday promo',
+  promo_general: 'Site promo',
+  player_of_game: 'Player of the Game',
+  next_game_preview: 'Next game preview',
   trivia_teaser: 'Trivia teaser',
   poll_teaser: 'Poll teaser',
   news: 'News',
