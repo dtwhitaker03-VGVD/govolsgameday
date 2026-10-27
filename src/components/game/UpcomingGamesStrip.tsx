@@ -152,12 +152,12 @@ function GameCard({
         </div>
         <div className="flex items-center justify-between gap-3">
           {/* "11:05:33:22" — days in orange, then hh:mm:ss. With no kickoff time yet it's the day count alone. */}
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-black text-vgd-orange leading-none tabular-nums">{days}</span>
+          <div className="flex items-baseline">
+            <span className="text-3xl font-black text-vgd-orange leading-none tabular-nums">{days}</span>
             {timeKnown ? (
-              <span className="text-2xl font-black text-white leading-none tabular-nums">:{clock}</span>
+              <span className="text-lg font-extrabold text-white leading-none tabular-nums">:{clock}</span>
             ) : (
-              <span className="text-[10px] font-bold tracking-widest uppercase text-white/60">{days === 1 ? 'day' : 'days'}</span>
+              <span className="ml-1.5 text-[10px] font-bold tracking-widest uppercase text-white/60">{days === 1 ? 'day' : 'days'}</span>
             )}
           </div>
           {onPick && (
