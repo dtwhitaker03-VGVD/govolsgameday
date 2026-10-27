@@ -178,15 +178,16 @@ export default function Home() {
   // Realtime subscriptions elsewhere on this page still pick up the
   // resulting changes live. See supabase/functions/live-cfbd-sync.
 
-  // One predictor slot shared by every sport that has a game. Until the user
-  // picks a tab it follows the action: a live game first (football, then men's,
-  // then women's), else whichever game is soonest.
+  // One predictor slot shared by every sport that has a game. It always opens
+  // on football when there is a football game (a LIVE dot on the other tabs
+  // flags a game in progress); otherwise on whichever game is soonest.
   const byTab: Record<PredictorSport, LiveGame | null> = { football: liveGame, basketball: bbGame, womens_basketball: wbbGame };
   const available = (['football', 'basketball', 'womens_basketball'] as PredictorSport[]).filter((s) => byTab[s]);
   const defaultSport: PredictorSport =
-    available.find((s) => byTab[s]!.status === 'live')
-    ?? [...available].sort((a, b) => new Date(byTab[a]!.kickoff_time).getTime() - new Date(byTab[b]!.kickoff_time).getTime())[0]
-    ?? 'football';
+    available.includes('football')
+      ? 'football'
+      : [...available].sort((a, b) => new Date(byTab[a]!.kickoff_time).getTime() - new Date(byTab[b]!.kickoff_time).getTime())[0]
+        ?? 'football';
   const activeSport = pickedSport && byTab[pickedSport] ? pickedSport : defaultSport;
   const basketballSelected = activeSport === 'football' ? null : byTab[activeSport];
   const TAB_LABEL: Record<PredictorSport, string> = { football: 'Football', basketball: "Men's", womens_basketball: "Women's" };
