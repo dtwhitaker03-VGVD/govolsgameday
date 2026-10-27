@@ -7,6 +7,7 @@ import { GameLeaderboard } from '../components/predictions/GameLeaderboard';
 import { BasketballPregamePredictions } from '../components/predictions/BasketballPregamePredictions';
 import { BasketballLivePrediction } from '../components/predictions/BasketballLivePrediction';
 import { BasketballScoreboard } from '../components/game/BasketballScoreboard';
+import { UpcomingGamesStrip } from '../components/game/UpcomingGamesStrip';
 import { VideoGrid } from '../components/video/VideoGrid';
 import { VolNewsWire } from '../components/news/VolNewsWire';
 import { ForumThreadsPanel } from '../components/forums/ForumThreadsPanel';
@@ -165,6 +166,11 @@ export default function Home() {
           Predictor's own post-game summary — a user's pregame results and
           the game's overall (pregame + live-drive) leaderboard stay visible
           together instead of reverting to a bare picks form. */}
+      <UpcomingGamesStrip
+        shownGameIds={{ football: liveGame?.id ?? null, basketball: bbGame?.id ?? null }}
+        panelIds={{ football: 'predictor-football', basketball: 'predictor-basketball' }}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4 items-start">
         <DiscussionBoard
           roomCategory="main"
@@ -176,7 +182,7 @@ export default function Home() {
         {!layoutReady ? (
           <div className="bg-vgd-card border border-white/[0.07] rounded-lg animate-pulse" style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }} />
         ) : liveGame ? (
-          <div className="flex flex-col gap-4" style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }}>
+          <div id="predictor-football" className="flex flex-col gap-4 scroll-mt-16" style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }}>
             {isLive ? (
               <>
                 {/* Live mode: Live Drive Predictor on top, Leaderboard on bottom — split evenly */}
@@ -206,7 +212,7 @@ export default function Home() {
           </div>
         ) : bbGame ? (
           /* No football game to show: basketball takes the predictor slot */
-          <div style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }}>
+          <div id="predictor-basketball" className="scroll-mt-16" style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }}>
             <BasketballColumn game={bbGame} />
           </div>
         ) : (
@@ -219,7 +225,7 @@ export default function Home() {
       {/* ── Men's basketball predictor row — football is above and keeps the
           main slot; this row only appears when both sports have a game. ── */}
       {layoutReady && liveGame && bbGame && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        <div id="predictor-basketball" className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start scroll-mt-16">
           <div style={{ height: `${BB_ROW_HEIGHT}px` }}>
             <BasketballMain game={bbGame} />
           </div>
