@@ -8,8 +8,10 @@ type Sport = 'football' | 'basketball';
 interface Props {
   /** The game each predictor panel is currently showing; its card jumps to that panel. */
   shownGameIds: Partial<Record<Sport, string | null>>;
-  /** DOM ids of the predictor panels on the page, by sport. */
-  panelIds: Record<Sport, string>;
+  /** DOM id of the shared predictor panel. */
+  panelId: string;
+  /** Switches the panel to this sport before scrolling to it. */
+  onPick: (sport: Sport) => void;
 }
 
 const SPORT_LABEL: Record<Sport, string> = { football: 'Football', basketball: "Men's Basketball" };
@@ -44,7 +46,7 @@ function opponentOf(g: LiveGame) {
 
 const monogram = (name: string) => name.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
 
-export function UpcomingGamesStrip({ shownGameIds, panelIds }: Props) {
+export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
   const [games, setGames] = useState<Partial<Record<Sport, LiveGame>>>({});
 
   useEffect(() => {
@@ -64,8 +66,10 @@ export function UpcomingGamesStrip({ shownGameIds, panelIds }: Props) {
       });
   }, []);
 
-  const jump = (sport: Sport) =>
-    document.getElementById(panelIds[sport])?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const jump = (sport: Sport) => {
+    onPick(sport);
+    document.getElementById(panelId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const sports: Sport[] = ['football', 'basketball'];
 

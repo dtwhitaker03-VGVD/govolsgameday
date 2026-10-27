@@ -6,7 +6,6 @@ import { LiveDrivePrediction } from '../components/predictions/LiveDrivePredicti
 import { GameLeaderboard } from '../components/predictions/GameLeaderboard';
 import { BasketballPregamePredictions } from '../components/predictions/BasketballPregamePredictions';
 import { BasketballLivePrediction } from '../components/predictions/BasketballLivePrediction';
-import { BasketballScoreboard } from '../components/game/BasketballScoreboard';
 import { UpcomingGamesStrip } from '../components/game/UpcomingGamesStrip';
 import { VideoGrid } from '../components/video/VideoGrid';
 import { VolNewsWire } from '../components/news/VolNewsWire';
@@ -75,22 +74,54 @@ function pickActiveGame(games: LiveGame[]): LiveGame | null {
   return upcoming ?? null;
 }
 
-const BB_ROW_HEIGHT = 560;
+type PredictorSport = 'football' | 'basketball';
 
 /** The basketball predictor itself: pregame picks, live stretches, or the post-game summary. */
 function BasketballMain({ game }: { game: LiveGame }) {
   return game.status === 'live' ? <BasketballLivePrediction game={game} /> : <BasketballPregamePredictions game={game} />;
 }
 
-/** Whole predictor slot for basketball when football has nothing to show. */
+/** Basketball tab body: picks alone before tip (the scoreboard is empty then), picks/live + leaderboard after. */
 function BasketballColumn({ game }: { game: LiveGame }) {
-  const started = game.status !== 'pregame';
+  if (game.status === 'pregame') return <BasketballMain game={game} />;
   return (
     <div className="flex flex-col gap-4 h-full">
       <div className="flex-1 min-h-0"><BasketballMain game={game} /></div>
-      <div className="flex-1 min-h-0">
-        {started ? <GameLeaderboard game={game} /> : <BasketballScoreboard game={game} />}
-      </div>
+      <div className="flex-1 min-h-0"><GameLeaderboard game={game} /></div>
+    </div>
+  );
+}
+
+function SportTabs({
+  active, onSelect, footballLive, basketballLive,
+}: {
+  active: PredictorSport;
+  onSelect: (s: PredictorSport) => void;
+  footballLive: boolean;
+  basketballLive: boolean;
+}) {
+  const tab = (sport: PredictorSport, label: string, live: boolean) => (
+    <button
+      key={sport}
+      role="tab"
+      aria-selected={active === sport}
+      onClick={() => onSelect(sport)}
+      className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-extrabold tracking-wider uppercase transition-colors ${
+        active === sport ? 'bg-vgd-orange text-vgd-bg' : 'text-white hover:bg-white/10'
+      }`}
+    >
+      {label}
+      {live && (
+        <span className="flex items-center gap-1 text-[9px] font-bold text-red-500">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />LIVE
+        </span>
+      )}
+    </button>
+  );
+  return (
+    <div role="tablist" className="flex gap-1 p-1 bg-vgd-card border border-white/[0.07] rounded-lg flex-shrink-0">
+      {tab('football', 'Football', footballLive)}
+      {tab('basketball', "Men's Basketball", basketballLive)}
     </div>
   );
 }
@@ -99,6 +130,7 @@ export default function Home() {
   const [liveGame, setLiveGame] = useState<LiveGame | null>(null);
   const [bbGame, setBbGame] = useState<LiveGame | null>(null);
   const [layoutReady, setLayoutReady] = useState(false);
+  const [pickedSport, setPickedSport] = useState<PredictorSport | null>(null);
 
   const fetchActiveGame = useCallback(() => {
     return supabase
@@ -147,6 +179,19 @@ export default function Home() {
   // Realtime subscriptions elsewhere on this page still pick up the
   // resulting changes live. See supabase/functions/live-cfbd-sync.
 
+  // One predictor slot shared by both sports. Until the user picks a tab it
+  // follows the action: a live game first (football wins a tie), else
+  // whichever of the two games is sooner.
+  const defaultSport: PredictorSport =
+    liveGame?.status === 'live' ? 'football'
+    : bbGame?.status === 'live' ? 'basketball'
+    : !liveGame ? 'basketball'
+    : !bbGame ? 'football'
+    : new Date(bbGame.kickoff_time) < new Date(liveGame.kickoff_time) ? 'basketball'
+    : 'football';
+  const activeSport = pickedSport ?? defaultSport;
+  const showBasketball = activeSport === 'basketball' && !!bbGame;
+
   const isLive = liveGame?.status === 'live';
   const isFinal = liveGame?.status === 'final' || liveGame?.status === 'calculated';
 
@@ -168,7 +213,8 @@ export default function Home() {
           together instead of reverting to a bare picks form. */}
       <UpcomingGamesStrip
         shownGameIds={{ football: liveGame?.id ?? null, basketball: bbGame?.id ?? null }}
-        panelIds={{ football: 'predictor-football', basketball: 'predictor-basketball' }}
+        panelId="predictor-panel"
+        onPick={setPickedSport}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4 items-start">
@@ -181,62 +227,53 @@ export default function Home() {
 
         {!layoutReady ? (
           <div className="bg-vgd-card border border-white/[0.07] rounded-lg animate-pulse" style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }} />
-        ) : liveGame ? (
-          <div id="predictor-football" className="flex flex-col gap-4 scroll-mt-16" style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }}>
-            {isLive ? (
-              <>
-                {/* Live mode: Live Drive Predictor on top, Leaderboard on bottom — split evenly */}
-                <div className="flex-1 min-h-0">
-                  <LiveDrivePrediction game={liveGame} />
-                </div>
-                <div className="flex-1 min-h-0">
-                  <GameLeaderboard game={liveGame} />
-                </div>
-              </>
-            ) : isFinal ? (
-              <>
-                {/* Final mode: this user's pregame results on top (drive-by-
-                    drive picks have no separate summary view — their total
-                    is folded into the leaderboard's PG/LG breakdown below),
-                    overall leaderboard on bottom — split evenly. */}
-                <div className="flex-1 min-h-0">
-                  <PreGamePredictions game={liveGame} />
-                </div>
-                <div className="flex-1 min-h-0">
-                  <GameLeaderboard game={liveGame} />
-                </div>
-              </>
-            ) : (
-              <PreGamePredictions game={liveGame} />
-            )}
-          </div>
-        ) : bbGame ? (
-          /* No football game to show: basketball takes the predictor slot */
-          <div id="predictor-basketball" className="scroll-mt-16" style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }}>
-            <BasketballColumn game={bbGame} />
-          </div>
         ) : (
-          <div style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }}>
-            <PreGamePredictions game={null} />
+          <div id="predictor-panel" className="flex flex-col gap-3 scroll-mt-16" style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }}>
+            {liveGame && bbGame && (
+              <SportTabs
+                active={activeSport}
+                onSelect={setPickedSport}
+                footballLive={liveGame.status === 'live'}
+                basketballLive={bbGame.status === 'live'}
+              />
+            )}
+            <div className="flex-1 min-h-0">
+              {showBasketball ? (
+                <BasketballColumn game={bbGame} />
+              ) : liveGame ? (
+                <div className="flex flex-col gap-4 h-full">
+                  {isLive ? (
+                    <>
+                      {/* Live mode: Live Drive Predictor on top, Leaderboard on bottom — split evenly */}
+                      <div className="flex-1 min-h-0">
+                        <LiveDrivePrediction game={liveGame} />
+                      </div>
+                      <div className="flex-1 min-h-0">
+                        <GameLeaderboard game={liveGame} />
+                      </div>
+                    </>
+                  ) : isFinal ? (
+                    <>
+                      {/* Final mode: this user's pregame results on top, overall
+                          leaderboard on bottom — split evenly. */}
+                      <div className="flex-1 min-h-0">
+                        <PreGamePredictions game={liveGame} />
+                      </div>
+                      <div className="flex-1 min-h-0">
+                        <GameLeaderboard game={liveGame} />
+                      </div>
+                    </>
+                  ) : (
+                    <PreGamePredictions game={liveGame} />
+                  )}
+                </div>
+              ) : (
+                <PreGamePredictions game={null} />
+              )}
+            </div>
           </div>
         )}
       </div>
-
-      {/* ── Men's basketball predictor row — football is above and keeps the
-          main slot; this row only appears when both sports have a game. ── */}
-      {layoutReady && liveGame && bbGame && (
-        <div id="predictor-basketball" className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start scroll-mt-16">
-          <div style={{ height: `${BB_ROW_HEIGHT}px` }}>
-            <BasketballMain game={bbGame} />
-          </div>
-          <div className="flex flex-col gap-4" style={{ height: `${BB_ROW_HEIGHT}px` }}>
-            <div className="flex-1 min-h-0"><BasketballScoreboard game={bbGame} /></div>
-            {(bbGame.status === 'live' || bbGame.status === 'final' || bbGame.status === 'calculated') && (
-              <div className="flex-1 min-h-0"><GameLeaderboard game={bbGame} /></div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* ── Layer 4: Daily Trivia + Daily Poll (always, side by side) ──────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
