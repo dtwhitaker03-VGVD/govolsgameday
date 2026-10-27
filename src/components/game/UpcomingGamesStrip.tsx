@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useNow } from '../../lib/useNow';
 import type { LiveGame } from './LiveGameStatsPanel';
 
 type Sport = 'football' | 'basketball' | 'womens_basketball';
@@ -39,16 +40,6 @@ function daysUntil(iso: string): number {
   const day = (d: Date) =>
     new Date(`${new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(d)}T00:00:00Z`).getTime();
   return Math.max(0, Math.round((day(new Date(iso)) - day(new Date())) / 86400000));
-}
-
-/** Ticks every second so the card's countdown runs live. */
-function useNow(): number {
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  return now;
 }
 
 const pad = (n: number) => String(n).padStart(2, '0');
