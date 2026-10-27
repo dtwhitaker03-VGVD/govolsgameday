@@ -1,8 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// BB GAME SYNC: keeps live_games in step with Tennessee men's basketball's ESPN
-// schedule, and refreshes betting lines for upcoming games. Runs hourly (pg_cron
+// BB GAME SYNC: keeps live_games in step with Tennessee men's and women's basketball's
+// ESPN schedules (sport 'basketball' / 'womens_basketball'), and refreshes betting
+// lines for upcoming games. Runs hourly (pg_cron
 // -> invoke_bb_game_sync); cheap and idempotent. Basketball has no CFBD
 // equivalent, so ESPN is the only source here.
 //
@@ -11,11 +12,15 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // is live-espn-sync-bb's job; this only creates games, keeps kickoff times
 // current, records finals, and captures lines.
 
-const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball";
+const LEAGUES = [
+  { sport: "basketball", base: "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball" },
+  { sport: "womens_basketball", base: "https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball" },
+] as const;
+type League = (typeof LEAGUES)[number];
 const ESPN_HEADERS = { "User-Agent": "Mozilla/5.0 (compatible; GoVolsGameDay/1.0)", Accept: "application/json" };
 const TENNESSEE_ESPN_ID = "2633";
 const LOOKAHEAD_DAYS = 21; // scoreboard scan window only; the team schedule loads the whole season
-const LINE_LOOKAHEAD_MS = 5 * 24 * 60 * 60 * 1000;
+const LINE_LOOKAHEAD_MS = 10 * 24 * 60 * 60 * 1000; // ESPN posts totals a few days out; re-checked hourly
 
 // deno-lint-ignore no-explicit-any
 type Json = any;
@@ -84,7 +89,8 @@ const ymd = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, "");
  * daily scoreboards for the lookahead window (ESPN lists a game on the
  * scoreboard well before the team schedule page has the new season).
  */
-async function fetchSchedule(): Promise<BbGame[] | null> {
+async function fetchSchedule(league: League): Promise<BbGame[] | null> {
+  const ESPN_BASE = league.base;
   const now = new Date();
   const seasonYear = now.getUTCMonth() >= 6 ? now.getUTCFullYear() + 1 : now.getUTCFullYear(); // 2026-27 season = 2027
 
@@ -116,8 +122,8 @@ async function fetchSchedule(): Promise<BbGame[] | null> {
   return [...byId.values()];
 }
 
-async function syncSchedule(supabase: Client) {
-  const schedule = await fetchSchedule();
+async function syncSchedule(supabase: Client, league: League) {
+  const schedule = await fetchSchedule(league);
   if (!schedule) return { ok: false as const, error: "ESPN schedule unavailable" };
 
   const now = Date.now();
@@ -127,6 +133,7 @@ async function syncSchedule(supabase: Client) {
   const { data: existingRows } = await supabase
     .from("live_games")
     .select("cfbd_game_id, status")
+    .eq("sport", league.sport)
     .in("cfbd_game_id", relevant.map((g) => g.id));
   const existing = new Map<number, string>(
     ((existingRows ?? []) as { cfbd_game_id: number; status: string }[]).map((r) => [r.cfbd_game_id, r.status])
@@ -142,7 +149,7 @@ async function syncSchedule(supabase: Client) {
     if (st === undefined) {
       const { error } = await supabase.from("live_games").insert({
         cfbd_game_id: g.id,
-        sport: "basketball",
+        sport: league.sport,
         home_team: g.homeTeam,
         away_team: g.awayTeam,
         kickoff_time: g.startDate,
@@ -164,7 +171,7 @@ async function syncSchedule(supabase: Client) {
       update.home_score = g.homePoints ?? 0;
       update.away_score = g.awayPoints ?? 0;
     }
-    const { error } = await supabase.from("live_games").update(update).eq("cfbd_game_id", g.id);
+    const { error } = await supabase.from("live_games").update(update).eq("sport", league.sport).eq("cfbd_game_id", g.id);
     if (error) console.error(`bb-game-sync: update failed for ${g.id}: ${error.message}`);
     else updated++;
   }
@@ -177,8 +184,8 @@ async function syncSchedule(supabase: Client) {
  * agrees with the sign; otherwise null (an admin can pin a line with
  * lines_manual — see keep_manual_lines()).
  */
-async function lineFromEspn(eventId: number): Promise<{ spread: number; overUnder: number | null; provider: string } | null> {
-  const d = await espnGet(`${ESPN_BASE}/summary?event=${eventId}`);
+async function lineFromEspn(base: string, eventId: number): Promise<{ spread: number; overUnder: number | null; provider: string } | null> {
+  const d = await espnGet(`${base}/summary?event=${eventId}`);
   const picks: Json[] = d?.pickcenter ?? [];
   const pick = picks.find((p) => p.provider?.name === "DraftKings" && typeof p.spread === "number")
     ?? picks.find((p) => typeof p.spread === "number");
@@ -192,24 +199,28 @@ async function lineFromEspn(eventId: number): Promise<{ spread: number; overUnde
   };
 }
 
-async function refreshLines(supabase: Client) {
+async function refreshLines(supabase: Client, league: League) {
   const soon = new Date(Date.now() + LINE_LOOKAHEAD_MS).toISOString();
   const { data } = await supabase
     .from("live_games")
-    .select("id, cfbd_game_id, home_team, lines_manual")
-    .eq("sport", "basketball")
+    .select("id, cfbd_game_id, home_team, lines_manual, total_points_line")
+    .eq("sport", league.sport)
     .eq("status", "pregame")
     .lte("kickoff_time", soon);
-  const games = (data ?? []) as { id: string; cfbd_game_id: number; home_team: string; lines_manual: boolean | null }[];
+  const games = (data ?? []) as { id: string; cfbd_game_id: number; home_team: string; lines_manual: boolean | null; total_points_line: number | null }[];
 
   let refreshed = 0, pinned = 0;
+  const missing: string[] = [];
   for (const g of games) {
     if (g.lines_manual) {
       pinned++;
       continue;
     }
-    const line = await lineFromEspn(g.cfbd_game_id);
-    if (!line) continue;
+    const line = await lineFromEspn(league.base, g.cfbd_game_id);
+    if (!line) {
+      if (g.total_points_line == null) missing.push(`${g.cfbd_game_id} (${g.home_team})`);
+      continue;
+    }
     const spreadTn = g.home_team === "Tennessee" ? line.spread : -line.spread;
     const { error } = await supabase
       .from("live_games")
@@ -222,15 +233,21 @@ async function refreshLines(supabase: Client) {
       .eq("id", g.id);
     if (!error) refreshed++;
   }
-  return { checked: games.length, refreshed, pinned };
+  return { checked: games.length, refreshed, pinned, missing };
 }
 
 Deno.serve(async (_req: Request) => {
   const supabase = getSupabaseClient();
   try {
-    const schedule = await syncSchedule(supabase);
-    const lines = await refreshLines(supabase);
-    return json({ ...schedule, lines }, schedule.ok ? 200 : 502);
+    const results: Record<string, unknown> = {};
+    let ok = true;
+    for (const league of LEAGUES) {
+      const schedule = await syncSchedule(supabase, league);
+      const lines = await refreshLines(supabase, league);
+      results[league.sport] = { ...schedule, lines };
+      if (!schedule.ok) ok = false;
+    }
+    return json({ ok, ...results }, ok ? 200 : 502);
   } catch (err) {
     return json({ ok: false, error: String(err) }, 500);
   }

@@ -5,8 +5,10 @@
 // the game, every official TV timeout, a team timeout that comes at least
 // SHORT_TIMEOUT_MIN_SECONDS of game clock after the previous boundary (so a
 // team timeout right next to a TV timeout doesn't cut a stretch to nothing),
-// and the end of each period. Stretch n runs from boundary n-1 to boundary n,
-// and is scored on who outscored whom between the two.
+// and the end of each period. Stretch n runs from boundary n-1 to boundary n.
+// Women's games play four quarters and are cut by quarter instead (mode
+// 'quarter'): boundaries are only the start and the end of each period, and
+// regulation is four periods, not two halves.
 
 export interface BbPlay {
   id: string;
@@ -32,7 +34,7 @@ export interface Boundary {
 }
 
 export const SHORT_TIMEOUT_MIN_SECONDS = 180;
-const PERIOD_SECONDS = 1200; // men's college: two 20-minute halves
+const PERIOD_SECONDS = 1200; // men's college: two 20-minute halves (only used to space short timeouts, which quarter mode ignores)
 const OT_SECONDS = 300;
 
 const NOT_PLAY = new Set([
@@ -59,12 +61,15 @@ function elapsed(period: number, clock: string | undefined): number {
   return 2 * PERIOD_SECONDS + (period - 3) * OT_SECONDS + (OT_SECONDS - remaining);
 }
 
+export type PlanMode = "stretch" | "quarter";
+
 /** The game cannot go on after this boundary. */
-export function isTerminal(b: Boundary): boolean {
-  return b.kind === "end" || (b.kind === "period" && b.period >= 2 && b.home !== b.away);
+export function isTerminal(b: Boundary, mode: PlanMode = "stretch"): boolean {
+  const regulation = mode === "quarter" ? 4 : 2;
+  return b.kind === "end" || (b.kind === "period" && b.period >= regulation && b.home !== b.away);
 }
 
-export function planBoundaries(plays: BbPlay[]): Boundary[] {
+export function planBoundaries(plays: BbPlay[], mode: PlanMode = "stretch"): Boundary[] {
   const out: Boundary[] = [];
   if (plays.length === 0) return out;
   const first = plays[0];
@@ -75,13 +80,14 @@ export function planBoundaries(plays: BbPlay[]): Boundary[] {
 
   for (const p of plays.slice(1)) {
     const last = out[out.length - 1];
-    if (isTerminal(last)) break;
+    if (isTerminal(last, mode)) break;
     if (isLivePlay(p)) {
       last.resumed = true;
       continue;
     }
     const t = (p.type?.text ?? "").toLowerCase();
     const kind: BoundaryKind | null =
+      mode === "quarter" && (t === "officialtvtimeout" || t === "shorttimeout") ? null :
       t === "officialtvtimeout" ? "tv" :
       t === "shorttimeout" ? "short" :
       t === "end period" ? "period" :
@@ -103,6 +109,46 @@ export function planBoundaries(plays: BbPlay[]): Boundary[] {
       playId: p.id, kind, period, clock,
       home: p.homeScore ?? last.home, away: p.awayScore ?? last.away, resumed: false,
     });
+  }
+  return out;
+}
+
+export interface StretchStats {
+  threes: number;
+  twos: number;
+  turnoversForced: number;
+  fouls: number;
+}
+
+interface StatPlay extends BbPlay {
+  scoringPlay?: boolean;
+  scoreValue?: number;
+  team?: { id?: string };
+}
+
+/**
+ * Tennessee's numbers over one stretch: the plays strictly after `fromPlayId`
+ * (the boundary that opens it) up to, not including, `toPlayId` (the boundary
+ * that closes it; null = the end of the play log).
+ *   threes / twos  made field goals by Tennessee (free throws are scoreValue 1)
+ *   turnoversForced  turnovers committed by the opponent
+ *   fouls          fouls committed by Tennessee (ESPN attributes a foul play to the fouler's team)
+ */
+export function stretchStats(plays: BbPlay[], fromPlayId: string, toPlayId: string | null, tnTeamId: string): StretchStats {
+  const out: StretchStats = { threes: 0, twos: 0, turnoversForced: 0, fouls: 0 };
+  const start = plays.findIndex((p) => p.id === fromPlayId);
+  if (start < 0) return out;
+  for (let i = start + 1; i < plays.length; i++) {
+    const p = plays[i] as StatPlay;
+    if (toPlayId !== null && p.id === toPlayId) break;
+    const team = p.team?.id;
+    if (!team) continue;
+    const t = (p.type?.text ?? "").toLowerCase();
+    const mine = team === tnTeamId;
+    if (p.scoringPlay && mine && p.scoreValue === 3) out.threes++;
+    else if (p.scoringPlay && mine && p.scoreValue === 2) out.twos++;
+    else if (/turnover/.test(t) && !mine) out.turnoversForced++;
+    else if (/foul/.test(t) && !/technical/.test(t) && mine) out.fouls++;
   }
   return out;
 }

@@ -3,8 +3,8 @@ import { Calendar, Clock, MapPin } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { LiveGame } from './LiveGameStatsPanel';
 
-type Sport = 'football' | 'basketball';
-type CardSport = Sport | 'womens';
+type Sport = 'football' | 'basketball' | 'womens_basketball';
+type CardSport = Sport;
 
 interface Props {
   /** The game each predictor panel is currently showing; its card jumps to that panel. */
@@ -15,9 +15,9 @@ interface Props {
   onPick: (sport: Sport) => void;
 }
 
-const SPORT_LABEL: Record<CardSport, string> = { football: 'Football', basketball: "Men's Basketball", womens: "Women's Basketball" };
+const SPORT_LABEL: Record<CardSport, string> = { football: 'Football', basketball: "Men's Basketball", womens_basketball: "Women's Basketball" };
 // Both basketball teams play home games in the same arena.
-const VENUE: Record<CardSport, string> = { football: 'Neyland Stadium', basketball: 'Food City Center', womens: 'Food City Center' };
+const VENUE: Record<CardSport, string> = { football: 'Neyland Stadium', basketball: 'Food City Center', womens_basketball: 'Food City Center' };
 
 const etParts = (iso: string) =>
   new Intl.DateTimeFormat('en-US', {
@@ -41,8 +41,6 @@ function daysUntil(iso: string): number {
   return Math.max(0, Math.round((day(new Date(iso)) - day(new Date())) / 86400000));
 }
 
-interface WomensGame { espn_id: number; kickoff_time: string; home_team: string; away_team: string; time_valid: boolean }
-
 function opponentOf(g: { home_team: string; away_team: string }) {
   const home = g.home_team === 'Tennessee';
   return { name: home ? g.away_team : g.home_team, home };
@@ -52,7 +50,6 @@ const monogram = (name: string) => name.replace(/[^A-Za-z ]/g, '').split(' ').fi
 
 export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
   const [games, setGames] = useState<Partial<Record<Sport, LiveGame>>>({});
-  const [womens, setWomens] = useState<WomensGame | null>(null);
 
   useEffect(() => {
     supabase
@@ -61,25 +58,15 @@ export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
       .eq('status', 'pregame')
       .gte('kickoff_time', new Date(Date.now() - 4 * 3600 * 1000).toISOString())
       .order('kickoff_time', { ascending: true })
-      .limit(20)
+      .limit(80)
       .then(({ data }) => {
         const rows = (data as unknown as LiveGame[]) ?? [];
         setGames({
-          football: rows.find((g) => g.sport !== 'basketball'),
+          football: rows.find((g) => g.sport !== 'basketball' && g.sport !== 'womens_basketball'),
           basketball: rows.find((g) => g.sport === 'basketball'),
+          womens_basketball: rows.find((g) => g.sport === 'womens_basketball'),
         });
       });
-  }, []);
-
-  useEffect(() => {
-    supabase
-      .from('womens_basketball_games')
-      .select('espn_id, kickoff_time, home_team, away_team, time_valid')
-      .eq('status', 'pregame')
-      .gte('kickoff_time', new Date(Date.now() - 4 * 3600 * 1000).toISOString())
-      .order('kickoff_time', { ascending: true })
-      .limit(1)
-      .then(({ data }) => setWomens(((data as unknown as WomensGame[]) ?? [])[0] ?? null));
   }, []);
 
   const jump = (sport: Sport) => {
@@ -87,7 +74,7 @@ export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
     document.getElementById(panelId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const sports: Sport[] = ['football', 'basketball'];
+  const sports: Sport[] = ['football', 'basketball', 'womens_basketball'];
 
   return (
     <section aria-label="Upcoming games" className="space-y-3">
@@ -110,11 +97,6 @@ export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
             />
           );
         })}
-        {womens ? (
-          <GameCard sport="womens" game={womens} status="Up next" />
-        ) : (
-          <PlaceholderCard label="Women's Basketball" status="No game scheduled" />
-        )}
       </div>
     </section>
   );

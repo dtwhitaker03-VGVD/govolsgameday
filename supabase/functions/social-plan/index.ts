@@ -94,6 +94,7 @@ const GAME_COLS = "id, sport, home_team, away_team, kickoff_time, status, home_s
 async function nextGame(supabase: Client, now: Date, days: number): Promise<Game | null> {
   const { data } = await supabase
     .from("live_games").select(GAME_COLS).eq("status", "pregame")
+    .in("sport", ["football", "basketball"])
     .gt("kickoff_time", now.toISOString())
     .lt("kickoff_time", new Date(now.getTime() + days * 86400000).toISOString())
     .order("kickoff_time", { ascending: true });
@@ -124,7 +125,7 @@ type Builder = (supabase: Client, now: Date, today: string, row: ScheduleRow, ta
 const BUILDERS: Record<string, Builder> = {
   // Saturday morning: promote the site; tied to today's game when there is one.
   async promo_pregame(supabase, now, today, _row, target) {
-    const { data } = await supabase.from("live_games").select(GAME_COLS).eq("status", "pregame").gt("kickoff_time", now.toISOString()).order("kickoff_time", { ascending: true }).limit(8);
+    const { data } = await supabase.from("live_games").select(GAME_COLS).eq("status", "pregame").in("sport", ["football", "basketball"]).gt("kickoff_time", now.toISOString()).order("kickoff_time", { ascending: true }).limit(8);
     const todays = ((data ?? []) as Game[]).filter((g) => etParts(new Date(g.kickoff_time)).date === today);
     const g = todays.find((x) => x.sport === "football") ?? todays[0];
     if (!g) return []; // no game today: nothing "pregame" to promote
@@ -150,7 +151,7 @@ const BUILDERS: Record<string, Builder> = {
 
   // Sunday: the player the admin picked for the most recent finished game.
   async player_of_game(supabase, now, today, _row, target) {
-    const { data } = await supabase.from("live_games").select(GAME_COLS).in("status", ["final", "calculated"])
+    const { data } = await supabase.from("live_games").select(GAME_COLS).in("status", ["final", "calculated"]).in("sport", ["football", "basketball"])
       .gt("kickoff_time", new Date(now.getTime() - 6 * 86400000).toISOString()).order("kickoff_time", { ascending: false }).limit(4);
     const out: Candidate[] = [];
     for (const g of (data ?? []) as Game[]) {
@@ -266,6 +267,7 @@ async function finalStatsCandidates(supabase: Client, now: Date): Promise<Candid
   const { data } = await supabase
     .from("live_games")
     .select(`${GAME_COLS}, bb_stats, home_total_yards, away_total_yards, home_rushing_yards, away_rushing_yards, home_passing_yards, away_passing_yards, home_first_downs, away_first_downs, home_turnovers, away_turnovers`)
+    .in("sport", ["football", "basketball"])
     .eq("status", "calculated") // finalized: scores and stats are settled, so the chart can't contradict the site
     .gt("updated_at", new Date(now.getTime() - 36 * 3600000).toISOString());
   const out: Candidate[] = [];

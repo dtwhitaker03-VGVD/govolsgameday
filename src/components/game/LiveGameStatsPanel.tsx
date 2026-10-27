@@ -9,7 +9,7 @@ import { shortTeamName } from '../../lib/teamNames';
 
 export interface LiveGame {
   id: string;
-  sport?: 'football' | 'basketball';
+  sport?: 'football' | 'basketball' | 'womens_basketball';
   bb_stats?: { home: Record<string, string>; away: Record<string, string>; detail?: string; stretches?: number } | null;
   cfbd_game_id: number;
   home_team: string;

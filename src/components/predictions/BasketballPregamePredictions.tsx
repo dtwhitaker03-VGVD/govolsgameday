@@ -47,7 +47,6 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
   const [winner, setWinner] = useState<'home' | 'away' | ''>('');
   const [homeScore, setHomeScore] = useState('');
   const [awayScore, setAwayScore] = useState('');
-  const [spreadPick, setSpreadPick] = useState<'over' | 'under' | ''>('');
   const [totalPick, setTotalPick] = useState<'over' | 'under' | ''>('');
   const [propForm, setPropForm] = useState<Record<string, 'over' | 'under'>>({});
   const [existing, setExisting] = useState<Pick | null>(null);
@@ -90,7 +89,6 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
         setWinner(d.predicted_winner);
         setHomeScore(String(d.predicted_home_score));
         setAwayScore(String(d.predicted_away_score));
-        setSpreadPick(d.predicted_spread_pick ?? '');
         setTotalPick(d.predicted_total_pick ?? '');
       });
     supabase
@@ -105,9 +103,6 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
       });
   }, [session, game.id]);
 
-  const tnIsHome = game.home_team === 'Tennessee';
-  const oppName = tnIsHome ? game.away_team : game.home_team;
-  const spread = game.spread_line_tn;
   const total = game.total_points_line;
 
   async function submit() {
@@ -119,7 +114,6 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
     if ((winner === 'home' && hs <= as) || (winner === 'away' && as <= hs)) {
       return setError('Your scores must agree with your winner.');
     }
-    if (spread != null && !spreadPick) return setError('Pick a side on the spread.');
     if (total != null && !totalPick) return setError('Pick Over or Under on the total.');
     setSubmitting(true);
     const { error: err } = await supabase.rpc('submit_pregame_prediction_bb', {
@@ -127,7 +121,7 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
       p_predicted_winner: winner,
       p_home_score: hs,
       p_away_score: as,
-      p_spread_pick: spread != null ? spreadPick : null,
+      p_spread_pick: null,
       p_total_pick: total != null ? totalPick : null,
       p_prop_picks: Object.entries(propForm).map(([prop_id, pick]) => ({ prop_id, pick })),
     });
@@ -135,7 +129,7 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
     if (err) return setError(err.message);
     setExisting({
       predicted_winner: winner, predicted_home_score: hs, predicted_away_score: as,
-      predicted_spread_pick: spread != null ? (spreadPick as 'over' | 'under') : null,
+      predicted_spread_pick: null,
       predicted_total_pick: total != null ? (totalPick as 'over' | 'under') : null,
       winner_correct: null, home_score_points: null, away_score_points: null,
       spread_pick_points: null, total_pick_points: null, total_pregame_points: null,
@@ -174,7 +168,6 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
               {row('Winner', existing.predicted_winner === 'home' ? game.home_team : game.away_team, null, existing.winner_correct)}
               {row(`${game.home_team} score`, String(existing.predicted_home_score), existing.home_score_points)}
               {row(`${game.away_team} score`, String(existing.predicted_away_score), existing.away_score_points)}
-              {existing.predicted_spread_pick && row('Spread', existing.predicted_spread_pick === 'over' ? 'Tennessee covers' : `${oppName} covers`, existing.spread_pick_points)}
               {existing.predicted_total_pick && row('Total', existing.predicted_total_pick.toUpperCase(), existing.total_pick_points)}
               {gameProps.map((gp) => {
                 const pp = propPicks.find((p) => p.prop_id === gp.id);
@@ -206,7 +199,7 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
         </div>
 
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-white/50 mb-1.5">Final score · up to 150 pts each</p>
+          <p className="text-[10px] uppercase tracking-wider text-white/50 mb-1.5">Final score · 100 pts, minus 5 per point off · +50 if exact</p>
           <div className="grid grid-cols-2 gap-2">
             {([[game.away_team, awayScore, setAwayScore], [game.home_team, homeScore, setHomeScore]] as const).map(([name, val, set]) => (
               <label key={name} className="text-[10px] text-white/70">
@@ -221,17 +214,10 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
           </div>
         </div>
 
-        {(spread != null || total != null || gameProps.length > 0) && (
+        {(total != null || gameProps.length > 0) && (
           <div>
             <p className="text-[10px] uppercase tracking-wider text-white/50 mb-1.5">Over / Under · 100 pts each</p>
             <div className="space-y-2">
-              {spread != null && (
-                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-                  <button type="button" className={toggle(spreadPick === 'over')} onClick={() => setSpreadPick('over')}>Tennessee covers</button>
-                  <span className="text-[11px] font-bold text-white text-center">TN {spread > 0 ? '+' : ''}{spread}</span>
-                  <button type="button" className={toggle(spreadPick === 'under')} onClick={() => setSpreadPick('under')}>{oppName} covers</button>
-                </div>
-              )}
               {total != null && (
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                   <button type="button" className={toggle(totalPick === 'under')} onClick={() => setTotalPick('under')}>Under</button>

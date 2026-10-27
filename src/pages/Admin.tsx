@@ -1007,6 +1007,7 @@ function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
   const [editAutoGrade, setEditAutoGrade] = useState<PropAutoGradeFields>(EMPTY_AUTO_GRADE);
   const [status, setStatus] = useState<OpStatus>('idle');
   const [msg, setMsg] = useState('');
+  const [note, setNote] = useState('');
 
   const selectedGame = games.find(g => g.id === gameId);
 
@@ -1054,6 +1055,26 @@ function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
     const { error } = await supabase.rpc('admin_delete_game_prop', { p_id: id });
     if (error) { setStatus('error'); setMsg(error.message); }
     else { setStatus('idle'); fetchProps(gameId); }
+  }
+
+  async function applyDefaults() {
+    setStatus('loading');
+    setNote('');
+    const { data, error } = await supabase.rpc('admin_apply_default_props', { p_game_id: gameId });
+    if (error) { setStatus('error'); setMsg(error.message); return; }
+    setStatus('idle');
+    setNote(data ? `Added ${data} default prop${data === 1 ? '' : 's'}.` : 'This game already has every default prop.');
+    fetchProps(gameId);
+  }
+
+  async function saveAsDefaults() {
+    if (!window.confirm('Replace the default props with this game\'s props? Every new football game will start with them.')) return;
+    setStatus('loading');
+    setNote('');
+    const { data, error } = await supabase.rpc('admin_save_default_props', { p_game_id: gameId });
+    if (error) { setStatus('error'); setMsg(error.message); return; }
+    setStatus('idle');
+    setNote(`Saved ${data} default prop${data === 1 ? '' : 's'}; new football games will start with them.`);
   }
 
   function startEdit(p: GamePropRow) {
@@ -1109,6 +1130,21 @@ function WeeklyPropBetsPanel({ games }: { games: LiveGame[] }) {
 
         {gameId && (
           <>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={applyDefaults} disabled={status === 'loading'}
+                className="px-2.5 py-1 rounded border border-white/20 text-[11px] font-semibold text-white hover:border-vgd-orange/60 disabled:opacity-40"
+              >
+                Apply defaults
+              </button>
+              <button
+                onClick={saveAsDefaults} disabled={status === 'loading' || props.length === 0}
+                className="px-2.5 py-1 rounded border border-white/20 text-[11px] font-semibold text-white hover:border-vgd-orange/60 disabled:opacity-40"
+              >
+                Save as defaults
+              </button>
+              {note && <span className="text-[11px] text-white/70">{note}</span>}
+            </div>
             {props.length > 0 && (
               <div className="border border-white/10 rounded-lg overflow-hidden">
                 {props.map(p => (
@@ -1247,14 +1283,15 @@ function FinalizedGameStatsPanel({ games, onRefresh }: { games: LiveGame[]; onRe
     { value: '', label: 'Select game…' },
     ...games.filter(g => g.status !== 'calculated').map(g => ({
       value: g.id,
-      label: `${g.sport === 'basketball' ? '🏀 ' : ''}${g.away_team} @ ${g.home_team} [${g.status}]`,
+      label: `${g.sport === 'basketball' || g.sport === 'womens_basketball' ? '🏀 ' : ''}${g.away_team} @ ${g.home_team} [${g.status}]`,
     })),
   ];
 
   async function finalize() {
     if (!gameId) return;
     setStatus('loading');
-    const isBasketball = games.find(g => g.id === gameId)?.sport === 'basketball';
+    const gameSport = games.find(g => g.id === gameId)?.sport;
+    const isBasketball = gameSport === 'basketball' || gameSport === 'womens_basketball';
     const { data, error } = await supabase.functions.invoke(isBasketball ? 'finalize-game-bb' : 'finalize-game', {
       body: { game_id: gameId },
     });
