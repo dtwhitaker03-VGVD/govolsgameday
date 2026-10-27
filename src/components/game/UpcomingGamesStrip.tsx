@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useNow } from '../../lib/useNow';
+import { teamLogoUrl } from '../../lib/teamLogos';
 import type { LiveGame } from './LiveGameStatsPanel';
 
 type Sport = 'football' | 'basketball' | 'womens_basketball';
@@ -47,6 +48,29 @@ const pad = (n: number) => String(n).padStart(2, '0');
 function opponentOf(g: { home_team: string; away_team: string }) {
   const home = g.home_team === 'Tennessee';
   return { name: home ? g.away_team : g.home_team, home };
+}
+
+/** The school's logo, or its monogram when we have no logo for it (or the image fails). */
+function OpponentBadge({ name }: { name: string }) {
+  const [failed, setFailed] = useState(false);
+  const src = teamLogoUrl(name);
+  if (src && !failed) {
+    return (
+      <img
+        src={src}
+        alt=""
+        width={36}
+        height={36}
+        className="w-9 h-9 object-contain flex-shrink-0"
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+  return (
+    <div className="w-9 h-9 rounded-lg bg-white text-vgd-bg font-black text-[11px] flex items-center justify-center flex-shrink-0">
+      {monogram(name)}
+    </div>
+  );
 }
 
 const monogram = (name: string) => name.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
@@ -133,7 +157,7 @@ function GameCard({
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-lg bg-vgd-orange text-vgd-bg font-black text-xs flex items-center justify-center flex-shrink-0">UT</div>
           <span className="text-[10px] font-extrabold text-white/60">{home ? 'VS' : 'AT'}</span>
-          <div className="w-9 h-9 rounded-lg bg-white text-vgd-bg font-black text-[11px] flex items-center justify-center flex-shrink-0">{monogram(name)}</div>
+          <OpponentBadge name={name} />
           <div className="text-lg font-extrabold leading-tight min-w-0 truncate text-white">{name}</div>
         </div>
         <div className="text-xs text-white/70 space-y-1">
