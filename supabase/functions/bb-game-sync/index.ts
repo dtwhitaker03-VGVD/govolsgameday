@@ -15,7 +15,7 @@ const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/basketball/mens
 const ESPN_HEADERS = { "User-Agent": "Mozilla/5.0 (compatible; GoVolsGameDay/1.0)", Accept: "application/json" };
 const TENNESSEE_ESPN_ID = "2633";
 const LOOKAHEAD_DAYS = 21; // scoreboard scan window only; the team schedule loads the whole season
-const LINE_LOOKAHEAD_MS = 5 * 24 * 60 * 60 * 1000;
+const LINE_LOOKAHEAD_MS = 10 * 24 * 60 * 60 * 1000; // ESPN posts totals a few days out; re-checked hourly
 
 // deno-lint-ignore no-explicit-any
 type Json = any;
@@ -196,20 +196,24 @@ async function refreshLines(supabase: Client) {
   const soon = new Date(Date.now() + LINE_LOOKAHEAD_MS).toISOString();
   const { data } = await supabase
     .from("live_games")
-    .select("id, cfbd_game_id, home_team, lines_manual")
+    .select("id, cfbd_game_id, home_team, lines_manual, total_points_line")
     .eq("sport", "basketball")
     .eq("status", "pregame")
     .lte("kickoff_time", soon);
-  const games = (data ?? []) as { id: string; cfbd_game_id: number; home_team: string; lines_manual: boolean | null }[];
+  const games = (data ?? []) as { id: string; cfbd_game_id: number; home_team: string; lines_manual: boolean | null; total_points_line: number | null }[];
 
   let refreshed = 0, pinned = 0;
+  const missing: string[] = [];
   for (const g of games) {
     if (g.lines_manual) {
       pinned++;
       continue;
     }
     const line = await lineFromEspn(g.cfbd_game_id);
-    if (!line) continue;
+    if (!line) {
+      if (g.total_points_line == null) missing.push(`${g.cfbd_game_id} (${g.home_team})`);
+      continue;
+    }
     const spreadTn = g.home_team === "Tennessee" ? line.spread : -line.spread;
     const { error } = await supabase
       .from("live_games")
@@ -222,7 +226,7 @@ async function refreshLines(supabase: Client) {
       .eq("id", g.id);
     if (!error) refreshed++;
   }
-  return { checked: games.length, refreshed, pinned };
+  return { checked: games.length, refreshed, pinned, missing };
 }
 
 Deno.serve(async (_req: Request) => {
