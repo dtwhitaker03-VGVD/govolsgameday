@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { type BbPlay, type Boundary, isTerminal, planBoundaries } from "./plan.ts";
+import { type BbPlay, type Boundary, isTerminal, planBoundaries, stretchStats } from "./plan.ts";
 
 // ─── LIVE ESPN SYNC (BASKETBALL) ────────────────────────────────────────────
 // Drives the men's basketball scoreboard and the live "stretch" predictor from
@@ -110,6 +110,7 @@ async function syncGame(supabase: SupabaseClient, game: GameRow) {
   const over = state === "post" && comp.status.type.completed === true;
   const plays: BbPlay[] = d.plays ?? [];
   const boundaries = planBoundaries(plays);
+  const tnTeamId: string = game.home_team === "Tennessee" ? home.team.id : away.team.id;
 
   // ── Windows first, so the game is never marked final with a stretch unsettled ──
   let opened = 0, locked = 0, settled = 0, confirming = 0;
@@ -153,8 +154,10 @@ async function syncGame(supabase: SupabaseClient, game: GameRow) {
           continue;
         }
       }
+      const st = stretchStats(plays, boundaries[k - 1].playId, b.playId, tnTeamId);
       const { error } = await supabase.rpc("settle_live_window", {
         p_game_id: game.id, p_window_number: k, p_end_home_score: b.home, p_end_away_score: b.away, p_end_play_id: b.playId,
+        p_threes: st.threes, p_twos: st.twos, p_turnovers: st.turnoversForced, p_fouls: st.fouls,
       });
       if (error) errors.push(`settle ${k}: ${error.message}`);
       else {
@@ -173,8 +176,10 @@ async function syncGame(supabase: SupabaseClient, game: GameRow) {
       // Game over: score the stretch in progress (or the one that ended at a terminal
       // boundary, handled above) against the final score, and void anything left.
       if (wins.get(n)?.status === "open") {
+        const st = stretchStats(plays, boundaries[n - 1].playId, null, tnTeamId);
         const { error } = await supabase.rpc("settle_live_window", {
           p_game_id: game.id, p_window_number: n, p_end_home_score: homeScore, p_end_away_score: awayScore, p_end_play_id: null,
+          p_threes: st.threes, p_twos: st.twos, p_turnovers: st.turnoversForced, p_fouls: st.fouls,
         });
         if (error) errors.push(`settle ${n} (final): ${error.message}`);
         else settled++;

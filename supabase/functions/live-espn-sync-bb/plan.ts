@@ -106,3 +106,43 @@ export function planBoundaries(plays: BbPlay[]): Boundary[] {
   }
   return out;
 }
+
+export interface StretchStats {
+  threes: number;
+  twos: number;
+  turnoversForced: number;
+  fouls: number;
+}
+
+interface StatPlay extends BbPlay {
+  scoringPlay?: boolean;
+  scoreValue?: number;
+  team?: { id?: string };
+}
+
+/**
+ * Tennessee's numbers over one stretch: the plays strictly after `fromPlayId`
+ * (the boundary that opens it) up to, not including, `toPlayId` (the boundary
+ * that closes it; null = the end of the play log).
+ *   threes / twos  made field goals by Tennessee (free throws are scoreValue 1)
+ *   turnoversForced  turnovers committed by the opponent
+ *   fouls          fouls committed by Tennessee (ESPN attributes a foul play to the fouler's team)
+ */
+export function stretchStats(plays: BbPlay[], fromPlayId: string, toPlayId: string | null, tnTeamId: string): StretchStats {
+  const out: StretchStats = { threes: 0, twos: 0, turnoversForced: 0, fouls: 0 };
+  const start = plays.findIndex((p) => p.id === fromPlayId);
+  if (start < 0) return out;
+  for (let i = start + 1; i < plays.length; i++) {
+    const p = plays[i] as StatPlay;
+    if (toPlayId !== null && p.id === toPlayId) break;
+    const team = p.team?.id;
+    if (!team) continue;
+    const t = (p.type?.text ?? "").toLowerCase();
+    const mine = team === tnTeamId;
+    if (p.scoringPlay && mine && p.scoreValue === 3) out.threes++;
+    else if (p.scoringPlay && mine && p.scoreValue === 2) out.twos++;
+    else if (/turnover/.test(t) && !mine) out.turnoversForced++;
+    else if (/foul/.test(t) && !/technical/.test(t) && mine) out.fouls++;
+  }
+  return out;
+}
