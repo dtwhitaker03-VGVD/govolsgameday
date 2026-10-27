@@ -41,6 +41,18 @@ function daysUntil(iso: string): number {
   return Math.max(0, Math.round((day(new Date(iso)) - day(new Date())) / 86400000));
 }
 
+/** Ticks every second so the card's countdown runs live. */
+function useNow(): number {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
+
+const pad = (n: number) => String(n).padStart(2, '0');
+
 function opponentOf(g: { home_team: string; away_team: string }) {
   const home = g.home_team === 'Tennessee';
   return { name: home ? g.away_team : g.home_team, home };
@@ -112,7 +124,14 @@ function GameCard({
 }) {
   const { name, home } = opponentOf(game);
   const when = formatWhen(game.kickoff_time);
-  const days = daysUntil(game.kickoff_time);
+  const now = useNow();
+  // A midnight ET kickoff is the "time not announced" placeholder: count whole
+  // calendar days only, since an hours/minutes timer would be counting to nothing.
+  const timeKnown = when.time !== 'Time TBA';
+  const msLeft = Math.max(0, new Date(game.kickoff_time).getTime() - now);
+  const days = timeKnown ? Math.floor(msLeft / 86400000) : daysUntil(game.kickoff_time);
+  const rem = Math.floor((msLeft % 86400000) / 1000);
+  const clock = `${pad(Math.floor(rem / 3600))}:${pad(Math.floor((rem % 3600) / 60))}:${pad(rem % 60)}`;
   return (
     <div className="bg-vgd-card border border-white/[0.07] rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-3.5 py-2 border-b border-white/[0.07]">
@@ -135,6 +154,7 @@ function GameCard({
           <div className="flex items-baseline gap-1.5">
             <span className="text-2xl font-black text-vgd-orange leading-none">{days}</span>
             <span className="text-[10px] font-bold tracking-widest uppercase text-white/60">{days === 1 ? 'day' : 'days'}</span>
+            {timeKnown && <span className="ml-2 text-lg font-extrabold tabular-nums text-white">{clock}</span>}
           </div>
           {onPick && (
             <button
