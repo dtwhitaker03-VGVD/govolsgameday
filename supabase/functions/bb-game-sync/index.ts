@@ -14,7 +14,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball";
 const ESPN_HEADERS = { "User-Agent": "Mozilla/5.0 (compatible; GoVolsGameDay/1.0)", Accept: "application/json" };
 const TENNESSEE_ESPN_ID = "2633";
-const LOOKAHEAD_DAYS = 21;
+const LOOKAHEAD_DAYS = 21; // scoreboard scan window only; the team schedule loads the whole season
 const LINE_LOOKAHEAD_MS = 5 * 24 * 60 * 60 * 1000;
 
 // deno-lint-ignore no-explicit-any
@@ -88,8 +88,15 @@ async function fetchSchedule(): Promise<BbGame[] | null> {
   const now = new Date();
   const seasonYear = now.getUTCMonth() >= 6 ? now.getUTCFullYear() + 1 : now.getUTCFullYear(); // 2026-27 season = 2027
 
-  const sched = await espnGet(`${ESPN_BASE}/teams/${TENNESSEE_ESPN_ID}/schedule?season=${seasonYear}`);
-  const fromTeam: BbGame[] = (sched?.events ?? []).map(parseEvent).filter((g: BbGame | null): g is BbGame => !!g);
+  // seasontype is required: without it ESPN returns only preseason/empty for a new season.
+  // 2 = regular season (incl. conference games), 3 = postseason (empty until it's set).
+  const scheds = await Promise.all(
+    [2, 3].map((t) => espnGet(`${ESPN_BASE}/teams/${TENNESSEE_ESPN_ID}/schedule?season=${seasonYear}&seasontype=${t}`))
+  );
+  const fromTeam: BbGame[] = scheds
+    .flatMap((sc) => sc?.events ?? [])
+    .map(parseEvent)
+    .filter((g: BbGame | null): g is BbGame => !!g);
 
   // ESPN's basketball scoreboard rejects date ranges (HTTP 400), so scan one
   // day at a time, in parallel. groups=50 is Division I.
@@ -114,9 +121,7 @@ async function syncSchedule(supabase: Client) {
   if (!schedule) return { ok: false as const, error: "ESPN schedule unavailable" };
 
   const now = Date.now();
-  const relevant = schedule.filter(
-    (g) => !g.canceled && (g.completed || new Date(g.startDate).getTime() - now < LOOKAHEAD_DAYS * 86400000)
-  );
+  const relevant = schedule.filter((g) => !g.canceled);
   if (relevant.length === 0) return { ok: true as const, created: 0, updated: 0, skipped: 0 };
 
   const { data: existingRows } = await supabase

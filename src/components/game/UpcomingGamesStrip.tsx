@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import type { LiveGame } from './LiveGameStatsPanel';
 
 type Sport = 'football' | 'basketball';
+type CardSport = Sport | 'womens';
 
 interface Props {
   /** The game each predictor panel is currently showing; its card jumps to that panel. */
@@ -14,8 +15,9 @@ interface Props {
   onPick: (sport: Sport) => void;
 }
 
-const SPORT_LABEL: Record<Sport, string> = { football: 'Football', basketball: "Men's Basketball" };
-const VENUE: Record<Sport, string> = { football: 'Neyland Stadium', basketball: 'Food City Center' };
+const SPORT_LABEL: Record<CardSport, string> = { football: 'Football', basketball: "Men's Basketball", womens: "Women's Basketball" };
+// Both basketball teams play home games in the same arena.
+const VENUE: Record<CardSport, string> = { football: 'Neyland Stadium', basketball: 'Food City Center', womens: 'Food City Center' };
 
 const etParts = (iso: string) =>
   new Intl.DateTimeFormat('en-US', {
@@ -39,7 +41,9 @@ function daysUntil(iso: string): number {
   return Math.max(0, Math.round((day(new Date(iso)) - day(new Date())) / 86400000));
 }
 
-function opponentOf(g: LiveGame) {
+interface WomensGame { espn_id: number; kickoff_time: string; home_team: string; away_team: string; time_valid: boolean }
+
+function opponentOf(g: { home_team: string; away_team: string }) {
   const home = g.home_team === 'Tennessee';
   return { name: home ? g.away_team : g.home_team, home };
 }
@@ -48,6 +52,7 @@ const monogram = (name: string) => name.replace(/[^A-Za-z ]/g, '').split(' ').fi
 
 export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
   const [games, setGames] = useState<Partial<Record<Sport, LiveGame>>>({});
+  const [womens, setWomens] = useState<WomensGame | null>(null);
 
   useEffect(() => {
     supabase
@@ -66,6 +71,17 @@ export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
       });
   }, []);
 
+  useEffect(() => {
+    supabase
+      .from('womens_basketball_games')
+      .select('espn_id, kickoff_time, home_team, away_team, time_valid')
+      .eq('status', 'pregame')
+      .gte('kickoff_time', new Date(Date.now() - 4 * 3600 * 1000).toISOString())
+      .order('kickoff_time', { ascending: true })
+      .limit(1)
+      .then(({ data }) => setWomens(((data as unknown as WomensGame[]) ?? [])[0] ?? null));
+  }, []);
+
   const jump = (sport: Sport) => {
     onPick(sport);
     document.getElementById(panelId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -80,52 +96,75 @@ export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
         {sports.map((sport) => {
           const g = games[sport];
           if (!g) return <PlaceholderCard key={sport} label={SPORT_LABEL[sport]} status="No game scheduled" />;
-          const { name, home } = opponentOf(g);
-          const when = formatWhen(g.kickoff_time);
-          const days = daysUntil(g.kickoff_time);
           // Only offer the jump when the panel is showing this very game;
           // otherwise (e.g. last night's game still on the panel) it would
           // scroll to picks for a different game.
           const canPick = shownGameIds[sport] === g.id;
           return (
-            <div key={sport} className="bg-vgd-card border border-white/[0.07] rounded-lg overflow-hidden">
-              <div className="flex items-center justify-between px-3.5 py-2 border-b border-white/[0.07]">
-                <span className="text-[10px] font-bold tracking-[0.12em] uppercase text-white">{SPORT_LABEL[sport]}</span>
-                <span className="text-[10px] font-bold text-vgd-orange">{canPick ? 'Picks open' : 'Up next'}</span>
-              </div>
-              <div className="p-3.5 space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-lg bg-vgd-orange text-vgd-bg font-black text-xs flex items-center justify-center flex-shrink-0">UT</div>
-                  <span className="text-[10px] font-extrabold text-white/60">{home ? 'VS' : 'AT'}</span>
-                  <div className="w-9 h-9 rounded-lg bg-white text-vgd-bg font-black text-[11px] flex items-center justify-center flex-shrink-0">{monogram(name)}</div>
-                  <div className="text-lg font-extrabold leading-tight min-w-0 truncate text-white">{name}</div>
-                </div>
-                <div className="text-xs text-white/70 space-y-1">
-                  <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-vgd-orange" /><span className="font-bold text-white">{when.date}</span></div>
-                  <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-vgd-orange" />{when.time}</div>
-                  {home && <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-vgd-orange" />{VENUE[sport]}</div>}
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl font-black text-vgd-orange leading-none">{days}</span>
-                    <span className="text-[10px] font-bold tracking-widest uppercase text-white/60">{days === 1 ? 'day' : 'days'}</span>
-                  </div>
-                  {canPick && (
-                    <button
-                      onClick={() => jump(sport)}
-                      className="px-3.5 py-2 rounded-lg bg-vgd-orange text-vgd-bg text-xs font-extrabold hover:bg-orange-400 transition-colors"
-                    >
-                      Make your picks
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
+            <GameCard
+              key={sport}
+              sport={sport}
+              game={g}
+              status={canPick ? 'Picks open' : 'Up next'}
+              onPick={canPick ? () => jump(sport) : undefined}
+            />
           );
         })}
-        <PlaceholderCard label="Women's Basketball" status="Coming soon" />
+        {womens ? (
+          <GameCard sport="womens" game={womens} status="Up next" />
+        ) : (
+          <PlaceholderCard label="Women's Basketball" status="No game scheduled" />
+        )}
       </div>
     </section>
+  );
+}
+
+function GameCard({
+  sport, game, status, onPick,
+}: {
+  sport: CardSport;
+  game: { kickoff_time: string; home_team: string; away_team: string };
+  status: string;
+  onPick?: () => void;
+}) {
+  const { name, home } = opponentOf(game);
+  const when = formatWhen(game.kickoff_time);
+  const days = daysUntil(game.kickoff_time);
+  return (
+    <div className="bg-vgd-card border border-white/[0.07] rounded-lg overflow-hidden">
+      <div className="flex items-center justify-between px-3.5 py-2 border-b border-white/[0.07]">
+        <span className="text-[10px] font-bold tracking-[0.12em] uppercase text-white">{SPORT_LABEL[sport]}</span>
+        <span className="text-[10px] font-bold text-vgd-orange">{status}</span>
+      </div>
+      <div className="p-3.5 space-y-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-lg bg-vgd-orange text-vgd-bg font-black text-xs flex items-center justify-center flex-shrink-0">UT</div>
+          <span className="text-[10px] font-extrabold text-white/60">{home ? 'VS' : 'AT'}</span>
+          <div className="w-9 h-9 rounded-lg bg-white text-vgd-bg font-black text-[11px] flex items-center justify-center flex-shrink-0">{monogram(name)}</div>
+          <div className="text-lg font-extrabold leading-tight min-w-0 truncate text-white">{name}</div>
+        </div>
+        <div className="text-xs text-white/70 space-y-1">
+          <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-vgd-orange" /><span className="font-bold text-white">{when.date}</span></div>
+          <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-vgd-orange" />{when.time}</div>
+          {home && <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-vgd-orange" />{VENUE[sport]}</div>}
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl font-black text-vgd-orange leading-none">{days}</span>
+            <span className="text-[10px] font-bold tracking-widest uppercase text-white/60">{days === 1 ? 'day' : 'days'}</span>
+          </div>
+          {onPick && (
+            <button
+              onClick={onPick}
+              className="px-3.5 py-2 rounded-lg bg-vgd-orange text-vgd-bg text-xs font-extrabold hover:bg-orange-400 transition-colors"
+            >
+              Make your picks
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
