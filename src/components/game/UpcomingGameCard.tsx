@@ -196,8 +196,20 @@ export function UpcomingGameCard() {
           setFetchState('no_games');
           return;
         }
-        setData(res.upcoming as UpcomingGameData);
-        setFetchState('ok');
+        const upcoming = res.upcoming as UpcomingGameData;
+        // ESPN's schedule can still show a placeholder midnight time after the
+        // real kickoff is known, so the game row's kickoff_time wins.
+        supabase
+          .from('live_games')
+          .select('kickoff_time')
+          .eq('cfbd_game_id', upcoming.game.id)
+          .eq('sport', 'football')
+          .maybeSingle()
+          .then(({ data: row }) => {
+            if (row?.kickoff_time) upcoming.game.date = row.kickoff_time as string;
+            setData(upcoming);
+            setFetchState('ok');
+          });
       });
   }, []);
 
