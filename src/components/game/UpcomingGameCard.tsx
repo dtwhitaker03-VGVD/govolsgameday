@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Loader2, Newspaper, Zap } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useNow } from '../../lib/useNow';
 import { DashboardCard } from '../ui/DashboardCard';
 import { GamePreviewModal } from './GamePreviewModal';
 import { shortTeamName } from '../../lib/teamNames';
@@ -70,8 +71,8 @@ interface PreviewTeamKeyStats {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function computeCountdown(dateStr: string): Countdown {
-  const total = Math.max(0, new Date(dateStr).getTime() - Date.now());
+function computeCountdown(dateStr: string, now: number): Countdown {
+  const total = Math.max(0, new Date(dateStr).getTime() - now);
   const secs = Math.floor(total / 1000);
   return {
     total,
@@ -174,7 +175,6 @@ export function UpcomingGameCard() {
   const [data, setData] = useState<UpcomingGameData | null | undefined>(undefined);
   const [fetchState, setFetchState] = useState<'loading' | 'ok' | 'no_games' | 'api_error'>('loading');
   const [apiErrorMsg, setApiErrorMsg] = useState('');
-  const [countdown, setCountdown] = useState<Countdown | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [previewKeyStats, setPreviewKeyStats] = useState<PreviewTeamKeyStats[]>([]);
 
@@ -213,16 +213,11 @@ export function UpcomingGameCard() {
       });
   }, []);
 
-  // Live countdown tick — ticking seconds is what makes the card read as
-  // "live" rather than a static date, so this updates every second.
-  useEffect(() => {
-    if (!data?.game?.date) return;
-    setCountdown(computeCountdown(data.game.date));
-    const id = setInterval(() => {
-      setCountdown(computeCountdown(data.game.date));
-    }, 1000);
-    return () => clearInterval(id);
-  }, [data?.game?.date]);
+  // Live countdown — ticking seconds is what makes the card read as "live"
+  // rather than a static date. The tick is shared with the Upcoming Games
+  // cards (useNow) so every timer on the page shows the same second.
+  const now = useNow();
+  const countdown = data?.game?.date ? computeCountdown(data.game.date, now) : null;
 
   // Same lookup GamePreviewModal uses (by CFBD's numeric schedule id) — this
   // isn't the modal, just borrowing its already-scraped Scoring/Total
