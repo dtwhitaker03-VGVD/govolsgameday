@@ -214,22 +214,47 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
           </div>
         </div>
 
+        {/* Same Description | Under | Line | Over table as the football picks. */}
         {(total != null || gameProps.length > 0) && (
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-white/50 mb-1.5">Over / Under · 100 pts each</p>
-            <div className="space-y-2">
+            <label className="block text-[10px] font-semibold text-white uppercase tracking-wider mb-1">
+              Over / Under Picks
+            </label>
+            <div className="border border-white/10 rounded-lg overflow-hidden bg-white/[0.015]">
+              <div className="grid grid-cols-[1fr_44px_38px_44px] gap-1.5 items-center px-2.5 py-1.5 border-b border-white/[0.06]">
+                <span />
+                <span className="text-[8px] font-bold text-white text-center tracking-wide">UNDER</span>
+                <span className="text-[8px] font-bold text-white text-center tracking-wide">LINE</span>
+                <span className="text-[8px] font-bold text-white text-center tracking-wide">OVER</span>
+              </div>
+
               {total != null && (
-                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-                  <button type="button" className={toggle(totalPick === 'under')} onClick={() => setTotalPick('under')}>Under</button>
-                  <span className="text-[11px] font-bold text-white text-center">Total {total}</span>
-                  <button type="button" className={toggle(totalPick === 'over')} onClick={() => setTotalPick('over')}>Over</button>
+                <div className="grid grid-cols-[1fr_44px_38px_44px] gap-1.5 items-center px-2.5 py-1.5 border-b border-white/[0.05]">
+                  <span className="text-[11px] font-bold text-white/85 truncate">Total Points</span>
+                  <button type="button" onClick={() => setTotalPick('under')}
+                    className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
+                      totalPick === 'under' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white hover:border-white/30'
+                    }`}>Under</button>
+                  <span className="text-[11px] font-bold text-white text-center">{total}</span>
+                  <button type="button" onClick={() => setTotalPick('over')}
+                    className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
+                      totalPick === 'over' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white hover:border-white/30'
+                    }`}>Over</button>
                 </div>
               )}
+
               {gameProps.map((gp) => (
-                <div key={gp.id} className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-                  <button type="button" className={toggle(propForm[gp.id] === 'under')} onClick={() => setPropForm((f) => ({ ...f, [gp.id]: 'under' }))}>Under</button>
-                  <span className="text-[11px] font-bold text-white text-center max-w-[120px]">{gp.description} {gp.line}</span>
-                  <button type="button" className={toggle(propForm[gp.id] === 'over')} onClick={() => setPropForm((f) => ({ ...f, [gp.id]: 'over' }))}>Over</button>
+                <div key={gp.id} className="grid grid-cols-[1fr_44px_38px_44px] gap-1.5 items-center px-2.5 py-1.5 border-b border-white/[0.05] last:border-0">
+                  <span className="text-[11px] font-bold text-white/85 truncate">{gp.description}</span>
+                  <button type="button" onClick={() => setPropForm((f) => ({ ...f, [gp.id]: 'under' }))}
+                    className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
+                      propForm[gp.id] === 'under' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white hover:border-white/30'
+                    }`}>Under</button>
+                  <span className="text-[11px] font-bold text-white text-center">{gp.line}</span>
+                  <button type="button" onClick={() => setPropForm((f) => ({ ...f, [gp.id]: 'over' }))}
+                    className={`py-1 rounded text-[9px] font-bold uppercase border transition-all ${
+                      propForm[gp.id] === 'over' ? 'bg-vgd-orange border-vgd-orange text-white' : 'border-white/10 text-white hover:border-white/30'
+                    }`}>Over</button>
                 </div>
               ))}
             </div>
