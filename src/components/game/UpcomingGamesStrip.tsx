@@ -151,10 +151,14 @@ function GameCard({
           {home && <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-vgd-orange" />{VENUE[sport]}</div>}
         </div>
         <div className="flex items-center justify-between gap-3">
+          {/* "11:05:33:22" — days in orange, then hh:mm:ss. With no kickoff time yet it's the day count alone. */}
           <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-black text-vgd-orange leading-none">{days}</span>
-            <span className="text-[10px] font-bold tracking-widest uppercase text-white/60">{days === 1 ? 'day' : 'days'}</span>
-            {timeKnown && <span className="ml-2 text-lg font-extrabold tabular-nums text-white">{clock}</span>}
+            <span className="text-2xl font-black text-vgd-orange leading-none tabular-nums">{days}</span>
+            {timeKnown ? (
+              <span className="text-2xl font-black text-white leading-none tabular-nums">:{clock}</span>
+            ) : (
+              <span className="text-[10px] font-bold tracking-widest uppercase text-white/60">{days === 1 ? 'day' : 'days'}</span>
+            )}
           </div>
           {onPick && (
             <button
