@@ -21,8 +21,8 @@ ALTER TABLE public.live_window_predictions
   ADD COLUMN IF NOT EXISTS pick_fouls     INTEGER,
   ADD COLUMN IF NOT EXISTS breakdown      JSONB;
 
-DROP FUNCTION IF EXISTS public.submit_live_window_prediction(UUID, INTEGER, VARCHAR);
-DROP FUNCTION IF EXISTS public.settle_live_window(UUID, INTEGER, INTEGER, INTEGER, TEXT);
+-- The old home/away/tie versions of these two functions are left in place as
+-- unused overloads (new signatures below, so calls resolve to the new ones).
 
 CREATE OR REPLACE FUNCTION public.submit_live_window_prediction(
   p_game_id UUID, p_window_number INTEGER,

@@ -1283,14 +1283,15 @@ function FinalizedGameStatsPanel({ games, onRefresh }: { games: LiveGame[]; onRe
     { value: '', label: 'Select game…' },
     ...games.filter(g => g.status !== 'calculated').map(g => ({
       value: g.id,
-      label: `${g.sport === 'basketball' ? '🏀 ' : ''}${g.away_team} @ ${g.home_team} [${g.status}]`,
+      label: `${g.sport === 'basketball' || g.sport === 'womens_basketball' ? '🏀 ' : ''}${g.away_team} @ ${g.home_team} [${g.status}]`,
     })),
   ];
 
   async function finalize() {
     if (!gameId) return;
     setStatus('loading');
-    const isBasketball = games.find(g => g.id === gameId)?.sport === 'basketball';
+    const gameSport = games.find(g => g.id === gameId)?.sport;
+    const isBasketball = gameSport === 'basketball' || gameSport === 'womens_basketball';
     const { data, error } = await supabase.functions.invoke(isBasketball ? 'finalize-game-bb' : 'finalize-game', {
       body: { game_id: gameId },
     });

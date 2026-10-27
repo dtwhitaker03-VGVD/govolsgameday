@@ -4,10 +4,10 @@ import { useAuth } from '../../context/AuthContext';
 import { DashboardCard } from '../ui/DashboardCard';
 import type { LiveGame } from '../game/LiveGameStatsPanel';
 
-// Live "stretch" game: at each TV timeout, guess Tennessee's numbers for the
-// stretch until the next one — points, 3s, 2s, turnovers forced, fouls. Each
-// guess scores 50 minus 5 per miss. The server (live-espn-sync-bb) opens a
-// window at each timeout and locks it when play resumes.
+// Live "stretch" game: at each TV timeout (men's) or quarter break (women's),
+// guess Tennessee's numbers until the next one — points, 3s, 2s, turnovers
+// forced, fouls. Each guess scores 50 minus 5 per miss. The server
+// (live-espn-sync-bb) opens a window at each break and locks it when play resumes.
 
 interface Win {
   id: string;
@@ -41,23 +41,31 @@ interface MyPick {
 
 type Field = 'pts' | 'threes' | 'twos' | 'turnovers' | 'fouls';
 
-const FIELDS: { key: Field; label: string; hint: string; max: number; start: number }[] = [
-  { key: 'pts', label: 'TN points', hint: 'scored this stretch', max: 60, start: 10 },
-  { key: 'threes', label: '3-pointers', hint: 'TN makes', max: 20, start: 1 },
-  { key: 'twos', label: '2-pointers', hint: 'TN makes', max: 30, start: 3 },
-  { key: 'turnovers', label: 'Turnovers forced', hint: 'by TN', max: 20, start: 2 },
-  { key: 'fouls', label: 'Fouls', hint: 'committed by TN', max: 20, start: 2 },
+const FIELDS: { key: Field; label: string; hint: string; max: number }[] = [
+  { key: 'pts', label: 'TN points', hint: 'scored', max: 60 },
+  { key: 'threes', label: '3-pointers', hint: 'TN makes', max: 20 },
+  { key: 'twos', label: '2-pointers', hint: 'TN makes', max: 30 },
+  { key: 'turnovers', label: 'Turnovers forced', hint: 'by TN', max: 20 },
+  { key: 'fouls', label: 'Fouls', hint: 'committed by TN', max: 20 },
 ];
 
-const DEFAULTS: Record<Field, number> = Object.fromEntries(FIELDS.map((f) => [f.key, f.start])) as Record<Field, number>;
+// Starting values: about what a typical window holds (a quarter is longer than
+// a TV-timeout stretch).
+const START: Record<'stretch' | 'quarter', Record<Field, number>> = {
+  stretch: { pts: 10, threes: 1, twos: 3, turnovers: 2, fouls: 2 },
+  quarter: { pts: 18, threes: 2, twos: 5, turnovers: 4, fouls: 4 },
+};
 
-function periodLabel(p: number | null): string {
+function periodLabel(p: number | null, quarters: boolean): string {
   if (!p) return '';
+  if (quarters) return p <= 4 ? `Q${p}` : `OT${p > 5 ? p - 4 : ''}`;
   return p === 1 ? '1st half' : p === 2 ? '2nd half' : `OT${p > 3 ? p - 2 : ''}`;
 }
 
 export function BasketballLivePrediction({ game }: { game: LiveGame }) {
   const { session, openAuthModal } = useAuth();
+  const quarters = game.sport === 'womens_basketball';
+  const DEFAULTS = START[quarters ? 'quarter' : 'stretch'];
   const [wins, setWins] = useState<Win[]>([]);
   const [picks, setPicks] = useState<Map<number, MyPick>>(new Map());
   const [form, setForm] = useState<Record<Field, number>>(DEFAULTS);
@@ -114,7 +122,7 @@ export function BasketballLivePrediction({ game }: { game: LiveGame }) {
     setForm(myPick && myPick.pick_pts != null
       ? { pts: myPick.pick_pts, threes: myPick.pick_threes ?? 0, twos: myPick.pick_twos ?? 0, turnovers: myPick.pick_turnovers ?? 0, fouls: myPick.pick_fouls ?? 0 }
       : DEFAULTS);
-  }, [open, formWindow, myPick]);
+  }, [open, formWindow, myPick, DEFAULTS]);
 
   function bump(key: Field, delta: number, max: number) {
     setForm((f) => ({ ...f, [key]: Math.min(max, Math.max(0, f[key] + delta)) }));
@@ -143,10 +151,10 @@ export function BasketballLivePrediction({ game }: { game: LiveGame }) {
 
   return (
     <DashboardCard
-      title="🏀 LIVE STRETCH PREDICTOR"
+      title={quarters ? '🏀 LIVE QUARTER PREDICTOR' : '🏀 LIVE STRETCH PREDICTOR'}
       metadataTag={
         <span className="text-[10px] font-bold uppercase tracking-wider text-white">
-          {periodLabel(game.current_quarter)} {game.game_clock}
+          {periodLabel(game.current_quarter, quarters)} {game.game_clock}
         </span>
       }
       statusDotColor="#22c55e"
@@ -162,7 +170,7 @@ export function BasketballLivePrediction({ game }: { game: LiveGame }) {
         {open ? (
           <>
             <p className="text-[11px] text-center text-white/80">
-              Tennessee from now until the next TV timeout · 50 pts each, minus 5 per miss
+              Tennessee from now until {quarters ? 'the end of the quarter' : 'the next TV timeout'} · 50 pts each, minus 5 per miss
             </p>
             <p className={`text-center text-xs font-bold ${canPick ? 'text-vgd-orange' : 'text-vgd-red'}`}>
               {canPick ? `Locks when play resumes · ${Math.ceil(msLeft / 1000)}s max` : 'Locked — stretch in progress'}
@@ -200,7 +208,7 @@ export function BasketballLivePrediction({ game }: { game: LiveGame }) {
           </>
         ) : (
           <p className="text-xs text-center text-white/70 py-3">
-            {current ? 'Next window opens at the next TV timeout.' : 'First window opens at tip-off.'}
+            {current ? (quarters ? 'Next window opens at the next quarter break.' : 'Next window opens at the next TV timeout.') : 'First window opens at tip-off.'}
           </p>
         )}
         {error && <p className="text-xs text-center text-vgd-red">{error}</p>}
@@ -208,7 +216,7 @@ export function BasketballLivePrediction({ game }: { game: LiveGame }) {
         {lastDone && (
           <div className="border-t border-white/[0.07] pt-3 space-y-1.5">
             <div className="text-center text-[11px] text-white/80">
-              Last stretch ({lastDone.start_away_score}–{lastDone.start_home_score} → {lastDone.end_away_score}–{lastDone.end_home_score})
+              {quarters ? 'Last quarter' : 'Last stretch'} ({lastDone.start_away_score}–{lastDone.start_home_score} → {lastDone.end_away_score}–{lastDone.end_home_score})
               {lastPick && <span className="font-bold text-vgd-orange"> · +{lastPick.points_earned ?? 0} pts</span>}
             </div>
             <div className="grid grid-cols-5 gap-1 text-center">

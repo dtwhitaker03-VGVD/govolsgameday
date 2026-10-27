@@ -1,7 +1,7 @@
 import { DashboardCard } from '../ui/DashboardCard';
 import type { LiveGame } from './LiveGameStatsPanel';
 
-// Men's basketball scoreboard: score, period/clock and ESPN team box score
+// Men's and women's basketball scoreboard: score, period/clock and ESPN team box score
 // (live_games.bb_stats, refreshed every 15s by live-espn-sync-bb).
 
 const ROWS: { label: string; key: string }[] = [
@@ -17,8 +17,9 @@ const ROWS: { label: string; key: string }[] = [
   { label: 'Pts in paint', key: 'pointsInPaint' },
 ];
 
-function periodLabel(p: number | null): string {
+function periodLabel(p: number | null, quarters = false): string {
   if (!p) return '';
+  if (quarters) return p <= 4 ? `Q${p}` : `OT${p > 5 ? p - 4 : ''}`;
   return p === 1 ? '1st half' : p === 2 ? '2nd half' : `OT${p > 3 ? p - 2 : ''}`;
 }
 
@@ -29,7 +30,7 @@ export function BasketballScoreboard({ game }: { game: LiveGame }) {
     weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York', timeZoneName: 'short',
   });
   const status = game.status === 'live'
-    ? stats?.detail || `${periodLabel(game.current_quarter)} ${game.game_clock ?? ''}`
+    ? stats?.detail || `${periodLabel(game.current_quarter, game.sport === 'womens_basketball')} ${game.game_clock ?? ''}`
     : started ? 'FINAL' : tip;
 
   return (

@@ -1,10 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { type BbPlay, type Boundary, isTerminal, planBoundaries, stretchStats } from "./plan.ts";
+import { type BbPlay, type Boundary, type PlanMode, isTerminal, planBoundaries, stretchStats } from "./plan.ts";
 
 // ─── LIVE ESPN SYNC (BASKETBALL) ────────────────────────────────────────────
-// Drives the men's basketball scoreboard and the live "stretch" predictor from
-// ESPN's public game summary. The football poller (live-espn-sync) ignores
+// Drives the men's and women's basketball scoreboards and the live predictor
+// (men's: TV-timeout stretches; women's: quarters) from ESPN's public game summary. The football poller (live-espn-sync) ignores
 // basketball rows and this one ignores football rows (live_games.sport).
 //
 // A stretch runs from one TV timeout to the next (see plan.ts for the exact
@@ -17,7 +17,10 @@ import { type BbPlay, type Boundary, isTerminal, planBoundaries, stretchStats } 
 //
 // ESPN's event id is stored in live_games.cfbd_game_id.
 
-const ESPN_SUMMARY = "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/summary?event=";
+const ESPN_SUMMARY: Record<string, string> = {
+  basketball: "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/summary?event=",
+  womens_basketball: "https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/summary?event=",
+};
 const CONFIRM_SECONDS = 30;
 const TIMEOUT_LOCK_SECONDS = 150; // fallback; the first live play after the timeout locks it sooner
 const START_LOCK_SECONDS = 120;
@@ -44,6 +47,7 @@ type SupabaseClient = ReturnType<typeof getSupabaseClient>;
 interface GameRow {
   id: string;
   cfbd_game_id: number;
+  sport: string;
   home_team: string;
   away_team: string;
   status: string;
@@ -58,9 +62,9 @@ const sameTeam = (a: string, b: string) => {
 
 let lastFetchError = "";
 
-async function fetchSummary(eventId: number): Promise<Json | null> {
+async function fetchSummary(eventId: number, sport: string): Promise<Json | null> {
   try {
-    const res = await fetch(`${ESPN_SUMMARY}${eventId}`, {
+    const res = await fetch(`${ESPN_SUMMARY[sport] ?? ESPN_SUMMARY.basketball}${eventId}`, {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; GoVolsGameDay/1.0)", Accept: "application/json" },
     });
     if (!res.ok) {
@@ -88,7 +92,7 @@ function teamStats(d: Json, teamId: string): Record<string, string> {
 }
 
 async function syncGame(supabase: SupabaseClient, game: GameRow) {
-  const d = await fetchSummary(game.cfbd_game_id);
+  const d = await fetchSummary(game.cfbd_game_id, game.sport);
   const comp = d?.header?.competitions?.[0];
   if (!comp) return { game_id: game.id, ok: false, error: `ESPN summary unavailable: ${lastFetchError || "unexpected shape"}` };
 
@@ -109,7 +113,8 @@ async function syncGame(supabase: SupabaseClient, game: GameRow) {
   const awayScore = toInt(away.score) ?? 0;
   const over = state === "post" && comp.status.type.completed === true;
   const plays: BbPlay[] = d.plays ?? [];
-  const boundaries = planBoundaries(plays);
+  const mode: PlanMode = game.sport === "womens_basketball" ? "quarter" : "stretch";
+  const boundaries = planBoundaries(plays, mode);
   const tnTeamId: string = game.home_team === "Tennessee" ? home.team.id : away.team.id;
 
   // ── Windows first, so the game is never marked final with a stretch unsettled ──
@@ -170,7 +175,7 @@ async function syncGame(supabase: SupabaseClient, game: GameRow) {
     // The stretch in progress: stretch n starts at boundary n-1.
     const n = boundaries.length;
     const startB: Boundary = boundaries[n - 1];
-    const terminal = isTerminal(startB);
+    const terminal = isTerminal(startB, mode);
 
     if (over) {
       // Game over: score the stretch in progress (or the one that ended at a terminal
@@ -191,7 +196,7 @@ async function syncGame(supabase: SupabaseClient, game: GameRow) {
         // come after the play); a missed boundary just means no window for that stretch.
         if (!startB.resumed) {
           const lockSeconds = startB.kind === "start" ? START_LOCK_SECONDS
-            : startB.kind === "period" && startB.period === 1 ? HALFTIME_LOCK_SECONDS : TIMEOUT_LOCK_SECONDS;
+            : startB.kind === "period" && startB.period === (mode === "quarter" ? 2 : 1) ? HALFTIME_LOCK_SECONDS : TIMEOUT_LOCK_SECONDS;
           const { error } = await supabase.rpc("open_live_window", {
             p_game_id: game.id, p_window_number: n, p_start_play_id: startB.playId, p_period: startB.period,
             p_clock: startB.clock, p_home_score: startB.home, p_away_score: startB.away, p_lock_seconds: lockSeconds,
@@ -248,8 +253,8 @@ Deno.serve(async (req: Request) => {
   const soon = new Date(Date.now() + 60 * 60 * 1000).toISOString();
   const { data: games, error } = await supabase
     .from("live_games")
-    .select("id, cfbd_game_id, home_team, away_team, status, manual_control")
-    .eq("sport", "basketball")
+    .select("id, cfbd_game_id, sport, home_team, away_team, status, manual_control")
+    .in("sport", ["basketball", "womens_basketball"])
     .or(`status.eq.live,and(status.eq.pregame,kickoff_time.lte.${soon})`);
   if (error) return json({ error: error.message }, 500);
 

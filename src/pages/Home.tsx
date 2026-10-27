@@ -74,7 +74,7 @@ function pickActiveGame(games: LiveGame[]): LiveGame | null {
   return upcoming ?? null;
 }
 
-type PredictorSport = 'football' | 'basketball';
+type PredictorSport = 'football' | 'basketball' | 'womens_basketball';
 
 /** The basketball predictor itself: pregame picks, live stretches, or the post-game summary. */
 function BasketballMain({ game }: { game: LiveGame }) {
@@ -93,35 +93,32 @@ function BasketballColumn({ game }: { game: LiveGame }) {
 }
 
 function SportTabs({
-  active, onSelect, footballLive, basketballLive,
+  tabs, active, onSelect,
 }: {
+  tabs: { sport: PredictorSport; label: string; live: boolean }[];
   active: PredictorSport;
   onSelect: (s: PredictorSport) => void;
-  footballLive: boolean;
-  basketballLive: boolean;
 }) {
-  const tab = (sport: PredictorSport, label: string, live: boolean) => (
-    <button
-      key={sport}
-      role="tab"
-      aria-selected={active === sport}
-      onClick={() => onSelect(sport)}
-      className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-extrabold tracking-wider uppercase transition-colors ${
-        active === sport ? 'bg-vgd-orange text-vgd-bg' : 'text-white hover:bg-white/10'
-      }`}
-    >
-      {label}
-      {live && (
-        <span className="flex items-center gap-1 text-[9px] font-bold text-red-500">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />LIVE
-        </span>
-      )}
-    </button>
-  );
   return (
     <div role="tablist" className="flex gap-1 p-1 bg-vgd-card border border-white/[0.07] rounded-lg flex-shrink-0">
-      {tab('football', 'Football', footballLive)}
-      {tab('basketball', "Men's Basketball", basketballLive)}
+      {tabs.map(({ sport, label, live }) => (
+        <button
+          key={sport}
+          role="tab"
+          aria-selected={active === sport}
+          onClick={() => onSelect(sport)}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-[11px] font-extrabold tracking-wider uppercase transition-colors ${
+            active === sport ? 'bg-vgd-orange text-vgd-bg' : 'text-white hover:bg-white/10'
+          }`}
+        >
+          {label}
+          {live && (
+            <span className="flex items-center gap-1 text-[9px] font-bold text-red-500">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />LIVE
+            </span>
+          )}
+        </button>
+      ))}
     </div>
   );
 }
@@ -129,6 +126,7 @@ function SportTabs({
 export default function Home() {
   const [liveGame, setLiveGame] = useState<LiveGame | null>(null);
   const [bbGame, setBbGame] = useState<LiveGame | null>(null);
+  const [wbbGame, setWbbGame] = useState<LiveGame | null>(null);
   const [layoutReady, setLayoutReady] = useState(false);
   const [pickedSport, setPickedSport] = useState<PredictorSport | null>(null);
 
@@ -148,10 +146,11 @@ export default function Home() {
       .limit(40)
       .then(({ data }) => {
         const games = (data as LiveGame[]) ?? [];
-        // Football and men's basketball each get their own predictor; the
-        // football one keeps the main slot (it wins when both are live).
-        setLiveGame(pickActiveGame(games.filter((g) => g.sport !== 'basketball')));
+        // Football, men's and women's basketball each get their own predictor
+        // (shared slot, one tab each); football wins when several are live.
+        setLiveGame(pickActiveGame(games.filter((g) => g.sport !== 'basketball' && g.sport !== 'womens_basketball')));
         setBbGame(pickActiveGame(games.filter((g) => g.sport === 'basketball')));
+        setWbbGame(pickActiveGame(games.filter((g) => g.sport === 'womens_basketball')));
       });
   }, []);
 
@@ -179,18 +178,18 @@ export default function Home() {
   // Realtime subscriptions elsewhere on this page still pick up the
   // resulting changes live. See supabase/functions/live-cfbd-sync.
 
-  // One predictor slot shared by both sports. Until the user picks a tab it
-  // follows the action: a live game first (football wins a tie), else
-  // whichever of the two games is sooner.
+  // One predictor slot shared by every sport that has a game. Until the user
+  // picks a tab it follows the action: a live game first (football, then men's,
+  // then women's), else whichever game is soonest.
+  const byTab: Record<PredictorSport, LiveGame | null> = { football: liveGame, basketball: bbGame, womens_basketball: wbbGame };
+  const available = (['football', 'basketball', 'womens_basketball'] as PredictorSport[]).filter((s) => byTab[s]);
   const defaultSport: PredictorSport =
-    liveGame?.status === 'live' ? 'football'
-    : bbGame?.status === 'live' ? 'basketball'
-    : !liveGame ? 'basketball'
-    : !bbGame ? 'football'
-    : new Date(bbGame.kickoff_time) < new Date(liveGame.kickoff_time) ? 'basketball'
-    : 'football';
-  const activeSport = pickedSport ?? defaultSport;
-  const showBasketball = activeSport === 'basketball' && !!bbGame;
+    available.find((s) => byTab[s]!.status === 'live')
+    ?? [...available].sort((a, b) => new Date(byTab[a]!.kickoff_time).getTime() - new Date(byTab[b]!.kickoff_time).getTime())[0]
+    ?? 'football';
+  const activeSport = pickedSport && byTab[pickedSport] ? pickedSport : defaultSport;
+  const basketballSelected = activeSport === 'football' ? null : byTab[activeSport];
+  const TAB_LABEL: Record<PredictorSport, string> = { football: 'Football', basketball: "Men's", womens_basketball: "Women's" };
 
   const isLive = liveGame?.status === 'live';
   const isFinal = liveGame?.status === 'final' || liveGame?.status === 'calculated';
@@ -212,7 +211,7 @@ export default function Home() {
           the game's overall (pregame + live-drive) leaderboard stay visible
           together instead of reverting to a bare picks form. */}
       <UpcomingGamesStrip
-        shownGameIds={{ football: liveGame?.id ?? null, basketball: bbGame?.id ?? null }}
+        shownGameIds={{ football: liveGame?.id ?? null, basketball: bbGame?.id ?? null, womens_basketball: wbbGame?.id ?? null }}
         panelId="predictor-panel"
         onPick={setPickedSport}
       />
@@ -229,17 +228,16 @@ export default function Home() {
           <div className="bg-vgd-card border border-white/[0.07] rounded-lg animate-pulse" style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }} />
         ) : (
           <div id="predictor-panel" className="flex flex-col gap-3 scroll-mt-16" style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }}>
-            {liveGame && bbGame && (
+            {available.length > 1 && (
               <SportTabs
+                tabs={available.map((sport) => ({ sport, label: TAB_LABEL[sport], live: byTab[sport]!.status === 'live' }))}
                 active={activeSport}
                 onSelect={setPickedSport}
-                footballLive={liveGame.status === 'live'}
-                basketballLive={bbGame.status === 'live'}
               />
             )}
             <div className="flex-1 min-h-0">
-              {showBasketball ? (
-                <BasketballColumn game={bbGame} />
+              {basketballSelected ? (
+                <BasketballColumn game={basketballSelected} />
               ) : liveGame ? (
                 <div className="flex flex-col gap-4 h-full">
                   {isLive ? (

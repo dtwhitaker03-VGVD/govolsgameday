@@ -6,7 +6,7 @@
 -- home/away side differs per game.
 CREATE TABLE IF NOT EXISTS public.default_game_props (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  sport         TEXT NOT NULL DEFAULT 'football' CHECK (sport IN ('football', 'basketball')),
+  sport         TEXT NOT NULL DEFAULT 'football' CHECK (sport IN ('football', 'basketball', 'womens_basketball')),
   description   TEXT NOT NULL,
   line          NUMERIC NOT NULL,
   sort_order    INTEGER NOT NULL DEFAULT 0,
@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS public.default_game_props (
   stat_category TEXT,
   stat_type     TEXT,
   player_name   TEXT,
-  team_side     TEXT CHECK (team_side IN ('tennessee', 'opponent'))
+  team_side     TEXT CHECK (team_side IN ('tennessee', 'opponent')),
+  active        BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 ALTER TABLE public.default_game_props ENABLE ROW LEVEL SECURITY;
@@ -30,7 +31,10 @@ INSERT INTO public.default_game_props (sport, description, line, sort_order, sta
   -- made per game; ~7.5 steals plus other forced turnovers); tune with "Save as defaults".
   -- stat_category is an ESPN box-score stat name, read from the team_side's column.
   ('basketball', 'TN 3-Pointers Made', 6.5, 0, 'team', 'threePointFieldGoalsMade-threePointFieldGoalsAttempted', NULL, NULL, 'tennessee'),
-  ('basketball', 'TN Turnovers Forced', 12.5, 1, 'team', 'totalTurnovers', NULL, NULL, 'opponent');
+  ('basketball', 'TN Turnovers Forced', 12.5, 1, 'team', 'totalTurnovers', NULL, NULL, 'opponent'),
+  -- Women's: 9.4 threes made and 10.4 steals per game in 2025-26.
+  ('womens_basketball', 'TN 3-Pointers Made', 9.5, 0, 'team', 'threePointFieldGoalsMade-threePointFieldGoalsAttempted', NULL, NULL, 'tennessee'),
+  ('womens_basketball', 'TN Turnovers Forced', 18.5, 1, 'team', 'totalTurnovers', NULL, NULL, 'opponent');
 
 -- Copies the defaults onto a game, skipping any description it already has.
 CREATE OR REPLACE FUNCTION public.apply_default_props(p_game_id UUID)
@@ -51,7 +55,7 @@ BEGIN
            ELSE 'away'
          END
   FROM public.default_game_props d
-  WHERE d.sport = v_sport AND NOT EXISTS (
+  WHERE d.sport = v_sport AND d.active AND NOT EXISTS (
     SELECT 1 FROM public.game_props gp WHERE gp.game_id = p_game_id AND gp.description = d.description
   );
   GET DIAGNOSTICS v_count = ROW_COUNT;
@@ -69,7 +73,7 @@ $$;
 
 CREATE TRIGGER live_games_default_props
   AFTER INSERT ON public.live_games
-  FOR EACH ROW WHEN (NEW.sport IN ('football', 'basketball'))
+  FOR EACH ROW WHEN (NEW.sport IN ('football', 'basketball', 'womens_basketball'))
   EXECUTE FUNCTION public.trg_apply_default_props();
 
 -- Admin: fill an existing game with the defaults.
@@ -104,7 +108,7 @@ BEGIN
     RAISE EXCEPTION 'That game has no props to save as defaults.';
   END IF;
 
-  DELETE FROM public.default_game_props WHERE sport = v_sport;
+  UPDATE public.default_game_props SET active = FALSE WHERE sport = v_sport;
   INSERT INTO public.default_game_props (sport, description, line, sort_order, stat_scope, stat_category, stat_type, player_name, team_side)
   SELECT v_sport, description, line, sort_order, stat_scope, stat_category, stat_type, player_name,
          CASE

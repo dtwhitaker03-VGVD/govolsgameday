@@ -96,7 +96,7 @@ export function PlayerOfGamePanel() {
     const tn = tnHome ? g.home_score : g.away_score;
     const opp = tnHome ? g.away_score : g.home_score;
     const date = new Date(g.kickoff_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' });
-    return `${g.sport === 'basketball' ? '🏀 ' : ''}${tnHome ? 'vs' : 'at'} ${tnHome ? g.away_team : g.home_team} · ${tn > opp ? 'W' : 'L'} ${tn}-${opp} · ${date}${existing.has(g.id) ? ' ✓' : ''}`;
+    return `${g.sport === 'basketball' || g.sport === 'womens_basketball' ? '🏀 ' : ''}${tnHome ? 'vs' : 'at'} ${tnHome ? g.away_team : g.home_team} · ${tn > opp ? 'W' : 'L'} ${tn}-${opp} · ${date}${existing.has(g.id) ? ' ✓' : ''}`;
   };
 
   return (
