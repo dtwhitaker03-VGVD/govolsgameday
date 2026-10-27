@@ -50,8 +50,8 @@ function opponentOf(g: { home_team: string; away_team: string }) {
   return { name: home ? g.away_team : g.home_team, home };
 }
 
-/** The school's logo, or its monogram when we have no logo for it (or the image fails). */
-function OpponentBadge({ name }: { name: string }) {
+/** A school's logo (Tennessee's is the Power T), or its monogram when we have no logo for it (or the image fails). */
+function TeamBadge({ name, fallbackClass = 'bg-white text-vgd-bg', fallbackText }: { name: string; fallbackClass?: string; fallbackText?: string }) {
   const [failed, setFailed] = useState(false);
   const src = teamLogoUrl(name);
   if (src && !failed) {
@@ -67,8 +67,8 @@ function OpponentBadge({ name }: { name: string }) {
     );
   }
   return (
-    <div className="w-9 h-9 rounded-lg bg-white text-vgd-bg font-black text-[11px] flex items-center justify-center flex-shrink-0">
-      {monogram(name)}
+    <div className={`w-9 h-9 rounded-lg font-black text-[11px] flex items-center justify-center flex-shrink-0 ${fallbackClass}`}>
+      {fallbackText ?? monogram(name)}
     </div>
   );
 }
@@ -155,9 +155,9 @@ function GameCard({
       </div>
       <div className="p-3.5 space-y-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-lg bg-vgd-orange text-vgd-bg font-black text-xs flex items-center justify-center flex-shrink-0">UT</div>
+          <TeamBadge name="Tennessee" fallbackClass="bg-vgd-orange text-vgd-bg" fallbackText="UT" />
           <span className="text-[10px] font-extrabold text-white/60">{home ? 'VS' : 'AT'}</span>
-          <OpponentBadge name={name} />
+          <TeamBadge name={name} />
           <div className="text-lg font-extrabold leading-tight min-w-0 truncate text-white">{name}</div>
         </div>
         <div className="text-xs text-white/70 space-y-1">
@@ -197,7 +197,7 @@ function PlaceholderCard({ label, status }: { label: string; status: string }) {
         <span className="text-[10px] font-bold text-vgd-orange">{status}</span>
       </div>
       <div className="p-3.5 flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-lg bg-vgd-orange text-vgd-bg font-black text-xs flex items-center justify-center flex-shrink-0">UT</div>
+        <TeamBadge name="Tennessee" fallbackClass="bg-vgd-orange text-vgd-bg" fallbackText="UT" />
         <div className="w-9 h-9 rounded-lg border-2 border-dashed border-white/35 text-white/60 font-black flex items-center justify-center flex-shrink-0">?</div>
         <span className="text-sm text-white/60">Schedule not connected yet</span>
       </div>
