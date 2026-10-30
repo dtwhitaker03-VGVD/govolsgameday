@@ -678,3 +678,32 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-30 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-10-30 → 2026-11-02 (4 polls, 20 trivia rows checked).
+- 10-30 through 11-01 were already cleaned in earlier runs (#242, #252, #253), and a re-check found nothing new.
+- 11-02 had 4 issues: a poll with two factual errors, a broken True/False, a Buzz Peterson question with joke distractors, and a Hamilton question that gave away the 11-04 answer. All fixed. No user responses existed on any edited row.
+- Flag for the 11-12 run: 11-15 slot 5 says Tee Martin was Tennessee's "interim head coach in 2020". That looks wrong (Kevin Ramsey was interim after Pruitt's Jan. 2021 firing) and needs verification on that run.
+
+### daily_polls.7bef774d — 2026-11-02 — ✅ applied
+**Before:** "What is the greatest season in Tennessee football history?" 1998 undefeated / 1995 SEC Champions / 2001 SEC Champions / 2022 CFP run
+**After:** "Kentucky comes to Neyland this Saturday. What matters most for the Vols in that game?" Winning the turnover battle / Establishing the run early / Pressuring the Kentucky quarterback / A fast start in the first quarter
+**Why:** Polls must be about the current season and the next game (Kentucky, Nov. 7). Two options were also factually wrong: Tennessee did not win the SEC in 1995 (Florida did) or 2001 (lost the title game to LSU).
+
+### trivia_questions.d1d98631 — 2026-11-02 / slot 3 — ✅ applied
+**Before:** "Buzz Peterson's Tennessee tenure ended in 2005 after which general outcome?" An undefeated season / A national championship / A losing overall record leading to his dismissal ✅ / He retired voluntarily after a title
+**After:** "Buzz Peterson left which school for Tennessee in 2001, after one season there capped by an NIT title?" Appalachian State / Tulsa ✅ / Coastal Carolina / UNC Wilmington
+**Why:** Three options were jokes, and the "answer" was wrong: Peterson went 61-59 at Tennessee, a winning record, though he was fired. Tulsa won the 2001 NIT in his only season. Appalachian State (his earlier job) works as a trap answer.
+
+### trivia_questions.0172dd6d — 2026-11-02 / slot 4 — ✅ applied
+**Before:** "Mike Hamilton's tenure as Athletic Director ran from 2003 until he resigned amid controversy in what year?" 2011 ✅ / 2015 / 2020 / 1995
+**After:** "Who was Tennessee's starting quarterback in the 1999 Fiesta Bowl win over Florida State that clinched the 1998 national title?" Peyton Manning / Tee Martin ✅ / Casey Clausen / Erik Ainge (category → Vol Football History)
+**Why:** 1995 predates the 2003 start the stem gives. The 11-04 slot 4 answer is Mike Hamilton, so this would have given it away two days early.
+
+### trivia_questions.7a4909a1 — 2026-11-02 / slot 5 — ✅ applied
+**Before:** "Christian Moore's 2024 season … ranks among the best single-season batting performances in modern Tennessee program history. True or false?" True ✅ / The record has remained unchanged since the 1960s / No batting averages are tracked in college baseball / Not applicable
+**After:** "Tennessee won its first baseball national championship in 2024 by beating which team in the College World Series finals?" Florida State / North Carolina / Kentucky / Texas A&M ✅
+**Why:** A broken True/False with three non-answers and a vague claim. Christian Moore is also asked about on 11-08. Tennessee beat Texas A&M in the 2024 CWS finals.
+
+11-02 slots 1 (Dale Ellis, three-point shooting) and 2 (Knoxville) were verified and left as is.
