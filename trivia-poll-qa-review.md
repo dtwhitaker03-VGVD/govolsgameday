@@ -684,7 +684,7 @@ The poll for 09-22 has a wording issue — see entry below.
 - Window: 2026-10-30 → 2026-11-02 (4 polls, 20 trivia rows checked).
 - 10-30 through 11-01 were already cleaned in earlier runs (#242, #252, #253), and a re-check found nothing new.
 - 11-02 had 4 issues: a poll with two factual errors, a broken True/False, a Buzz Peterson question with joke distractors, and a Hamilton question that gave away the 11-04 answer. All fixed. No user responses existed on any edited row.
-- Flag for the 11-12 run: 11-15 slot 5 says Tee Martin was Tennessee's "interim head coach in 2020". That looks wrong (Kevin Ramsey was interim after Pruitt's Jan. 2021 firing) and needs verification on that run.
+- Flag for the 11-12 run: 11-15 slot 5 says Tee Martin was Tennessee's "interim head coach in 2020". That looks wrong: Kevin Steele was the interim (acting) head coach after Pruitt's Jan. 18, 2021 firing. Fix it on that run.
 
 ### daily_polls.7bef774d — 2026-11-02 — ✅ applied
 **Before:** "What is the greatest season in Tennessee football history?" 1998 undefeated / 1995 SEC Champions / 2001 SEC Champions / 2022 CFP run
