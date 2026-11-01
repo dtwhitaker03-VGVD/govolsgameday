@@ -33,6 +33,8 @@ interface PreviewContent {
   teamLeaders: TeamLeaders[];
   lastGame: { team: string; summary: string }[];
   nextGame: string[];
+  /** Written by game-preview-generate rather than scraped from ESPN's preview page. */
+  generated?: boolean;
 }
 
 const STAT_LABELS: Record<keyof StatBlock, string> = {
@@ -214,7 +216,7 @@ export function GamePreviewModal({ gameId, cfbdGameId, onClose }: GamePreviewMod
               )}
 
               <p className="text-[9px] text-vgd-muted/60 text-right pt-2 border-t border-white/[0.05]">
-                Source: ESPN
+                {content.generated ? 'Compiled by GoVolsGameDay from ESPN data and box scores' : 'Source: ESPN'}
               </p>
             </div>
           )}
