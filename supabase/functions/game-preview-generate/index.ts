@@ -7,8 +7,8 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // game, next game), instead of copying ESPN's page.
 //
 // Every number comes from ESPN's public data: records/rankings/line/TV/leaders
-// from the game summary, offense ranks from season statistics, and everything
-// else (defense, third downs, turnovers, last-game lines, series history) is
+// from the game summary, national stat ranks (offense and defense) from ESPN's
+// team-stats leaderboard, and everything else (defense, third downs, turnovers, last-game lines, series history) is
 // computed here from the teams' box scores and schedules. The prose only
 // restates those numbers; nothing is invented. Runs daily from pg_cron for
 // games in the next 10 days (the line and kickoff time move during the week);
@@ -16,7 +16,6 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // generated) is never overwritten.
 
 const BASE = "https://site.api.espn.com/apis/site/v2/sports/football/college-football";
-const CORE = "https://sports.core.api.espn.com/v2/sports/football/leagues/college-football";
 const TN = "2633";
 const HEADERS = { "User-Agent": "Mozilla/5.0 (compatible; GoVolsGameDay/1.0)", Accept: "application/json" };
 
@@ -123,10 +122,29 @@ function aggregate(teamId: string, games: GameLine[]): Agg | null {
   };
 }
 
-async function coreStats(teamId: string, season: number): Promise<Record<string, { value: number; rank: number | null }>> {
-  const d = await getJson(`${CORE}/seasons/${season}/types/2/teams/${teamId}/statistics`);
-  const out: Record<string, { value: number; rank: number | null }> = {};
-  for (const cat of d?.splits?.categories ?? []) for (const s of cat.stats ?? []) out[`${cat.name}.${s.name}`] = { value: s.value, rank: s.rank ?? null };
+interface Ranked { value: number; rank: number | null }
+interface TeamRanks { off: Record<string, Ranked>; def: Record<string, Ranked> }
+
+// ESPN's national team-stats leaderboard (the same numbers and ranks as its stats pages):
+// every FBS team, "Own" (split 0) and "Opponent" (split 900, i.e. what the defense allows).
+// The previous per-team statistics feed had no usable defensive ranks.
+async function teamRanks(season: number): Promise<Record<string, TeamRanks>> {
+  const d = await getJson(`https://site.web.api.espn.com/apis/common/v3/sports/football/college-football/statistics/byteam?region=us&lang=en&contentorigin=espn&season=${season}&seasontype=2&limit=200`);
+  const defs: Record<string, string[]> = {};
+  for (const c of d?.categories ?? []) defs[c.name] = c.names;
+  const out: Record<string, TeamRanks> = {};
+  for (const t of d?.teams ?? []) {
+    const r: TeamRanks = { off: {}, def: {} };
+    for (const c of t.categories ?? []) {
+      const side = c.splitId === "0" ? r.off : c.splitId === "900" ? r.def : null;
+      if (!side) continue;
+      (defs[c.name] ?? []).forEach((n, i) => {
+        const rank = Number(c.ranks?.[i]);
+        side[`${c.name}.${n}`] = { value: c.values?.[i], rank: Number.isFinite(rank) && rank > 0 ? rank : null };
+      });
+    }
+    out[String(t.team?.id)] = r;
+  }
   return out;
 }
 
@@ -205,10 +223,10 @@ async function buildPreview(game: { id: string; cfbd_game_id: number; home_team:
   const season = kd.getUTCMonth() <= 1 ? kd.getUTCFullYear() - 1 : kd.getUTCFullYear();
   const names: Record<string, string> = { [TN]: "Tennessee", [oppId]: oppC.team.location };
 
-  const [tnSched, oppSched, tnStats, oppStats, tnTeam, oppTeam] = await Promise.all([
-    teamSchedule(TN, season), teamSchedule(oppId, season), coreStats(TN, season), coreStats(oppId, season),
-    getJson(`${BASE}/teams/${TN}`), getJson(`${BASE}/teams/${oppId}`),
+  const [tnSched, oppSched, ranks, tnTeam] = await Promise.all([
+    teamSchedule(TN, season), teamSchedule(oppId, season), teamRanks(season), getJson(`${BASE}/teams/${TN}`),
   ]);
+  const tnR = ranks[TN], oppR = ranks[oppId];
   const [tnGames, oppGames] = await Promise.all([teamGames(TN, tnSched), teamGames(oppId, oppSched)]);
   const tnA = aggregate(TN, tnGames), oppA = aggregate(oppId, oppGames);
 
@@ -233,19 +251,24 @@ async function buildPreview(game: { id: string; cfbd_game_id: number; home_team:
   }
   const howToWatch = (comp.broadcasts ?? []).map((b: Json) => b.media?.shortName).filter(Boolean)[0] ?? null;
 
-  const defense = (a: Agg | null) => a ? {
-    overall: `${one(a.ydsAllowed)} yards per game`, passing: `${one(a.passAllowed)} yards per game`,
-    rushing: `${one(a.rushAllowed)} yards per game`, scoring: `${one(a.papg)} points per game`,
-  } : {};
-  const offense = (st: typeof tnStats, a: Agg | null) => ({
-    overall: withRank(st["passing.yardsPerGame"], "yards per game", " in FBS") ?? (a ? `${one(a.yds)} yards per game` : undefined),
-    passing: withRank(st["passing.passingYardsPerGame"], "yards per game") ?? (a ? `${one(a.pass)} yards per game` : undefined),
-    rushing: withRank(st["rushing.rushingYardsPerGame"], "yards per game") ?? (a ? `${one(a.rush)} yards per game` : undefined),
-    scoring: withRank(st["scoring.totalPointsPerGame"], "points per game") ?? (a ? `${one(a.ppg)} points per game` : undefined),
+  // Ranked from ESPN's national leaderboard; falls back to our own box-score averages (no rank) if it is unavailable.
+  const stat = (r: Record<string, Ranked> | undefined, key: string, label: string, suffix: string, fallback: number | undefined) =>
+    withRank(r?.[key], label, suffix) ?? (fallback !== undefined ? `${one(fallback)} ${label}` : undefined);
+  const offense = (r: TeamRanks | undefined, a: Agg | null) => ({
+    overall: stat(r?.off, "passing.yardsPerGame", "yards per game", " in FBS", a?.yds),
+    passing: stat(r?.off, "passing.passingYardsPerGame", "yards per game", "", a?.pass),
+    rushing: stat(r?.off, "rushing.rushingYardsPerGame", "yards per game", "", a?.rush),
+    scoring: stat(r?.off, "passing.totalPointsPerGame", "points per game", "", a?.ppg),
+  });
+  const defense = (r: TeamRanks | undefined, a: Agg | null) => ({
+    overall: stat(r?.def, "passing.yardsPerGame", "yards per game", " in FBS", a?.ydsAllowed),
+    passing: stat(r?.def, "passing.passingYardsPerGame", "yards per game", "", a?.passAllowed),
+    rushing: stat(r?.def, "rushing.rushingYardsPerGame", "yards per game", "", a?.rushAllowed),
+    scoring: stat(r?.def, "passing.totalPointsPerGame", "points per game", "", a?.papg),
   });
   const keyStats = [
-    { team: "Tennessee", offense: offense(tnStats, tnA), defense: defense(tnA) },
-    { team: oppC.team.location, offense: offense(oppStats, oppA), defense: defense(oppA) },
+    { team: "Tennessee", offense: offense(tnR, tnA), defense: defense(tnR, tnA) },
+    { team: oppC.team.location, offense: offense(oppR, oppA), defense: defense(oppR, oppA) },
   ];
 
   // Notes: each restates numbers computed above.
@@ -268,10 +291,10 @@ async function buildPreview(game: { id: string; cfbd_game_id: number; home_team:
     notes.push(`Third down could swing it: ${oppC.team.location}'s defense has let opponents convert ${oppA.thirdDef[0]} of ${oppA.thirdDef[1]} third downs (${pct(...oppA.thirdDef)}), while Tennessee's offense converts ${pct(...tnA.thirdOff)}. Tennessee's defense has held opponents to ${pct(...tnA.thirdDef)} (${tnA.thirdDef[0]} of ${tnA.thirdDef[1]}).`);
   }
   if (tnA && oppA) {
-    const r = tnStats["rushing.rushingYardsPerGame"], p = tnStats["passing.passingYardsPerGame"];
+    const r = tnR?.off["rushing.rushingYardsPerGame"], p = tnR?.off["passing.passingYardsPerGame"];
     notes.push(`Tennessee averages ${one(r?.value ?? tnA.rush)} rushing yards per game${r?.rank ? ` (${ordinal(r.rank)} in FBS)` : ""} against a ${oppC.team.location} run defense allowing ${one(oppA.rushAllowed)}. Through the air, the Vols average ${one(p?.value ?? tnA.pass)} passing yards${p?.rank ? ` (${ordinal(p.rank)})` : ""} and ${oppC.team.location} has allowed ${one(oppA.passAllowed)} per game.`);
   }
-  const tnSacks = tnStats["defensive.sacks"], sackLeader = (summary.leaders ?? []).find((t: Json) => String(t.team?.id) === TN)?.leaders?.find((l: Json) => l.name === "sacks")?.leaders?.[0];
+  const tnSacks = tnR?.def["passing.sacks"], sackLeader = (summary.leaders ?? []).find((t: Json) => String(t.team?.id) === TN)?.leaders?.find((l: Json) => l.name === "sacks")?.leaders?.[0];
   const oppQb = (summary.leaders ?? []).find((t: Json) => String(t.team?.id) === oppId)?.leaders?.find((l: Json) => l.name === "passingYards")?.leaders?.[0];
   const qm = /(\d+)\/(\d+), ([\d,]+) YDS, (\d+) TD, (\d+) INT/.exec(oppQb?.displayValue ?? "");
   if (tnSacks?.value && tnA && qm) notes.push(`Tennessee's defense has ${tnSacks.value} sacks through ${tnA.games} games (${one(tnSacks.value / tnA.games)} per game)${sackLeader ? `, led by ${sackLeader.athlete.displayName} with ${sackLeader.mainStat?.value ?? sackLeader.displayValue}` : ""}, and faces ${oppQb.athlete.displayName}, who has ${plural(Number(qm[4]), "touchdown pass", "touchdown passes")} and ${plural(Number(qm[5]), "interception")}.`);
