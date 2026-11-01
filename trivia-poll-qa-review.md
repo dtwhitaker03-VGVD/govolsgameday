@@ -678,3 +678,31 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-01 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-11-01 → 2026-11-04 (4 polls, 20 trivia rows checked).
+- 11-01 through 11-03 were already cleaned in earlier runs (#253–#255), and a re-check found nothing new.
+- 11-04 had 4 issues: an off-topic poll, a factually wrong bowl-record question (slot 5), non-answer distractors (slot 3), and giveaway options (slot 2). All fixed. No user responses existed on any edited row.
+
+### daily_polls.05144910 — 2026-11-04 — ✅ applied
+**Before:** "Who is the most clutch player in Tennessee basketball history?" Chris Lofton / Allan Houston / Grant Williams / Zakai Zeigler
+**After:** "Kentucky comes to Neyland on Saturday. Which part of game day are you most looking forward to?" The Vol Walk / Running Through the T / Singing Rocky Top after a score / The Pride of the Southland's pregame show
+**Why:** Polls must be about current TN football and the next game. This is a game-week poll that doesn't repeat the prediction polls on 11-01 to 11-03.
+
+### trivia_questions.d0b6d533 — 2026-11-04 / slot 2 — ✅ applied
+**Before:** "Kim Caldwell previously coached at which mid-major program before being hired at Tennessee?" UConn / Stanford / Duke / Marshall University ✅
+**After:** "Kim Caldwell became Lady Vols head coach in 2024 after one season leading which program to a Sun Belt title and the NCAA Tournament?" Glenville State / Marshall ✅ / Ohio / Toledo
+**Why:** "Mid-major" ruled out the three power programs, so the answer was a giveaway. Glenville State (her seven-season D-II stop before Marshall) works as a fair trap answer.
+
+### trivia_questions.56748815 — 2026-11-04 / slot 3 — ✅ applied
+**Before:** "Which two SEC programs are most commonly cited as the conference's gymnastics powers?" LSU and Alabama ✅ / Vanderbilt and Missouri / No SEC school sponsors gymnastics / Not applicable
+**After:** "Saturday's opponent Kentucky renamed its football stadium in 2017. What is it called now?" Commonwealth Stadium / Kroger Field ✅ / Stoll Field / Rupp Arena
+**Why:** Two options were non-answers, and "most commonly cited" is subjective (Florida, Georgia, Auburn and others have strong cases). Commonwealth Stadium became Kroger Field on May 1, 2017.
+
+### trivia_questions.bbbcdbeb — 2026-11-04 / slot 5 — ✅ applied
+**Before:** "Which Tennessee running back set a since-broken bowl rushing record in the 1991 Sugar Bowl?" Travis Henry / Chuck Webb ✅ / Jamal Lewis / Arian Foster
+**After:** "From 1925 until the schools retired it in 1998, what rivalry trophy did Tennessee and Kentucky football play for?" The Golden Boot / The Old Oaken Bucket / The Beer Barrel ✅ / The Iron Skillet
+**Why:** This was wrong. Webb's 250-yard record came in the 1990 Cotton Bowl (fixed on 10-19, so this was also a repeat). The new question ties to Saturday's opponent: the Beer Barrel was retired in 1998.
+
+11-04 slots 1 (Peyton Manning, HOF) and 4 (Hamilton → Dave Hart) were verified and left as is.
