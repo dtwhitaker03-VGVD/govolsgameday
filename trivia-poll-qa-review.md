@@ -678,3 +678,32 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-02 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-11-02 → 2026-11-05 (4 polls, 20 trivia rows checked).
+- 11-02 through 11-04 were already cleaned in earlier runs (#254–#256), and a re-check found nothing new.
+- 11-05 had 4 issues: an off-topic poll and three trivia rows (slots 3, 4 and 5) with junk or vague options. All fixed. No user responses existed on any edited row.
+- Still flagged for later runs: the 11-08 poll (Vitello treated as current coach) and 11-15 slot 5 (Tee Martin "interim HC 2020" is wrong).
+
+### daily_polls.239364c3 — 2026-11-05 — ✅ applied
+**Before:** "Who is the best recruiter in Tennessee football history?" Phillip Fulmer / David Cutcliffe / Josh Heupel / Jeremy Pruitt
+**After:** "Kentucky at Neyland is two days away. How are you catching Saturday's game?" In the stands at Neyland / At a tailgate or watch party / At home on TV / Following along on my phone
+**Why:** Polls must be about the current season and tied to the next game. The 11-01 to 11-04 polls already cover the prediction, keys, points and game-day traditions angles.
+
+### trivia_questions.bcd334b2 — 2026-11-05 / slot 3 — ✅ applied
+**Before:** "Which Finnish-born big man was a key frontcourt contributor for Tennessee's 2022-23 Sweet 16 team?" John Fulkerson only / Uros Plavsic only / Olivier Nkamhoua ✅ / Julian Phillips only
+**After:** "Which Helsinki-born forward started all 36 games for Tennessee's 2022-23 Sweet 16 team?" Uros Plavsic / Olivier Nkamhoua ✅ / Tobe Awaka / Jonas Aidoo
+**Why:** The "only" suffix on every wrong answer gave the answer away. Nkamhoua (born in Helsinki) was the only Vol to start all 36 games in 2022-23.
+
+### trivia_questions.45de983d — 2026-11-05 / slot 4 — ✅ applied
+**Before:** "Have multiple SEC football programs undertaken major stadium renovations in recent years…?" Only Tennessee has ever renovated a stadium / Not applicable / No SEC school has ever renovated a stadium / Yes, various SEC schools… ✅
+**After:** "The Vols visit Texas A&M on Nov. 14. What nickname do Aggie fans go by, standing throughout the game as the team's "extra player"?" The Corps / The 12th Man ✅ / The Swarm / The Wrecking Crew
+**Why:** This was a yes/no question with non-answer distractors. The new question ties to the next road trip (at Texas A&M, Nov. 14).
+
+### trivia_questions.3899ab1a — 2026-11-05 / slot 5 — ✅ applied
+**Before:** "Which Tennessee quarterback started a lengthy stretch of consecutive games in the mid-to-late 2000s despite pressure from injuries and competition?" Erik Ainge ✅ / Rick Clausen / Jonathan Crompton / Nico Iamaleava
+**After:** "With Hendon Hooker out injured, which quarterback earned MVP honors in Tennessee's 31-14 Orange Bowl win over Clemson to close the 2022 season?" Gaston Moore / Nico Iamaleava / Joe Milton III ✅ / Tayven Jackson
+**Why:** "Lengthy stretch" was vague and couldn't be verified (Crompton also fit the era), and Iamaleava was decades out of place. Milton (19-of-28, 251 yards, 3 TDs) was Orange Bowl MVP. 11-24 asks the Orange Bowl opponent, a different fact.
+
+11-05 slots 1 (Sugar Bowl among those listed) and 2 (Texas A&M and Missouri, 2012) were verified and left as is.
