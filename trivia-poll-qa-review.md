@@ -678,3 +678,29 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-03 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window 2026-11-03 → 2026-11-06. 11-03, 11-04 and 11-05 were already fixed by earlier runs and are clean.
+- 11-06: 1 poll + 3 trivia rewrites. 0 user responses at the time of the edit. Slot 1 (Allan Houston, Knicks two-time All-Star) and slot 3 (Charlie Ward won the 1993 Heisman with Shuler runner-up) were verified and left as is.
+- Flagged for later runs: 11-12 slot 4 and 11-13 slot 3 repeat the Shuler Heisman runner-up fact. The 11-08 Vitello poll and the 11-15 Tee Martin "interim 2020" claim are still pending.
+
+### daily_polls.0cad2bc9 — 2026-11-06 — ✅ applied
+**Before:** "Who is the best WNBA player from Tennessee Lady Vols?" (Holdsclaw / Parker / Catchings / DeShields)
+**After:** "Kentucky at Neyland is tomorrow. Where will the Vols' player of the game come from?" — The quarterback / The running backs / The receivers and tight ends / The defense or special teams
+**Why:** Polls must be about TN football and the upcoming game (Kentucky, Nov 7). It's result-neutral and avoids the prediction, keys, points, traditions and viewing angles used on 11-01 to 11-05.
+
+### trivia_questions.f8c59b9a — 2026-11-06 / slot 2 — ✅ applied
+**Before:** "Which Lady Vols standouts have won Olympic gold…" with filler options ("Neither has ever won…") that gave the answer away.
+**After:** "Chamique Holdsclaw was the No. 1 overall pick in the 1999 WNBA Draft. Which team took her?" — Detroit Shock / Los Angeles Sparks / **Washington Mystics (C)** / Indiana Fever
+**Why:** The old options were giveaways, and the Catchings Olympic-gold count is already on 11-20 and 12-03. Verified the 1999 No. 1 pick went to the Mystics.
+
+### trivia_questions.f716a0cf — 2026-11-06 / slot 4 — ✅ applied
+**Before:** "Which Tennessee Olympic sport has historically been one of the program's strongest pipelines…" with options like "Not applicable".
+**After:** "Which former Vol sprinter won the 100-meter Olympic gold medal at the 2004 Athens Games?" — Christian Coleman / **Justin Gatlin (B)** / Tyson Gay / Maurice Greene
+**Why:** The old question had junk options. Gatlin (Vol 2000–01) won the 2004 100m in 9.85. Coleman is the Vol trap answer.
+
+### trivia_questions.dccd9fdc — 2026-11-06 / slot 5 — ✅ applied
+**Before:** Vague "True or false?" about SEC NIL commentary, with options like "This topic doesn't exist".
+**After:** (Vol Football History, hard) "Kentucky's 34-7 win at Neyland in 2020 was the Wildcats' first victory in Knoxville since what year?" — 1976 / 1991 / 1999 / **1984 (D)**
+**Why:** The old question had no real answer. The new one is relevant on the eve of Kentucky week. Verified via the AP/WKYT 10-17-2020 coverage.
