@@ -86,8 +86,9 @@ function BasketballColumn({ game }: { game: LiveGame }) {
   if (game.status === 'pregame') return <BasketballMain game={game} />;
   return (
     <div className="flex flex-col gap-4 h-full">
-      <div className="flex-1 min-h-0"><BasketballMain game={game} /></div>
-      <div className="flex-1 min-h-0"><GameLeaderboard game={game} /></div>
+      {/* The predictor keeps its natural height (no inner scrolling); the leaderboard takes what's left. */}
+      <div className="flex-none"><BasketballMain game={game} /></div>
+      <div className="flex-1 min-h-[320px] lg:min-h-0"><GameLeaderboard game={game} /></div>
     </div>
   );
 }
@@ -228,7 +229,7 @@ export default function Home() {
         {!layoutReady ? (
           <div className="bg-vgd-card border border-white/[0.07] rounded-lg animate-pulse" style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }} />
         ) : (
-          <div id="predictor-panel" className="flex flex-col gap-3 scroll-mt-16" style={{ height: `${PREDICTOR_COLUMN_HEIGHT}px` }}>
+          <div id="predictor-panel" className="flex flex-col gap-3 scroll-mt-16 lg:h-[723px]">
             {available.length > 1 && (
               <SportTabs
                 tabs={available.map((sport) => ({ sport, label: TAB_LABEL[sport], live: byTab[sport]!.status === 'live' }))}
@@ -236,18 +237,18 @@ export default function Home() {
                 onSelect={setPickedSport}
               />
             )}
-            <div className="flex-1 min-h-0">
+            <div className="lg:flex-1 lg:min-h-0">
               {basketballSelected ? (
                 <BasketballColumn game={basketballSelected} />
               ) : liveGame ? (
-                <div className="flex flex-col gap-4 h-full">
+                <div className="flex flex-col gap-4 lg:h-full">
                   {isLive ? (
                     <>
                       {/* Live mode: Live Drive Predictor on top, Leaderboard on bottom — split evenly */}
                       <div className="flex-1 min-h-0">
                         <LiveDrivePrediction game={liveGame} />
                       </div>
-                      <div className="flex-1 min-h-0">
+                      <div className="flex-1 min-h-[320px] lg:min-h-0">
                         <GameLeaderboard game={liveGame} />
                       </div>
                     </>
@@ -258,7 +259,7 @@ export default function Home() {
                       <div className="flex-1 min-h-0">
                         <PreGamePredictions game={liveGame} />
                       </div>
-                      <div className="flex-1 min-h-0">
+                      <div className="flex-1 min-h-[320px] lg:min-h-0">
                         <GameLeaderboard game={liveGame} />
                       </div>
                     </>
