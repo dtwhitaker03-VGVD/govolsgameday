@@ -2,10 +2,10 @@
 // replayed against saved ESPN play-by-play.
 //
 // A "stretch" is the play between two boundaries. Boundaries are the start of
-// the game, every official TV timeout, a team timeout that comes at least
-// SHORT_TIMEOUT_MIN_SECONDS of game clock after the previous boundary (so a
-// team timeout right next to a TV timeout doesn't cut a stretch to nothing),
-// and the end of each period. Stretch n runs from boundary n-1 to boundary n.
+// the game, every official TV timeout (ESPN type OfficialTVTimeOut), and the end
+// of each period. Team timeouts (ShortTimeOut, e.g. "Wofford Timeout") are NOT
+// boundaries: ESPN reliably posts the TV timeouts, and cutting at a team timeout
+// opened a pick window mid-stretch. Stretch n runs from boundary n-1 to boundary n.
 // Women's games play four quarters and are cut by quarter instead (mode
 // 'quarter'): boundaries are only the start and the end of each period, and
 // regulation is four periods, not two halves.
@@ -89,7 +89,6 @@ export function planBoundaries(plays: BbPlay[], mode: PlanMode = "stretch"): Bou
     const kind: BoundaryKind | null =
       mode === "quarter" && (t === "officialtvtimeout" || t === "shorttimeout") ? null :
       t === "officialtvtimeout" ? "tv" :
-      t === "shorttimeout" ? "short" :
       t === "end period" ? "period" :
       t === "end game" ? "end" : null;
     if (!kind) continue;
