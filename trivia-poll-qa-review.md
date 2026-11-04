@@ -678,3 +678,25 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-04 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window 2026-11-04 → 2026-11-07. Earlier runs already fixed 11-04, 11-05 and 11-06. The 11-03 preview reworded 11-04 slot 4, the Dave Hart/Mike Hamilton stem, because Joan Cronan was interim AD in between.
+- 11-07 (Kentucky game day): 1 poll and 3 trivia items fixed. There were 0 user responses at the time of the edits. Slot 4 (Lindsey Nelson Stadium) and slot 5 (SEC Championship Game record 2-3: won 1997 and 1998, lost 2001, 2004 and 2007) were verified and left as they were.
+
+### daily_polls.2cf18a26 — 2026-11-07 — ✅ applied
+**Before:** "Who is the best Vol football player of the last 10 years?" (Eric Berry / Alvin Kamara / Hendon Hooker / Trey Smith). Berry played 2007–09, so he falls outside "last 10 years", and the poll had no tie to the game.
+**After:** "It's game day: Kentucky at Neyland. How confident are you heading into kickoff?" Options: Very confident, the Vols handle business / Fairly confident, but it won't be pretty / Nervous, Kentucky always plays the Vols tough / Expecting a four-quarter dogfight
+**Why:** Polls must be about TN football and the game at hand. The new poll is result-neutral and doesn't repeat the 11-01 to 11-06 angles.
+
+### trivia_questions.02fe5d2a — 2026-11-07 / slot 1 — ✅ applied
+**Before:** "Tennessee's rivalry game against Georgia is significant largely because of their shared membership in which division?" (A bowl exhibition / A key SEC East rivalry game / A nonconference game / A basketball rivalry only). The SEC dropped divisions in 2024, and the distractors eliminated themselves.
+**After:** "Josh Heupel was hired as Tennessee's head coach in January 2021 after three seasons as head coach at which school?" Options: Oklahoma / Missouri / **UCF (C)** / Memphis. Oklahoma (where he played) and Missouri (where he was OC) are the trap answers.
+
+### trivia_questions.5ecc47ab — 2026-11-07 / slot 2 — ✅ applied
+**Before:** "Tennessee's combined all-time Olympic medal count … approximately how many?" (Over 1,000 / Fewer than 5 / Around 68 medals / Zero). The figure couldn't be verified and the distractors were joke answers.
+**After:** (Vol Football History) "Peyton Manning finished runner-up for the 1997 Heisman Trophy. Which Michigan star won it?" Options: Ryan Leaf / **Charles Woodson (B)** / Randy Moss / Ricky Williams. No duplicate within ±30 days.
+
+### trivia_questions.f83519d9 — 2026-11-07 / slot 3 — ✅ applied (options only)
+**Before options:** Purdue / Sweet 16 only / First round / National Championship. Three of the four options weren't teams.
+**After options:** **Purdue (A)** / Creighton / UConn / Alabama. The stem was accurate: Purdue beat Tennessee 72-66 in the 2024 Elite Eight and lost the title game to UConn.
