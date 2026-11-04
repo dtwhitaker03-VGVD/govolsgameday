@@ -15,6 +15,11 @@ import { type BbPlay, type Boundary, type PlanMode, isTerminal, planBoundaries, 
 // has reported the same end score on two polls at least CONFIRM_SECONDS apart
 // (the final stretch settles straight away once the game is over).
 //
+// Once a game is over (ESPN says completed) and every window is settled, it is
+// finalized automatically FINALIZE_DELAY_SECONDS later (finalize-game-bb: scores the
+// pregame picks, credits points, awards badges, marks the game 'calculated'), unless
+// the game is under manual_control. The delay lets ESPN's final score/box score settle.
+//
 // ESPN's event id is stored in live_games.cfbd_game_id.
 
 const ESPN_SUMMARY: Record<string, string> = {
@@ -25,6 +30,8 @@ const CONFIRM_SECONDS = 30;
 const TIMEOUT_LOCK_SECONDS = 150; // fallback; the first live play after the timeout locks it sooner
 const START_LOCK_SECONDS = 120;
 const HALFTIME_LOCK_SECONDS = 1500;
+const FINALIZE_DELAY_SECONDS = 180;
+const FINAL_LOOKBACK_MS = 12 * 60 * 60 * 1000; // keep polling a final game this long, waiting to finalize it
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,6 +59,7 @@ interface GameRow {
   away_team: string;
   status: string;
   manual_control: boolean;
+  bb_stats?: Json;
 }
 
 const sameTeam = (a: string, b: string) => {
@@ -215,20 +223,62 @@ async function syncGame(supabase: SupabaseClient, game: GameRow) {
   // ── Scoreboard ──
   const detail: string = comp.status.type.detail ?? "";
   const period: number | null = comp.status.period ?? null;
+  // Bookkeeping flags kept inside bb_stats across polls.
+  const finalSeenAt: string | null = over ? (game.bb_stats?.final_seen_at ?? new Date().toISOString()) : null;
+  const finalizingAt: string | null = game.bb_stats?.finalizing_at ?? null;
   const update: Record<string, unknown> = {
     status: over ? "final" : "live",
     home_score: homeScore,
     away_score: awayScore,
     current_quarter: over ? null : period,
     game_clock: over ? "" : comp.status.displayClock ?? null,
-    bb_stats: { home: teamStats(d, home.team.id), away: teamStats(d, away.team.id), detail, stretches: Math.max(0, boundaries.length - 1) },
+    bb_stats: { home: teamStats(d, home.team.id), away: teamStats(d, away.team.id), detail, stretches: Math.max(0, boundaries.length - 1),
+      ...(finalSeenAt ? { final_seen_at: finalSeenAt } : {}), ...(finalizingAt ? { finalizing_at: finalizingAt } : {}) },
     updated_at: new Date().toISOString(),
   };
   await supabase.from("live_games").update(update).eq("id", game.id);
 
+  // ── Auto-finalize ──
+  let finalize: string | undefined;
+  if (over && finalSeenAt && !game.manual_control && !finalizingAt && errors.length === 0) {
+    const waited = Date.now() - new Date(finalSeenAt).getTime();
+    const { count: openWins } = await supabase
+      .from("live_windows").select("id", { count: "exact", head: true }).eq("game_id", game.id).eq("status", "open");
+    if (waited < FINALIZE_DELAY_SECONDS * 1000) finalize = "waiting for ESPN's final to settle";
+    else if (openWins) finalize = "waiting on unsettled windows";
+    else {
+      // Claim it: only one overlapping poll may finalize (finalize_game_bb credits points every call).
+      const stats = update.bb_stats as Record<string, unknown>;
+      const { data: claimed } = await supabase
+        .from("live_games")
+        .update({ bb_stats: { ...stats, finalizing_at: new Date().toISOString() } })
+        .eq("id", game.id).eq("status", "final").is("bb_stats->>finalizing_at", null)
+        .select("id");
+      if (claimed && claimed.length > 0) {
+        let failure = "";
+        try {
+          const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/finalize-game-bb`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}` },
+            body: JSON.stringify({ game_id: game.id }),
+          });
+          if (!res.ok) failure = `HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`;
+        } catch (e) {
+          failure = e instanceof Error ? e.message : String(e);
+        }
+        if (failure) {
+          // Nothing was credited (finalize_game_bb is one transaction): release the claim so the next poll retries.
+          await supabase.from("live_games").update({ bb_stats: stats }).eq("id", game.id).eq("status", "final");
+          finalize = `failed, will retry: ${failure}`;
+          errors.push(`finalize: ${failure}`);
+        } else finalize = "finalized";
+      }
+    }
+  }
+
   return {
     game_id: game.id, ok: true, status: update.status, homeScore, awayScore, boundaries: boundaries.length,
-    opened, locked, confirming, settled, errors,
+    opened, locked, confirming, settled, errors, finalize,
   };
 }
 
@@ -249,13 +299,14 @@ Deno.serve(async (req: Request) => {
     return json(result, result.ok ? 200 : 502);
   }
 
-  // 'live' games, and 'pregame' games within an hour of tip-off.
+  // 'live' games, 'pregame' games within an hour of tip-off, and recently 'final' games awaiting auto-finalize.
   const soon = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  const since = new Date(Date.now() - FINAL_LOOKBACK_MS).toISOString();
   const { data: games, error } = await supabase
     .from("live_games")
-    .select("id, cfbd_game_id, sport, home_team, away_team, status, manual_control")
+    .select("id, cfbd_game_id, sport, home_team, away_team, status, manual_control, bb_stats")
     .in("sport", ["basketball", "womens_basketball"])
-    .or(`status.eq.live,and(status.eq.pregame,kickoff_time.lte.${soon})`);
+    .or(`status.eq.live,and(status.eq.pregame,kickoff_time.lte.${soon}),and(status.eq.final,kickoff_time.gte.${since})`);
   if (error) return json({ error: error.message }, 500);
 
   const results = [];
