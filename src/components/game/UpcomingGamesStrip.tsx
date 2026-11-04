@@ -82,8 +82,9 @@ export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
     supabase
       .from('live_games')
       .select('id, sport, home_team, away_team, kickoff_time, status')
-      .eq('status', 'pregame')
-      .gte('kickoff_time', new Date(Date.now() - 4 * 3600 * 1000).toISOString())
+      .in('status', ['pregame', 'live'])
+      // A game stays on its card while it is live (until it goes final), not just before tip-off.
+      .gte('kickoff_time', new Date(Date.now() - 8 * 3600 * 1000).toISOString())
       .order('kickoff_time', { ascending: true })
       .limit(80)
       .then(({ data }) => {
@@ -119,7 +120,8 @@ export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
               key={sport}
               sport={sport}
               game={g}
-              status={canPick ? 'Picks open' : 'Up next'}
+              status={g.status === 'live' ? 'Live now' : canPick ? 'Picks open' : 'Up next'}
+              live={g.status === 'live'}
               onPick={canPick ? () => jump(sport) : undefined}
             />
           );
@@ -130,8 +132,9 @@ export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
 }
 
 function GameCard({
-  sport, game, status, onPick,
+  sport, game, status, onPick, live = false,
 }: {
+  live?: boolean;
   sport: CardSport;
   game: { kickoff_time: string; home_team: string; away_team: string };
   status: string;
@@ -167,6 +170,11 @@ function GameCard({
         </div>
         <div className="flex items-center justify-between gap-3">
           {/* "11:05:33:22" — days in orange, then hh:mm:ss. With no kickoff time yet it's the day count alone. */}
+          {live ? (
+            <div className="flex items-center gap-2 text-lg font-black text-vgd-orange uppercase tracking-wider">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />Live
+            </div>
+          ) : (
           <div className="flex items-baseline">
             <span className="text-3xl font-black text-vgd-orange leading-none tabular-nums">{days}</span>
             {timeKnown ? (
@@ -175,12 +183,13 @@ function GameCard({
               <span className="ml-1.5 text-[10px] font-bold tracking-widest uppercase text-white/60">{days === 1 ? 'day' : 'days'}</span>
             )}
           </div>
+          )}
           {onPick && (
             <button
               onClick={onPick}
               className="px-3.5 py-2 rounded-lg bg-vgd-orange text-vgd-bg text-xs font-extrabold hover:bg-orange-400 transition-colors"
             >
-              Make your picks
+              {live ? 'Play live' : 'Make your picks'}
             </button>
           )}
         </div>
