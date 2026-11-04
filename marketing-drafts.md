@@ -334,3 +334,46 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-10-02 — Gameday hype/countdown (Game Day Eve)
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Re-checked all pillars and this log (plus still-open marketing PR
+  branches) before picking a subject. `live_games` shows the Auburn
+  game is still `pregame` — by US Eastern time this run landed Friday
+  evening, Oct 2, with kickoff Saturday, Oct 3 at 3:30 PM ET, so this is
+  a genuine "1 day til kickoff" moment, distinct from the "5 days"
+  countdown already logged for this same game on Sept 28 (PR #190,
+  still open) — not a back-to-back repeat of that subject, and no new
+  final score exists to recap instead.
+- Subject: No. 17 Tennessee (3-1) vs. Auburn (3-1), Sat Oct 3, 3:30 PM
+  ET on ESPN, Neyland Stadium. `game_previews` now has a real row for
+  this game (fetched 2026-09-28, the only preview on file for it) that
+  wasn't available when the Sept 28 countdown was made, so this draft
+  carries real season stats the earlier one didn't: Tennessee's No. 17
+  ranking and 3-1 record (from the preview's own `subhead`), and the
+  headline matchup angle — Tennessee's red zone offense (100%, No. 1 in
+  FBS) against Auburn's red zone defense (91.7% allowed, 110th in FBS)
+  — plus a QB Watch line for Faizon Brandon (697 yards, 7 TD, 0 INT,
+  season total from `teamLeaders`). Kept the DraftKings line (Tennessee
+  −7.0, O/U 54.5) off the graphic per the standing decision that
+  countdown graphics stay odds-free.
+- Visual system matches the established brand (`#0F172A` / `#162038` /
+  `#FF8200` / `#D11919`, Anton + Inter, diagonal end-zone-stripe motif),
+  with a conic-gradient starburst glow behind the hero "1" and a
+  rotated red "GAME DAY EVE" ribbon tag for more visual energy this
+  close to kickoff — distinct from the plainer "5 days" countdown's
+  treatment, in the spirit of the "more flare" variant from the
+  original Sept 11 countdown in this log. No stock photos or
+  fabricated player photos.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html` frame
+  `1080×1080`). Verified locally before publishing the same way as this
+  log's recent canvases: extracted the artboard into a standalone page
+  and rendered it with headless Chromium (Google Fonts failed to load
+  through this session's network proxy, giving a genuine fallback-font
+  pass) using a taller capture window cropped to the true 1080×1080
+  frame. Nothing overflowed, wrapped, or clipped, and the layout filled
+  the frame densely with even top/bottom margins.
+- Canvas: https://claude.ai/artifact/DiFEXEtvuJxMbhyVXr8hmN
+- Status: ⏳ pending review
