@@ -113,6 +113,15 @@ export function BasketballLivePrediction({ game }: { game: LiveGame }) {
   const canPick = !!open && msLeft > 0;
   const myPick = open ? picks.get(open.window_number) : undefined;
   const lastDone = wins.find((w) => w.status === 'resolved');
+  // Game-clock span of the last stretch: it started at its own clock and ended where the next one began
+  // (or at 0:00 if the period ended).
+  const lastNext = lastDone ? wins.find((w) => w.window_number === lastDone.window_number + 1) : undefined;
+  const lastEnd = !lastDone ? null
+    : lastNext ? (lastNext.period === lastDone.period ? lastNext.game_clock : '0:00')
+    : game.status !== 'live' ? '0:00' : null;
+  const lastSpan = lastDone?.game_clock
+    ? `${periodLabel(lastDone.period, quarters)} ${lastDone.game_clock}${lastEnd ? `–${lastEnd}` : ''}`.trim()
+    : '';
   const lastPick = lastDone ? picks.get(lastDone.window_number) : undefined;
 
   // A new window starts from the user's saved pick for it, else the defaults.
@@ -216,7 +225,7 @@ export function BasketballLivePrediction({ game }: { game: LiveGame }) {
         {lastDone && (
           <div className="border-t border-white/[0.07] pt-3 space-y-1.5">
             <div className="text-center text-[11px] text-white/80">
-              {quarters ? 'Last quarter' : 'Last stretch'} ({lastDone.start_away_score}–{lastDone.start_home_score} → {lastDone.end_away_score}–{lastDone.end_home_score})
+              {quarters ? 'Last quarter' : 'Last stretch'} {lastSpan && <span> ({lastSpan})</span>}
               {lastPick && <span className="font-bold text-vgd-orange"> · +{lastPick.points_earned ?? 0} pts</span>}
             </div>
             <div className="grid grid-cols-5 gap-1 text-center">
