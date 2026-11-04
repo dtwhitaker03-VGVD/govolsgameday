@@ -46,6 +46,8 @@ const TENNESSEE_ESPN_ID = 2633;
 
 interface ScheduleGame extends CfbdGame {
   timeValid: boolean;
+  /** "Stadium · City, ST" from ESPN (shown on the Upcoming Games card, notably for road games). */
+  venue?: string | null;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -79,7 +81,10 @@ async function scheduleFromEspn(year: number): Promise<ScheduleGame[] | null> {
       const n = Number(v);
       return v == null || !Number.isFinite(n) ? null : n;
     };
+    const v = c.venue;
+    const place = [v?.address?.city, v?.address?.state].filter(Boolean).join(", ");
     games.push({
+      venue: v?.fullName ? (place ? `${v.fullName} · ${place}` : v.fullName) : null,
       id,
       startDate: new Date(e.date).toISOString(),
       completed: c.status?.type?.completed === true,
@@ -196,6 +201,7 @@ async function upsertGame(
       home_team: g.homeTeam,
       away_team: g.awayTeam,
       kickoff_time: g.startDate,
+      venue: g.venue ?? null,
       status,
       home_score: g.homePoints ?? 0,
       away_score: g.awayPoints ?? 0,
@@ -215,6 +221,7 @@ async function upsertGame(
     updated_at: new Date().toISOString(),
   };
   if (g.timeValid) update.kickoff_time = g.startDate;
+  if (g.venue) update.venue = g.venue;
   const { error } = await supabase.from("live_games").update(update).eq("cfbd_game_id", g.id);
   if (error) {
     console.error(`game-sync: update failed for cfbd_game_id=${g.id}: ${error.message}`);
