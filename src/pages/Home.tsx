@@ -53,15 +53,19 @@ function daysAgoInET(dateStr: string): number {
 // appears to skip the game that's actually about to start.
 const KICKOFF_PASSED_GRACE_MS = 4 * 60 * 60 * 1000;
 
-function pickActiveGame(games: LiveGame[]): LiveGame | null {
+function pickActiveGame(games: LiveGame[], holdDays = 1): LiveGame | null {
   const live = games.find((g) => g.status === 'live');
   if (live) return live;
 
   const now = Date.now();
 
-  const finishedRecently = games
+  // Most recent game that finished within the last day (ET).
+  const lastFinal = games
     .filter((g) => ['final', 'calculated'].includes(g.status) && daysAgoInET(g.kickoff_time) <= 1)
     .sort((a, b) => new Date(b.kickoff_time).getTime() - new Date(a.kickoff_time).getTime())[0];
+  // holdDays: how many ET days after the game its result keeps the panel (football: through
+  // Sunday = 1; basketball plays often, so the result goes the day after = 0).
+  const finishedRecently = lastFinal && daysAgoInET(lastFinal.kickoff_time) <= holdDays ? lastFinal : undefined;
   if (finishedRecently) return finishedRecently;
 
   const upcoming = games
@@ -71,7 +75,8 @@ function pickActiveGame(games: LiveGame[]): LiveGame | null {
       return kickoffMs >= now || now - kickoffMs <= KICKOFF_PASSED_GRACE_MS;
     })
     .sort((a, b) => new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime())[0];
-  return upcoming ?? null;
+  // Nothing scheduled yet: keep showing the last result rather than an empty tab.
+  return upcoming ?? lastFinal ?? null;
 }
 
 type PredictorSport = 'football' | 'basketball' | 'womens_basketball';
@@ -151,8 +156,8 @@ export default function Home() {
         // Football, men's and women's basketball each get their own predictor
         // (shared slot, one tab each); football wins when several are live.
         setLiveGame(pickActiveGame(games.filter((g) => g.sport !== 'basketball' && g.sport !== 'womens_basketball')));
-        setBbGame(pickActiveGame(games.filter((g) => g.sport === 'basketball')));
-        setWbbGame(pickActiveGame(games.filter((g) => g.sport === 'womens_basketball')));
+        setBbGame(pickActiveGame(games.filter((g) => g.sport === 'basketball'), 0));
+        setWbbGame(pickActiveGame(games.filter((g) => g.sport === 'womens_basketball'), 0));
       });
   }, []);
 
