@@ -77,6 +77,8 @@ const monogram = (name: string) => name.replace(/[^A-Za-z ]/g, '').split(' ').fi
 
 export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
   const [games, setGames] = useState<Partial<Record<Sport, LiveGame>>>({});
+  // Each sport's most recent finished game, shown above the countdown.
+  const [lastGames, setLastGames] = useState<Partial<Record<Sport, LiveGame>>>({});
 
   useEffect(() => {
     supabase
@@ -90,6 +92,23 @@ export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
       .then(({ data }) => {
         const rows = (data as unknown as LiveGame[]) ?? [];
         setGames({
+          football: rows.find((g) => g.sport !== 'basketball' && g.sport !== 'womens_basketball'),
+          basketball: rows.find((g) => g.sport === 'basketball'),
+          womens_basketball: rows.find((g) => g.sport === 'womens_basketball'),
+        });
+      });
+  }, []);
+
+  useEffect(() => {
+    supabase
+      .from('live_games')
+      .select('id, sport, home_team, away_team, kickoff_time, status, home_score, away_score')
+      .in('status', ['final', 'calculated'])
+      .order('kickoff_time', { ascending: false })
+      .limit(60)
+      .then(({ data }) => {
+        const rows = (data as unknown as LiveGame[]) ?? [];
+        setLastGames({
           football: rows.find((g) => g.sport !== 'basketball' && g.sport !== 'womens_basketball'),
           basketball: rows.find((g) => g.sport === 'basketball'),
           womens_basketball: rows.find((g) => g.sport === 'womens_basketball'),
@@ -120,6 +139,7 @@ export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
               key={sport}
               sport={sport}
               game={g}
+              last={lastGames[sport]}
               status={g.status === 'live' ? 'Live now' : canPick ? 'Picks open' : 'Up next'}
               live={g.status === 'live'}
               onPick={canPick ? () => jump(sport) : undefined}
@@ -132,8 +152,9 @@ export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
 }
 
 function GameCard({
-  sport, game, status, onPick, live = false,
+  sport, game, status, onPick, last, live = false,
 }: {
+  last?: { home_team: string; away_team: string; home_score: number; away_score: number };
   live?: boolean;
   sport: CardSport;
   game: { kickoff_time: string; home_team: string; away_team: string };
@@ -168,6 +189,7 @@ function GameCard({
           <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-vgd-orange" />{when.time}</div>
           {home && <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-vgd-orange" />{VENUE[sport]}</div>}
         </div>
+        {last && <LastResult game={last} />}
         <div className="flex items-center justify-between gap-3">
           {/* "11:05:33:22" — days in orange, then hh:mm:ss. With no kickoff time yet it's the day count alone. */}
           {live ? (
@@ -194,6 +216,22 @@ function GameCard({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** "Last game · W 90–59 vs Wofford" from Tennessee's side. */
+function LastResult({ game }: { game: { home_team: string; away_team: string; home_score: number; away_score: number } }) {
+  const { name, home } = opponentOf(game);
+  const tn = home ? game.home_score : game.away_score;
+  const opp = home ? game.away_score : game.home_score;
+  const won = tn > opp;
+  return (
+    <div className="flex items-center gap-2 text-xs text-white/70">
+      <span className="text-[10px] font-bold tracking-widest uppercase text-white/50">Last game</span>
+      <span className={`font-black ${won ? 'text-green-400' : tn < opp ? 'text-vgd-red' : 'text-white'}`}>{won ? 'W' : tn < opp ? 'L' : 'T'}</span>
+      <span className="font-bold text-white tabular-nums">{tn}–{opp}</span>
+      <span className="truncate">{home ? 'vs' : 'at'} {name}</span>
     </div>
   );
 }
