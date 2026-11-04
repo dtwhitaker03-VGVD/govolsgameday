@@ -3,8 +3,7 @@
 //
 // A "stretch" is the play between two boundaries. Boundaries are the start of
 // the game, every official TV timeout (ESPN type OfficialTVTimeOut), and the end
-// of each period (one closer than SHORT_TIMEOUT_MIN_SECONDS to the previous boundary is
-// a mislabeled team timeout and is ignored). Team timeouts (ShortTimeOut, e.g. "Wofford Timeout") are NOT
+// of each period. Team timeouts (ShortTimeOut, e.g. "Wofford Timeout") are NOT
 // boundaries: ESPN reliably posts the TV timeouts, and cutting at a team timeout
 // opened a pick window mid-stretch. Stretch n runs from boundary n-1 to boundary n.
 // Women's games play four quarters and are cut by quarter instead (mode
@@ -34,13 +33,6 @@ export interface Boundary {
   resumed: boolean;
 }
 
-// Real TV timeouts are at least ~3.5 game-minutes apart. ESPN sometimes labels a team
-// timeout "OfficialTVTimeOut" (Tennessee-Wofford, 8:00 of the 2nd half, 61s after the
-// real one), so a "TV timeout" closer than this to the last boundary is not trusted.
-export const SHORT_TIMEOUT_MIN_SECONDS = 150;
-const PERIOD_SECONDS = 1200; // men's college: two 20-minute halves (only used to space short timeouts, which quarter mode ignores)
-const OT_SECONDS = 300;
-
 const NOT_PLAY = new Set([
   "jumpball", "substitution", "officialtvtimeout", "shorttimeout", "end period", "end game",
   "dead ball rebound",
@@ -51,18 +43,6 @@ export function isLivePlay(p: BbPlay): boolean {
   if (NOT_PLAY.has(t)) return false;
   if (/challenge|review|timeout|technical/.test(t)) return false;
   return true;
-}
-
-function clockSeconds(display: string | undefined): number {
-  const m = /^(\d+):(\d{2})/.exec(display ?? "");
-  return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : 0;
-}
-
-/** Game seconds elapsed at a given period/clock. */
-function elapsed(period: number, clock: string | undefined): number {
-  const remaining = clockSeconds(clock);
-  if (period <= 2) return (period - 1) * PERIOD_SECONDS + (PERIOD_SECONDS - remaining);
-  return 2 * PERIOD_SECONDS + (period - 3) * OT_SECONDS + (OT_SECONDS - remaining);
 }
 
 export type PlanMode = "stretch" | "quarter";
@@ -99,7 +79,6 @@ export function planBoundaries(plays: BbPlay[], mode: PlanMode = "stretch"): Bou
 
     const period = p.period?.number ?? last.period;
     const clock = p.clock?.displayValue ?? last.clock;
-    if (kind === "tv" && elapsed(period, clock) - elapsed(last.period, last.clock) < SHORT_TIMEOUT_MIN_SECONDS) continue;
     // Nothing was played since the last boundary: no stretch to cut (a TV
     // timeout straight after a period ends, a repeated horn). Keep the later
     // end-of-game marker only as a terminal flag.
