@@ -3,7 +3,8 @@
 //
 // A "stretch" is the play between two boundaries. Boundaries are the start of
 // the game, every official TV timeout (ESPN type OfficialTVTimeOut), and the end
-// of each period. Team timeouts (ShortTimeOut, e.g. "Wofford Timeout") are NOT
+// of each period (one closer than SHORT_TIMEOUT_MIN_SECONDS to the previous boundary is
+// a mislabeled team timeout and is ignored). Team timeouts (ShortTimeOut, e.g. "Wofford Timeout") are NOT
 // boundaries: ESPN reliably posts the TV timeouts, and cutting at a team timeout
 // opened a pick window mid-stretch. Stretch n runs from boundary n-1 to boundary n.
 // Women's games play four quarters and are cut by quarter instead (mode
@@ -33,7 +34,10 @@ export interface Boundary {
   resumed: boolean;
 }
 
-export const SHORT_TIMEOUT_MIN_SECONDS = 180;
+// Real TV timeouts are at least ~3.5 game-minutes apart. ESPN sometimes labels a team
+// timeout "OfficialTVTimeOut" (Tennessee-Wofford, 8:00 of the 2nd half, 61s after the
+// real one), so a "TV timeout" closer than this to the last boundary is not trusted.
+export const SHORT_TIMEOUT_MIN_SECONDS = 150;
 const PERIOD_SECONDS = 1200; // men's college: two 20-minute halves (only used to space short timeouts, which quarter mode ignores)
 const OT_SECONDS = 300;
 
@@ -95,7 +99,7 @@ export function planBoundaries(plays: BbPlay[], mode: PlanMode = "stretch"): Bou
 
     const period = p.period?.number ?? last.period;
     const clock = p.clock?.displayValue ?? last.clock;
-    if (kind === "short" && elapsed(period, clock) - elapsed(last.period, last.clock) < SHORT_TIMEOUT_MIN_SECONDS) continue;
+    if (kind === "tv" && elapsed(period, clock) - elapsed(last.period, last.clock) < SHORT_TIMEOUT_MIN_SECONDS) continue;
     // Nothing was played since the last boundary: no stretch to cut (a TV
     // timeout straight after a period ends, a repeated horn). Keep the later
     // end-of-game marker only as a terminal flag.
