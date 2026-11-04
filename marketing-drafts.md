@@ -334,3 +334,59 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-09-28 — Final score recap
+
+- Trigger: on-demand
+- Re-checked all four pillars against live Supabase data and this log
+  (plus the still-open, unmerged marketing PR branches, since several
+  recent drafts haven't landed on `main` yet) before picking a subject:
+  the Sept 24 gameday-countdown branch already covers the Texas game as
+  pregame hype; the Sept 22 branch already covers the Kennesaw State
+  recap; the Sept 18 branch already covers a trivia/poll pairing. None
+  of those overlap with what `live_games` shows now: the Texas game
+  that was still pregame on Sept 24 has since finished. That's a
+  completely new, unrepeated subject and the most timely one available
+  this run — a full pillar-2 recap.
+- Subject: Tennessee 17, Texas 20 (home loss, Sat Sept 26, 2026, Neyland
+  Stadium) — Tennessee's first loss of the season, dropping the Vols to
+  3-1. Pulled fresh from `live_games` (`status = 'calculated'`,
+  `updated_at` 2026-09-26 20:01 UTC): final score, total yards (Tennessee
+  221, Texas 262), and turnovers (Tennessee 0 committed, forced 1).
+  Confirmed the 3-1 record by checking all four `calculated` `live_games`
+  rows to date (Furman 56-9 W, at Georgia Tech 45-24 W, Kennesaw State
+  42-9 W, Texas 17-20 L). Checked `game_previews` for this game too —
+  its `content` came back empty (`keyStats`/`teamLeaders` all `[]`), so
+  no ranking or record claim beyond `live_games`' own numbers went on
+  the graphic; deliberately used "ONE-SCORE GAME" (a plain 3-point-margin
+  classification) rather than a more specific "decided by a field goal"
+  framing, since the play-by-play detail isn't in any table this run
+  queried. Top-predictor spotlight pulled from `game_leaderboard` joined
+  to `profiles` for this game's `game_id`: real username
+  MrMasterMind14, 916 total game points (458 pregame + 458 drive),
+  9-for-25 on live drive picks — real numbers, no invented box-score
+  detail beyond what `live_games`/`game_leaderboard` actually have.
+- Visual system matches the established brand: `#0F172A` background,
+  `#162038` panels, `#FF8200` orange accent, `#D11919` red, Anton for
+  the score/headline type, Inter for body/labels, diagonal
+  end-zone-stripe motif + radial glow behind the score. GVGD logo
+  lockup (orange rounded-square "GVGD" mark, "GoVols" white +
+  "GameDay" orange wordmark) matching `Header.tsx`. No stock photos or
+  fabricated player photos.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html`
+  frame `1080×1080`). Verified locally before publishing: extracted the
+  artboard's markup/styles into a standalone page and rendered it with
+  headless Chromium. Google Fonts (Anton/Inter) failed to load through
+  this session's network proxy, which incidentally produced a genuine
+  fallback-font pass — every element held to one line, nothing
+  overflowed or clipped, and the layout filled the 1080×1080 frame
+  densely with even top/bottom margins in that fallback rendering.
+  (Also caught and worked around a local-tooling-only issue: headless
+  Chromium's `--window-size` under-reports the real viewport height in
+  this environment, which clipped the footer out of an initial
+  screenshot; re-rendered with a taller capture window and cropped to
+  the true 1080×1080 frame to confirm the footer renders correctly —
+  this only affected the local check, not the published artboard.)
+- Canvas: https://claude.ai/artifact/7EknRuftmWxKNwiNFbuRzV
+- Status: ⏳ pending review
