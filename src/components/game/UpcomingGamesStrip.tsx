@@ -83,7 +83,7 @@ export function UpcomingGamesStrip({ shownGameIds, panelId, onPick }: Props) {
   useEffect(() => {
     supabase
       .from('live_games')
-      .select('id, sport, home_team, away_team, kickoff_time, status')
+      .select('id, sport, home_team, away_team, kickoff_time, status, venue')
       .in('status', ['pregame', 'live'])
       // A game stays on its card while it is live (until it goes final), not just before tip-off.
       .gte('kickoff_time', new Date(Date.now() - 8 * 3600 * 1000).toISOString())
@@ -157,7 +157,7 @@ function GameCard({
   last?: { home_team: string; away_team: string; home_score: number; away_score: number };
   live?: boolean;
   sport: CardSport;
-  game: { kickoff_time: string; home_team: string; away_team: string };
+  game: { kickoff_time: string; home_team: string; away_team: string; venue?: string | null };
   status: string;
   onPick?: () => void;
 }) {
@@ -187,7 +187,9 @@ function GameCard({
         <div className="text-xs text-white/70 space-y-1">
           <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-vgd-orange" /><span className="font-bold text-white">{when.date}</span></div>
           <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-vgd-orange" />{when.time}</div>
-          {home && <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-vgd-orange" />{VENUE[sport]}</div>}
+          {(game.venue ?? (home ? VENUE[sport] : null)) && (
+            <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-vgd-orange flex-shrink-0" /><span className="truncate">{game.venue ?? VENUE[sport]}</span></div>
+          )}
         </div>
         {last && <LastResult game={last} />}
         <div className="flex items-center justify-between gap-3">

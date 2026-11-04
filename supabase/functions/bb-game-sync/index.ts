@@ -54,6 +54,8 @@ interface BbGame {
   homePoints: number | null;
   awayPoints: number | null;
   timeValid: boolean;
+  /** "Arena · City, ST" from ESPN, when it has one. */
+  venue: string | null;
 }
 
 function parseEvent(e: Json): BbGame | null {
@@ -68,6 +70,9 @@ function parseEvent(e: Json): BbGame | null {
     return v == null || v === "" || !Number.isFinite(n) ? null : n;
   };
   const statusName: string = c.status?.type?.name ?? "";
+  const v = c.venue;
+  const place = [v?.address?.city, v?.address?.state].filter(Boolean).join(", ");
+  const venue: string | null = v?.fullName ? (place ? `${v.fullName} · ${place}` : v.fullName) : null;
   const g: BbGame = {
     id,
     startDate: new Date(e.date).toISOString(),
@@ -78,6 +83,7 @@ function parseEvent(e: Json): BbGame | null {
     homePoints: pts(home),
     awayPoints: pts(away),
     timeValid: c.timeValid !== false,
+    venue,
   };
   return g.homeTeam && g.awayTeam ? g : null;
 }
@@ -153,6 +159,7 @@ async function syncSchedule(supabase: Client, league: League) {
         home_team: g.homeTeam,
         away_team: g.awayTeam,
         kickoff_time: g.startDate,
+        venue: g.venue,
         status: g.completed ? "final" : new Date(g.startDate).getTime() <= now ? "live" : "pregame",
         home_score: g.homePoints ?? 0,
         away_score: g.awayPoints ?? 0,
@@ -166,6 +173,7 @@ async function syncSchedule(supabase: Client, league: League) {
     // sync may have missed. Never touch a live game's status or score here.
     const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
     if (g.timeValid && st === "pregame") update.kickoff_time = g.startDate;
+    if (g.venue) update.venue = g.venue;
     if (g.completed && st !== "final") {
       update.status = "final";
       update.home_score = g.homePoints ?? 0;
