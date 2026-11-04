@@ -334,3 +334,68 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-10-26 — Final score recap (Vols fall at South Carolina)
+
+- Trigger: scheduled (Mon/Wed/Fri). Note on timing: this run was
+  originally attempted on its real firing date (Oct 26) but stalled
+  before publishing — the canvas-publish call was denied twice in a
+  row by the Claude Code auto-mode classifier
+  (`[Unauthorized Persistence]`), a different failure mode from this
+  session's earlier one-off transient denial (which cleared on a
+  single retry). Per that denial's own instructions, work stopped
+  without forcing a workaround or fabricating a canvas link, and
+  nothing was published, logged, or opened as a PR at that time. The
+  run was completed now, when the user asked for a status check-in
+  in the same session — re-verified `live_games` first to confirm
+  South Carolina was still Tennessee's most recent completed game (no
+  newer result had superseded it), then the canvas-publish call
+  succeeded immediately.
+- Re-checked all four pillars and this log (plus the still-open
+  marketing PR branches) before picking a subject. `live_games` shows
+  South Carolina beat Tennessee 27-24 on Oct 24 (`status =
+  'calculated'`) — a brand new subject, the game previewed as a
+  countdown post in PR #231 on Oct 23. The last pillar used was
+  countdown (Oct 23), so this doesn't repeat a pillar back-to-back.
+- Subject: Tennessee 24, South Carolina 27 (road loss, Sat Oct 24,
+  2026, Columbia, SC) — the Vols' first loss since Texas in Week 4,
+  dropping the record to 6-2. Pulled fresh from `live_games`
+  (`status = 'calculated'`): final score, total yards (Tennessee 320,
+  South Carolina 344 — close), turnovers (1 each, even), first downs
+  (21 each, dead even). Confirmed the 6-2 record by checking all eight
+  `calculated` `live_games` rows to date (Furman W, at Georgia Tech W,
+  Kennesaw State W, Texas L, Auburn W, at Arkansas W, Alabama W, at
+  South Carolina L). Reported the loss plainly — headline "Vols Fall
+  in a Road Heartbreaker," no spin — and the real stat story here is
+  genuinely different from every prior recap in this log: total
+  yards, turnovers, and first downs were all nearly or exactly even,
+  so unlike the Auburn/Arkansas/Alabama recaps' clear statistical
+  edge-or-deficit narratives, this one is framed honestly as "decided
+  in the margins" rather than forcing a one-sided stat angle that the
+  real box score doesn't support. This also directly follows up on
+  the Oct 23 countdown post's real, sourced "closer than you'd think"
+  framing (Tennessee was only favored by 2.5) — which held up. Top-
+  predictor spotlight pulled from `game_leaderboard` joined to this
+  game's `game_id`: real username MrMasterMind14, 1078 total game
+  points (640 pregame + 438 live drive), 8-for-20 on live drive picks.
+- Visual system matches the established brand: `#0F172A` background,
+  `#162038` panels, `#FF8200` orange accent, `#D11919` red "FINAL"
+  pill, Anton for the score/headline type, Inter for body, diagonal
+  end-zone-stripe motif + radial glow behind the score, GVGD logo
+  lockup. The headline sits in white rather than this log's usual
+  celebratory orange (reserved for the Alabama win post), a small,
+  deliberate tonal distinction for a loss recap.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html`
+  frame `1080×1080`). Verified locally before publishing the same way
+  as this log's recent canvases: extracted the artboard into a
+  standalone page and rendered it with headless Chromium (Google Fonts
+  failed to load through this session's network proxy, giving a
+  genuine fallback-font pass) using a taller capture window cropped to
+  the true 1080×1080 frame via ImageMagick (PIL was unavailable in
+  this container, so `convert` substituted for the usual Python/PIL
+  crop step — same visual check, different tool). Nothing overflowed,
+  wrapped, or clipped, and the layout filled the frame densely with
+  even margins.
+- Canvas: https://claude.ai/artifact/6dJaKV4frhw16DBji3iYcP
+- Status: ⏳ pending review
