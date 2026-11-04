@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardCard } from '../ui/DashboardCard';
 import type { LiveGame } from '../game/LiveGameStatsPanel';
+import { BasketballStretchSummary } from './BasketballStretchSummary';
 
 // Men's basketball pregame picks. Same tables as football (pregame_predictions,
 // game_props, pregame_prop_picks) but its own RPC and no yardage guesses.
@@ -72,7 +73,7 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
       .eq('game_id', game.id)
       .order('sort_order', { ascending: true })
       .then(({ data }) => setGameProps((data as GameProp[]) ?? []));
-  }, [game.id]);
+  }, [game.id, game.status]);
 
   useEffect(() => {
     if (!session) { setExisting(null); return; }
@@ -101,7 +102,7 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
         setPropPicks(picks);
         setPropForm(Object.fromEntries(picks.map((p) => [p.prop_id, p.pick])));
       });
-  }, [session, game.id]);
+  }, [session, game.id, game.status]);
 
   const total = game.total_points_line;
 
@@ -144,11 +145,12 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
 
   // Post-game / locked summary of the user's own picks.
   if (isLocked) {
-    const row = (label: string, value: string, pts: number | null, ok?: boolean | null) => (
+    const row = (label: string, value: string, pts: number | null, ok?: boolean | null, actual?: string) => (
       <div className="flex items-center justify-between text-xs py-1.5 border-b border-white/[0.05]">
         <span className="text-white/70">{label}</span>
         <span className="flex items-center gap-2 text-white font-semibold">
           {value}
+          {actual != null && <span className="text-white/50 font-normal">· actual {actual}</span>}
           {isCalculated && pts != null && <span className={pts > 0 ? 'text-green-400' : 'text-vgd-red'}>{pts > 0 ? `+${pts}` : '0'}</span>}
           {isCalculated && ok === true && <CheckCircle className="w-3.5 h-3.5 text-green-400" />}
           {isCalculated && ok === false && <XCircle className="w-3.5 h-3.5 text-vgd-red" />}
@@ -165,10 +167,10 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
             </div>
           ) : (
             <>
-              {row('Winner', existing.predicted_winner === 'home' ? game.home_team : game.away_team, null, existing.winner_correct)}
-              {row(`${game.home_team} score`, String(existing.predicted_home_score), existing.home_score_points)}
-              {row(`${game.away_team} score`, String(existing.predicted_away_score), existing.away_score_points)}
-              {existing.predicted_total_pick && row('Total', existing.predicted_total_pick.toUpperCase(), existing.total_pick_points)}
+              {row('Winner', existing.predicted_winner === 'home' ? game.home_team : game.away_team, existing.winner_correct == null ? null : existing.winner_correct ? 100 : 0, existing.winner_correct, game.home_score === game.away_score ? 'tie' : game.home_score > game.away_score ? game.home_team : game.away_team)}
+              {row(`${game.home_team} score`, String(existing.predicted_home_score), existing.home_score_points, undefined, String(game.home_score))}
+              {row(`${game.away_team} score`, String(existing.predicted_away_score), existing.away_score_points, undefined, String(game.away_score))}
+              {existing.predicted_total_pick && row('Total', `${existing.predicted_total_pick.toUpperCase()}${game.total_points_line != null ? ` ${game.total_points_line}` : ''}`, existing.total_pick_points, undefined, String(game.home_score + game.away_score))}
               {gameProps.map((gp) => {
                 const pp = propPicks.find((p) => p.prop_id === gp.id);
                 if (!pp) return null;
@@ -180,6 +182,7 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
                   <span className="text-vgd-orange">{existing.total_pregame_points} pts</span>
                 </div>
               )}
+              <BasketballStretchSummary game={game} pregamePoints={isCalculated ? existing.total_pregame_points : null} />
             </>
           )}
         </div>

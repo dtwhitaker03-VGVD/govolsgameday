@@ -85,10 +85,11 @@ function BasketballMain({ game }: { game: LiveGame }) {
 function BasketballColumn({ game }: { game: LiveGame }) {
   if (game.status === 'pregame') return <BasketballMain game={game} />;
   return (
-    <div className="flex flex-col gap-4 h-full">
-      {/* The predictor keeps its natural height (no inner scrolling); the leaderboard takes what's left. */}
+    <div className={`flex flex-col gap-4 h-full ${game.status === 'live' ? '' : 'lg:overflow-y-auto'}`}>
+      {/* The predictor keeps its natural height (no inner scrolling); the leaderboard takes what's left.
+          After the game the stretch-by-stretch summary can be long, so the column scrolls instead. */}
       <div className="flex-none"><BasketballMain game={game} /></div>
-      <div className="flex-1 min-h-[320px] lg:min-h-0"><GameLeaderboard game={game} /></div>
+      <div className={`flex-1 min-h-[320px] ${game.status === 'live' ? 'lg:min-h-0' : ''}`}><GameLeaderboard game={game} /></div>
     </div>
   );
 }
