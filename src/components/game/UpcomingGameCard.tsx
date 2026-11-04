@@ -23,6 +23,8 @@ interface TeamInfo {
   record: TeamRecord | null;
   ranking_ap: number | null;
   ranking_coaches: number | null;
+  /** College Football Playoff committee ranking (null when unranked or not yet released). */
+  ranking_cfp?: number | null;
   logo: string | null;
   stats: TeamStats;
 }
@@ -109,12 +111,8 @@ function recordStr(record: TeamRecord | null): string {
   return `${record.wins}-${record.losses}`;
 }
 
-function combinedRanking(ap: number | null, coaches: number | null): string {
-  if (!ap && !coaches) return '—';
-  const parts: string[] = [];
-  if (ap) parts.push(`#${ap}`);
-  if (coaches) parts.push(`#${coaches}`);
-  return parts.join(' / ');
+function cfpRanking(cfp: number | null | undefined): string {
+  return cfp ? `#${cfp}` : '—';
 }
 
 // Pulls the national rank out of a Game Preview stat string, e.g.
@@ -324,9 +322,9 @@ export function UpcomingGameCard() {
               oppValue={recordStr(data.opponent.record)}
             />
             <StatRow
-              label="AP / Coaches"
-              tnValue={combinedRanking(data.tennessee.ranking_ap, data.tennessee.ranking_coaches)}
-              oppValue={combinedRanking(data.opponent.ranking_ap, data.opponent.ranking_coaches)}
+              label="CFP Ranking"
+              tnValue={cfpRanking(data.tennessee.ranking_cfp)}
+              oppValue={cfpRanking(data.opponent.ranking_cfp)}
             />
             <StatRow
               label="Scoring Off"
