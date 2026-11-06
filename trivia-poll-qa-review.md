@@ -678,3 +678,27 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-06 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window 2026-11-06 → 2026-11-09. 11-06, 11-07 and 11-08 were already fixed by earlier runs and are clean. The 11-05 preview found nothing to change for 11-06.
+- 11-09 (Monday of Texas A&M week): fixed 1 poll and 3 trivia items. There were 0 responses at the time of the edit. Slot 2 (Grant Williams, SEC POY in 2018 and 2019) and slot 3 (Fulmer as AD, 2017–21) were verified and left unchanged.
+
+### daily_polls.ebd3445b — 2026-11-09 — ✅ applied
+**Before:** "What is the best Vol basketball road win in history?" (At Kentucky / At Auburn / At Florida / At Kansas). It was not about football and not tied to a game.
+**After:** "Kentucky is behind us and the Vols head to Texas A&M on Saturday. What worries you most about the trip to Kyle Field?" Options: The 12th Man crowd noise / A&M's defensive front / Slowing down their offense / Avoiding turnovers on the road.
+**Why:** The new poll is football, it is about the next game, and it is result-neutral.
+
+### trivia_questions.1f1ca3ec — 2026-11-09 / slot 1 — ✅ applied
+**Before:** "Which Tennessee wide receiver was a standout in the mid-1990s and later played in the NFL for Cincinnati?" (Carl Pickens / Jerry Rice / Randy Moss / Terrell Owens). Pickens played at UT from 1989 to 1991, so "mid-1990s" was wrong. The distractors were non-Vols, which gave the answer away.
+**After:** "Which former Vol receiver went on to become a star for the Cincinnati Bengals in the 1990s?" Options: **Carl Pickens (A)** / Alvin Harper / Joey Kent / Peerless Price. All four distractors are former Vol receivers who played in the NFL.
+
+### trivia_questions.2389a7b7 — 2026-11-09 / slot 4 — ✅ applied
+**Before:** "…Has the rivalry become more competitive during his tenure?" (The series was suspended / Kentucky refuses to schedule Tennessee / Tennessee has never beaten Kentucky under Barnes / Yes). Every distractor was a self-eliminating non-answer.
+**After:** "After Kentucky swept the 2024-25 regular-season series, Tennessee beat the Wildcats 78-65 in which round of the 2025 NCAA Tournament?" Options: Round of 32 / **Sweet 16 (B)** / Elite Eight / Final Four. Verified: the game was played March 28, 2025, at Lucas Oil Stadium.
+
+### trivia_questions.5428881f — 2026-11-09 / slot 5 — ✅ applied
+**Before:** "David Price's MLB career win total is commonly cited at approximately how many wins?" (Exactly 50 / Over 150 / Under 20 / Over 400). The distractors were junk, and Price already appears in 11-08 slot 2.
+**After:** (Vol Football History) "With Texas A&M up next: in 2016, No. 9 Tennessee lost at No. 8 Texas A&M in double overtime at Kyle Field. What was the final score?" Options: 38-35 / **45-38 (B)** / 41-38 / 48-45. Verified against the AP, SI and 12thman.com box score for Oct. 8, 2016.
+
+- Still flagged for later runs: 11-12 slot 4 and 11-13 slot 3 repeat the Shuler Heisman runner-up fact. 11-15 slot 5 wrongly says Tee Martin was interim head coach in 2020.
