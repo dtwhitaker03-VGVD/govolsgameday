@@ -678,3 +678,31 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-07 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window 2026-11-07 → 2026-11-10. 11-07, 11-08 and 11-09 were already fixed by earlier runs and are clean. The 11-06 preview of 11-07 found nothing.
+- 11-10 (Tuesday of Texas A&M week): fixed 1 poll and 4 trivia items. There were 0 user responses at the time of the edit. Slot 2 (fans tore down the goalposts after beating Alabama in 2022) was verified and left unchanged.
+
+### daily_polls.0aee1f51 — 2026-11-10 — ✅ applied
+**Before:** "Who is the best running back in Tennessee football history?" (Jamal Lewis / Travis Henry / Alvin Kamara / Charlie Garner). It wasn't tied to any game.
+**After:** "Texas A&M week: which matchup at Kyle Field are you watching most closely on Saturday?" Options: Vols' passing game vs. the A&M secondary / Vols' run game vs. the A&M front seven / Vols' pass rush vs. the A&M offensive line / Special teams and field position.
+**Why:** The new poll is about the next game and doesn't depend on the result. It takes a different angle from 11-09's "what worries you most" poll.
+
+### trivia_questions.966b2d88 — 2026-11-10 / slot 1 — ✅ applied
+**Before:** "Which university administers both the 'Vols' and the 'Lady Vols' … branding?" (Vanderbilt / UT Knoxville / Auburn / Georgia). The answer was obvious, and the question overlaps with the 11-21 slot 1 branding item.
+**After:** (SEC Knowledge) "The Vols visit Texas A&M on Saturday. What is the name of the Aggies' live collie mascot?" Options: Bevo / Uga / **Reveille (C)** / Smokey.
+
+### trivia_questions.b20d3ce8 — 2026-11-10 / slot 3 — ✅ applied
+**Before:** "Rick Barnes' Tennessee teams have been known for which defining program hallmark?" The distractors were joke answers ("defense-optional," "no defensive identity").
+**After:** "Which Vol was named SEC Defensive Player of the Year for the 2023-24 season?" Options: Jonas Aidoo / Josiah-Jordan James / Santiago Vescovi / **Zakai Zeigler (D)**. Verified against UTSports for March 2024.
+
+### trivia_questions.7298e631 — 2026-11-10 / slot 4 — ✅ applied
+**Before:** "Which controversial Tennessee defensive tackle played alongside John Henderson …?" (Haynesworth / Reggie White / Da'Quan Jones / Trey Smith). Two of the distractors never played DT at Tennessee in that era, and "controversial" was editorializing.
+**After:** "Which Tennessee defensive tackle teamed with John Henderson on the Vols' line in the early 2000s before becoming a first-round NFL pick?" Options: **Albert Haynesworth (A)** / Dan Williams / Malik Jackson / Shy Tuttle. All four are Vol DTs from different eras.
+
+### trivia_questions.ca70614e — 2026-11-10 / slot 5 — ✅ applied
+**Before:** "Is it common in college basketball generally for a player to leave for the NBA G League and later return…?" ("Not applicable to basketball" / "Every Tennessee player does this" …). The question had no real answer and the options were junk.
+**After:** (Vol Football History) "Which quarterback, a third-stringer for much of the season, led Tennessee to a 38-7 rout of Texas A&M in the Jan. 1, 2005 Cotton Bowl?" Options: Erik Ainge / Brent Schaeffer / Casey Clausen / **Rick Clausen (D)**. Verified against the 12thman.com box score and AP recap. It also fits A&M week.
+
+- Still flagged for later runs: 11-12 slot 4 and 11-13 slot 3 repeat the Shuler Heisman runner-up fact. 11-15 slot 5 wrongly says Tee Martin was interim HC in 2020. 11-21 slot 1 overlaps with the Vols/Lady Vols branding question.
