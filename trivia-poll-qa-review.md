@@ -678,3 +678,35 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-11 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window 2026-11-11 → 2026-11-14. 11-11, 11-12 and 11-13 were already fixed by earlier runs and are clean. The 11-10 preview of 11-11 found nothing.
+- 11-14 (game day at Texas A&M): fixed 1 poll and all 5 trivia items. There were 0 responses at the time of the edit.
+
+### daily_polls.2301b695 — 2026-11-14 — ✅ applied
+**Before:** "Who is the best Lady Vol basketball recruit Tennessee has ever landed?" It wasn't about football and wasn't tied to the game.
+**After:** "Game day at Kyle Field! Which quarter do you think decides Vols vs. Texas A&M?" Options: The 1st quarter: fast start sets the tone / The 2nd quarter: the pre-halftime swing / The 3rd quarter: halftime adjustments / The 4th quarter: it comes down to the wire.
+**Why:** It's about today's game and is result-neutral. It doesn't repeat the 11-07 Kentucky game-day confidence poll or any of the 11-09 to 11-13 A&M angles.
+
+### trivia_questions.7eea458b — 2026-11-14 / slot 1 — ✅ applied
+**Before:** "Pat Summitt's teams reached 18 Final Fours… how many times did they win it all?" The options were Every single Final Four / Zero / **Eight** / Exactly one, which give the answer away, and the question repeats the 10-23 Summitt title-count item.
+**After:** (SEC Knowledge) "The Vols play at Texas A&M today. In which Texas city is Kyle Field located?" Options: Austin / **College Station (B)** / Waco / Houston.
+
+### trivia_questions.2e9c8824 — 2026-11-14 / slot 2 — ✅ applied (options only)
+**Before options:** **Around 21,700** / Around 40,000 / Around 10,000 / Around 5,000. The wrong answers were implausible.
+**After options:** Around 18,000 / **Around 21,700 (B)** / Around 25,000 / Around 30,000. The official capacity is 21,678.
+
+### trivia_questions.650b3f6b — 2026-11-14 / slot 3 — ✅ applied
+**Before:** "Rivalry Week, which includes Tennessee's games against Vanderbilt and Kentucky…" It used a non-answer option ("Not applicable, no such branding exists") and the premise is wrong, because Kentucky isn't a Rivalry Week opponent.
+**After:** (Vol Football History) "Who was Tennessee's starting quarterback in the 2016 double-overtime game at Kyle Field?" Options: **Joshua Dobbs (A)** / Quinten Dormady / Jarrett Guarantano / Justin Worley. Verified: SI's recap names Dobbs, intercepted on his first throw of the second overtime.
+
+### trivia_questions.8158bf2d — 2026-11-14 / slot 4 — ✅ applied (options only)
+**Before options:** 32nd / **5th** / 15th / 1st overall.
+**After options:** 3rd / **5th (B)** / 7th / 10th overall. The new picks are all plausible top-10 spots. Berry went 5th to the Chiefs.
+
+### trivia_questions.31dddd9c — 2026-11-14 / slot 5 — ✅ applied
+**Before options:** "The SEC Swimming Championships only" / World Swimming Championships / **US Olympic Team Diving Trials** / "It has never hosted a notable event". These were non-answer distractors.
+**After:** "In June 2024, Tennessee's Allan Jones Aquatic Center hosted which event ahead of the Paris Olympics?" Options: U.S. Olympic Swimming Trials / NCAA Swimming & Diving Championships / **U.S. Olympic Diving Trials (C)** / World Aquatics Diving World Cup. Verified: the trials ran June 17–23, 2024 (USA Diving, WBIR).
+
+- Still flagged for later runs: 11-15 slot 5 wrongly says Tee Martin was interim HC in 2020, and 11-15 has **no poll**. 11-21 slot 1 is the branding question, and 11-21 (LSU game day) also has no poll. Other days with no poll: 11-18, 11-25, 12-10, 12-11, 12-14.
