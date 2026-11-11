@@ -187,7 +187,7 @@ export function UpcomingGameCard() {
         }
         if (res?.reason === 'api_error') {
           setFetchState('api_error');
-          setApiErrorMsg(res.message ?? `CFBD API error (HTTP ${res.apiStatus ?? '?'})`);
+          setApiErrorMsg(res.message ?? `Schedule unavailable (HTTP ${res.apiStatus ?? '?'})`);
           return;
         }
         if (!res?.upcoming) {

@@ -1,16 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const CFBD_BASE = "https://api.collegefootballdata.com";
-
 // How far ahead of kickoff a game gets a live_games row — generous margin
-// around the weekly sync windows below, not a tuning knob for call cost
-// (the full schedule sync below only ever calls CFBD twice a week
-// regardless; see getSyncWindow for the separate, lighter betting-line
-// check that runs a third time midweek).
+// around the weekly sync windows below (see getSyncWindow for the separate,
+// lighter betting-line check that runs a third time midweek).
 const SYNC_WINDOW_MS = 21 * 24 * 60 * 60 * 1000;
 
-interface CfbdGame {
+interface ScheduleBase {
   id: number;
   startDate: string;
   completed: boolean;
@@ -20,31 +16,18 @@ interface CfbdGame {
   awayPoints: number | null;
 }
 
-interface CfbdLineEntry {
-  provider: string;
-  spread: number | null;
-  overUnder: number | null;
-}
-interface CfbdGameLines {
-  id: number;
-  homeTeam: string;
-  awayTeam: string;
-  lines: CfbdLineEntry[];
-}
-
 type Client = ReturnType<typeof createClient>;
 
 // ─── ESPN source (free, no key) ──────────────────────────────────────────────
-// ESPN is tried first for the schedule and the betting lines; CFBD is the
-// fallback when ESPN fails or has nothing. ESPN's event ids are the same
-// numbers as CFBD's game ids (live_games.cfbd_game_id) and its team
+// ESPN is the only source for the schedule and the betting lines. ESPN's event ids
+// are stored in live_games.cfbd_game_id (the column predates the move off CFBD) and its team
 // "location" strings match the names already stored (e.g. "Georgia Tech",
 // "Kennesaw State"), so existing rows line up with no remapping.
 const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/football/college-football";
 const ESPN_HEADERS = { "User-Agent": "Mozilla/5.0 (compatible; GoVolsGameDay/1.0)", Accept: "application/json" };
 const TENNESSEE_ESPN_ID = 2633;
 
-interface ScheduleGame extends CfbdGame {
+interface ScheduleGame extends ScheduleBase {
   timeValid: boolean;
   /** "Stadium · City, ST" from ESPN (shown on the Upcoming Games card, notably for road games). */
   venue?: string | null;
@@ -75,7 +58,7 @@ async function scheduleFromEspn(year: number): Promise<ScheduleGame[] | null> {
     const home = c?.competitors?.find((x: Json) => x.homeAway === "home");
     const away = c?.competitors?.find((x: Json) => x.homeAway === "away");
     const id = Number(e.id);
-    if (!c || !home || !away || !Number.isFinite(id) || !e.date) return null; // unexpected shape: let CFBD handle it
+    if (!c || !home || !away || !Number.isFinite(id) || !e.date) return null; // unexpected shape: treat the schedule as unavailable
     const pts = (x: Json) => {
       const v = typeof x.score === "object" ? x.score?.value : x.score;
       const n = Number(v);
@@ -100,10 +83,9 @@ async function scheduleFromEspn(year: number): Promise<ScheduleGame[] | null> {
 
 /**
  * Betting line for one game from ESPN's pickcenter (DraftKings, usually).
- * `spread` is HOME-relative, negative = home favored — same convention as
- * CFBD. It is only trusted when the provider's own home-favorite flag agrees
- * with the sign; anything inconsistent returns null so CFBD (or a manual
- * line) is used instead of guessing.
+ * `spread` is HOME-relative, negative = home favored. It is only trusted when the
+ * provider's own home-favorite flag agrees with the sign; anything inconsistent
+ * returns null so a manual line (lines_manual) is used instead of guessing.
  */
 async function lineFromEspn(eventId: number): Promise<{ spread: number | null; overUnder: number | null; provider: string } | null> {
   const d = await espnGet(`${ESPN_BASE}/summary?event=${eventId}`);
@@ -144,7 +126,7 @@ async function reportHealth(supabase: Client, status: "healthy" | "stalled") {
 type SyncWindow = "weekly-upcoming" | "midweek-line-check" | "post-game-final" | null;
 
 /**
- * Real CFBD calls only happen three times a week, gated on the current time
+ * Real syncs only happen three times a week, gated on the current time
  * in America/New_York (so this stays correct across the DST change that
  * lands mid-season, unlike a fixed UTC cron time would):
  *  - Monday 12:00 AM ET ("weekly-upcoming"): pulls in the upcoming week's
@@ -152,7 +134,7 @@ type SyncWindow = "weekly-upcoming" | "midweek-line-check" | "post-game-final" |
  *    for a betting line.
  *  - Wednesday 12:00 AM ET ("midweek-line-check"): betting-line check only
  *    — catches a line that wasn't posted yet on Monday, or has moved since,
- *    without polling CFBD hourly for something that doesn't need to be
+ *    without polling hourly for something that doesn't need to be
  *    real-time.
  *  - Saturday 11:00 PM ET ("post-game-final"): by then essentially every
  *    game has ended, so this locks in the real final score in live_games
@@ -161,7 +143,7 @@ type SyncWindow = "weekly-upcoming" | "midweek-line-check" | "post-game-final" |
  *    final-score display reads live_games directly, not that cache, so
  *    refreshing it here would just prematurely show next week's game.
  * The cron that invokes this function still fires hourly, but every tick
- * outside these three windows is a no-op — no CFBD call, no writes.
+ * outside these three windows is a no-op — no outside call, no writes.
  */
 function getSyncWindow(): SyncWindow {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -239,24 +221,11 @@ async function existingStatusFor(supabase: Client, gameIds: number[]): Promise<M
   return new Map(((data as { cfbd_game_id: number; status: string }[]) ?? []).map((r) => [r.cfbd_game_id, r.status]));
 }
 
-async function syncSchedule(supabase: Client, apiKey: string | undefined) {
+async function syncSchedule(supabase: Client) {
   const year = new Date().getFullYear();
 
-  let source: "espn" | "cfbd" = "espn";
-  let schedule = await scheduleFromEspn(year);
-  if (!schedule) {
-    // ESPN failed or looked wrong — fall back to CFBD.
-    if (!apiKey) return { ok: false as const, error: "ESPN schedule unavailable and no CFBD API key configured" };
-    source = "cfbd";
-    const res = await fetch(
-      `${CFBD_BASE}/games?year=${year}&team=Tennessee&seasonType=regular&division=fbs`,
-      { headers: { Authorization: `Bearer ${apiKey}` } }
-    );
-    if (!res.ok) {
-      return { ok: false as const, error: `ESPN schedule unavailable; CFBD API returned HTTP ${res.status}` };
-    }
-    schedule = ((await res.json()) as CfbdGame[]).map((g) => ({ ...g, timeValid: true }));
-  }
+  const schedule = await scheduleFromEspn(year);
+  if (!schedule) return { ok: false as const, error: "ESPN schedule unavailable" };
 
   const now = Date.now();
   const relevant = schedule.filter((g) => {
@@ -265,7 +234,7 @@ async function syncSchedule(supabase: Client, apiKey: string | undefined) {
   });
 
   if (relevant.length === 0) {
-    return { ok: true as const, source, created: 0, updated: 0, skipped: 0 };
+    return { ok: true as const, source: "espn", created: 0, updated: 0, skipped: 0 };
   }
 
   const existing = await existingStatusFor(supabase, relevant.map((g) => g.id));
@@ -278,17 +247,7 @@ async function syncSchedule(supabase: Client, apiKey: string | undefined) {
     else if (outcome === "skipped") skipped++;
   }
 
-  return { ok: true as const, source, created, updated, skipped };
-}
-
-const PREFERRED_LINE_PROVIDERS = ["DraftKings", "consensus"];
-
-function pickLine(lines: CfbdLineEntry[]): CfbdLineEntry | null {
-  for (const name of PREFERRED_LINE_PROVIDERS) {
-    const hit = lines.find((l) => l.provider === name && l.spread != null);
-    if (hit) return hit;
-  }
-  return lines.find((l) => l.spread != null) ?? null;
+  return { ok: true as const, source: "espn", created, updated, skipped };
 }
 
 /**
@@ -296,10 +255,10 @@ function pickLine(lines: CfbdLineEntry[]): CfbdLineEntry | null {
  * inside one of the three weekly sync windows (see getSyncWindow), not on
  * every hourly tick: a betting line doesn't need to be caught in real time,
  * so there's no separate staleness/lookahead tracking here — Monday,
- * Wednesday, and Saturday simply each re-fetch and overwrite whatever CFBD
+ * Wednesday, and Saturday simply each re-fetch and overwrite whatever ESPN
  * currently reports for every pregame game.
  */
-async function refreshLinesForUpcomingGames(supabase: Client, apiKey: string | undefined) {
+async function refreshLinesForUpcomingGames(supabase: Client) {
   const { data: candidates } = await supabase
     .from("live_games")
     .select("id, cfbd_game_id, home_team, lines_manual")
@@ -311,7 +270,7 @@ async function refreshLinesForUpcomingGames(supabase: Client, apiKey: string | u
     return { checked: 0, refreshed: 0 };
   }
 
-  let refreshed = 0, viaEspn = 0, viaCfbd = 0, pinned = 0;
+  let refreshed = 0, viaEspn = 0, pinned = 0;
   for (const g of games) {
     // An admin pinned this game's lines (see lines_manual) — leave them be.
     if (g.lines_manual) {
@@ -319,22 +278,7 @@ async function refreshLinesForUpcomingGames(supabase: Client, apiKey: string | u
       continue;
     }
     try {
-      let line = await lineFromEspn(g.cfbd_game_id);
-      let source: "espn" | "cfbd" = "espn";
-
-      if (!line && apiKey) {
-        const res = await fetch(`${CFBD_BASE}/lines?gameId=${g.cfbd_game_id}`, {
-          headers: { Authorization: `Bearer ${apiKey}` },
-        });
-        if (res.ok) {
-          const arr = (await res.json()) as CfbdGameLines[];
-          const chosen = arr[0] ? pickLine(arr[0].lines ?? []) : null;
-          if (chosen) {
-            line = { spread: chosen.spread, overUnder: chosen.overUnder, provider: chosen.provider };
-            source = "cfbd";
-          }
-        }
-      }
+      const line = await lineFromEspn(g.cfbd_game_id);
       if (!line) continue;
 
       // Normalize to TN-relative (negative = TN favored). Both sources give a
@@ -349,23 +293,23 @@ async function refreshLinesForUpcomingGames(supabase: Client, apiKey: string | u
         .update({
           spread_line_tn: spreadTnRelative,
           total_points_line: line.overUnder,
-          lines_provider: `${line.provider}${source === "espn" ? " (ESPN)" : ""}`,
+          lines_provider: `${line.provider} (ESPN)`,
           lines_captured_at: new Date().toISOString(),
         })
         .eq("id", g.id);
       refreshed++;
-      if (source === "espn") viaEspn++; else viaCfbd++;
+      viaEspn++;
     } catch (err) {
       console.error(`game-sync: line refresh failed for cfbd_game_id=${g.cfbd_game_id}: ${err}`);
     }
   }
-  return { checked: games.length, refreshed, viaEspn, viaCfbd, pinned };
+  return { checked: games.length, refreshed, viaEspn, pinned };
 }
 
 /**
  * Keeps cfbd-data's cache (and therefore the homepage's Upcoming Game
  * banner) refreshed on this same twice-weekly schedule, instead of it
- * making its own separate CFBD calls whenever site traffic finds its
+ * making its own separate calls whenever site traffic finds its
  * cache stale. cfbd-data only honors "force" for this service-role
  * -authenticated call — a public caller can't trigger a real API call.
  */
@@ -382,7 +326,7 @@ async function refreshUpcomingCache(serviceKey: string) {
 }
 
 /**
- * Keeps live_games in sync with Tennessee Football's real schedule (ESPN first, CFBD fallback) so
+ * Keeps live_games in sync with Tennessee Football's real schedule (ESPN) so
  * the pregame predictor has a row to attach picks to without anyone
  * manually re-creating it via the Admin Dashboard every week.
  *
@@ -393,18 +337,17 @@ async function refreshUpcomingCache(serviceKey: string) {
  * finalize_game() itself — scoring predictions and crediting real points
  * stays a deliberate admin action (the "Finalize Game" button). It also
  * does NOT track live in-game detail (quarter/clock/down/distance/
- * possession) — CFBD's schedule endpoint doesn't carry that; the Admin
+ * possession) — the schedule feed doesn't carry that; the Admin
  * Dashboard's existing "Update Game Status" / drive-window tools remain
  * how that gets entered during a live game.
  */
 Deno.serve(async (req: Request) => {
   const supabase = getSupabaseClient();
-  const apiKey = Deno.env.get("CFBC_API_KEY");
   let body: { force?: boolean } = {};
   try { body = await req.json(); } catch { /* empty body */ }
   // `force` lets an admin manually trigger a full sync (schedule + lines)
   // outside the three weekly windows — e.g. to backfill a missed run —
-  // without opening up real-time CFBD polling. The hourly cron always
+  // without opening up real-time polling. The hourly cron always
   // calls with an empty body, so this never affects its normal cadence.
   const window = getSyncWindow() ?? (body.force ? "weekly-upcoming" : null);
 
@@ -414,14 +357,14 @@ Deno.serve(async (req: Request) => {
 
   // Betting-line check runs inside all three weekly windows (Mon/Wed/Sat) —
   // see refreshLinesForUpcomingGames.
-  const linesResult: unknown = await refreshLinesForUpcomingGames(supabase, apiKey).catch((err) => ({ error: String(err) }));
+  const linesResult: unknown = await refreshLinesForUpcomingGames(supabase).catch((err) => ({ error: String(err) }));
 
   if (window === "midweek-line-check") {
     return json({ ok: true, window, lines: linesResult });
   }
 
   try {
-    const result = await syncSchedule(supabase, apiKey);
+    const result = await syncSchedule(supabase);
 
     if (window === "weekly-upcoming") {
       const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");

@@ -550,7 +550,7 @@ function LiveDriveControlPanel({ games, onRefresh }: { games: LiveGame[]; onRefr
         {selectedGame && !manualControlOn && (
           <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded border border-vgd-red/30 bg-vgd-red/5">
             <p className="text-[11px] text-vgd-red/90">
-              Manual control is off — the automatic CFBD sync may still touch this game's drives.
+              Manual control is off — the automatic sync may still touch this game's drives.
             </p>
             <button
               onClick={toggleManualControl}
@@ -1299,7 +1299,7 @@ function FinalizedGameStatsPanel({ games, onRefresh }: { games: LiveGame[]; onRe
     else {
       setStatus('ok');
       const warn = data?.warnings?.length ? ` (warnings: ${data.warnings.join('; ')})` : '';
-      setMsg(`Game finalized — final score pulled from ESPN/CFBD, pregame points calculated.${warn}`);
+      setMsg(`Game finalized — final score pulled from ESPN, pregame points calculated.${warn}`);
       setGameId('');
       onRefresh();
     }

@@ -1,8 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const CFBD_BASE = "https://api.collegefootballdata.com";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -13,7 +11,7 @@ const corsHeaders = {
 // twice-weekly schedule (Monday 12am ET and Saturday 11pm ET), which calls
 // this function with force=true to refresh the cache in lockstep. Regular
 // (non-forced) requests just serve whatever's cached, however old — no
-// separate CFBD call gets triggered by ordinary site traffic. The only
+// separate outside call gets triggered by ordinary site traffic. The only
 // exception is a real fetch as a one-time bootstrap if nothing has ever
 // been cached yet.
 interface RequestBody {
@@ -36,10 +34,6 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
-  // CFBD is now only the fallback for the upcoming-game card (ESPN is tried
-  // first), so a missing key is no longer fatal on its own.
-  const apiKey = Deno.env.get("CFBC_API_KEY");
-
   let body: RequestBody = {};
   try {
     body = await req.json();
@@ -49,12 +43,12 @@ Deno.serve(async (req: Request) => {
   }
 
   if (body.type === "upcoming") {
-    // "force" bypasses the cache to make a real CFBD call — only honored
+    // "force" bypasses the cache to make a real ESPN fetch — only honored
     // when the caller authenticates as the service role (game-sync's own
     // scheduled calls), so a public caller can't spam real API calls.
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const isPrivileged = !!serviceKey && req.headers.get("Authorization") === `Bearer ${serviceKey}`;
-    return await getUpcomingGame(apiKey, body.force === true && isPrivileged);
+    return await getUpcomingGame(body.force === true && isPrivileged);
   }
 
   if (body.type === "youtube_lookup") {
@@ -309,55 +303,15 @@ async function setCached(
     .upsert({ cache_key: key, payload, fetched_at: new Date().toISOString() }, { onConflict: "cache_key" });
 }
 
-// ─── CFBD fetch helpers ──────────────────────────────────────────────────────
-
-async function cfbdFetch(path: string, apiKey: string): Promise<unknown[]> {
-  try {
-    const res = await fetch(`${CFBD_BASE}${path}`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    });
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
-    return [];
-  }
-}
-
-async function cfbdFetchCritical(
-  path: string,
-  apiKey: string
-): Promise<{ ok: true; data: unknown[] } | { ok: false; status: number; message: string }> {
-  try {
-    const res = await fetch(`${CFBD_BASE}${path}`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    });
-    if (!res.ok) {
-      let message = `CFBD API returned HTTP ${res.status}`;
-      if (res.status === 401) message = "CFBD API key invalid or missing (HTTP 401)";
-      else if (res.status === 403) message = "CFBD API key lacks required permissions (HTTP 403)";
-      else if (res.status === 429) message = "CFBD API rate limit exceeded (HTTP 429)";
-      else if (res.status >= 500) message = `CFBD API server error (HTTP ${res.status})`;
-      return { ok: false, status: res.status, message };
-    }
-    const data = await res.json().catch(() => null);
-    if (!Array.isArray(data)) {
-      return { ok: false, status: 200, message: "CFBD returned unexpected schedule shape" };
-    }
-    return { ok: true, data };
-  } catch (err) {
-    return { ok: false, status: 0, message: `Network error reaching CFBD: ${String(err)}` };
-  }
-}
-
 // ─── ESPN source (free, no key) ──────────────────────────────────────────────
-// Builds the same payload getUpcomingGame produces from CFBD, from ESPN: the
-// next game from Tennessee's ESPN schedule (event ids match CFBD's), records
+// Builds the upcoming-game payload from ESPN: the
+// next game from Tennessee's ESPN schedule (its event ids are what live_games.cfbd_game_id stores), records
 // and logos from each team's page, AP / Coaches rankings from the rankings
 // feed, and season offensive ranks from ESPN's core stats API (which, unlike
-// CFBD's, gives real national ranks). Defensive numbers aren't available from
+// CFBD's did, gives real national ranks). Defensive numbers aren't available from
 // ESPN's free stats either (they come back as zeros), so scoringDefense /
 // totalDefense stay null exactly as before and the card keeps using the game
-// preview for those. Returns null when ESPN can't answer, so CFBD is used.
+// preview for those. Returns null when ESPN can't answer, so the last cached copy is served.
 
 const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/football/college-football";
 const ESPN_CORE = "https://sports.core.api.espn.com/v2/sports/football/leagues/college-football";
@@ -472,7 +426,7 @@ async function buildUpcomingFromEspn(year: number): Promise<{ payload: Record<st
 
 // ─── Main logic ──────────────────────────────────────────────────────────────
 
-async function getUpcomingGame(apiKey: string | undefined, force: boolean) {
+async function getUpcomingGame(force: boolean) {
   const supabase = getSupabaseClient();
   const cacheKey = "upcoming_game";
 
@@ -488,209 +442,14 @@ async function getUpcomingGame(apiKey: string | undefined, force: boolean) {
 
   // Real fetch — either a forced, scheduled refresh, or a one-time bootstrap.
   const year = new Date().getFullYear();
-  const todayIso = new Date().toISOString();
-
-  // ESPN first (free); CFBD below is the fallback.
   const fromEspn = await buildUpcomingFromEspn(year);
   if (fromEspn) {
     await setCached(supabase, cacheKey, fromEspn.payload);
     return json({ ...fromEspn.payload, cached: false, source: "espn" });
   }
 
-  if (!apiKey) {
-    const { data: stale } = await supabase.from("cfbd_cache").select("payload").eq("cache_key", cacheKey).maybeSingle();
-    if (stale?.payload) return json({ ...stale.payload, cached: true, stale: true });
-    return json({ upcoming: null, reason: "api_error", message: "ESPN unavailable and no CFBD API key configured" }, 502);
-  }
-
-  // Schedule is the critical call
-  const scheduleResult = await cfbdFetchCritical(
-    `/games?year=${year}&team=Tennessee&seasonType=regular&division=fbs`,
-    apiKey
-  );
-
-  if (!scheduleResult.ok) {
-    // If we have a stale cache entry, serve it rather than showing an error
-    const { data: stale } = await supabase
-      .from("cfbd_cache")
-      .select("payload")
-      .eq("cache_key", cacheKey)
-      .maybeSingle();
-
-    if (stale?.payload) {
-      return json({ ...stale.payload, cached: true, stale: true });
-    }
-
-    return json(
-      {
-        upcoming: null,
-        reason: "api_error",
-        apiStatus: scheduleResult.status,
-        message: scheduleResult.message,
-      },
-      502
-    );
-  }
-
-  const schedule = scheduleResult.data;
-
-  // Find next game after today
-  const future = (schedule as GameEntry[])
-    .filter((g) => !g.completed && g.startDate > todayIso)
-    .sort((a, b) => a.startDate.localeCompare(b.startDate));
-
-  if (future.length === 0) {
-    const payload = { upcoming: null, reason: "no_games" };
-    await setCached(supabase, cacheKey, payload);
-    return json(payload);
-  }
-
-  const game = future[0];
-  const tennesseeIsHome = game.homeTeam === "Tennessee";
-  const opponentName = tennesseeIsHome ? game.awayTeam : game.homeTeam;
-
-  // 3. Fetch supplementary data — only 2 parallel calls instead of 6:
-  //    - Teams (for logos, both TN + opponent in one call each)
-  //    - Records (for current season)
-  //    Skip rankings and stats during pre-season (they're empty anyway)
-  const hasSeasonStarted = (schedule as GameEntry[]).some((g) => g.completed);
-
-  const [records, tnTeam, opponentTeam] = await Promise.all([
-    cfbdFetch(`/records?year=${year}`, apiKey),
-    cfbdFetch(`/teams?team=Tennessee`, apiKey),
-    cfbdFetch(`/teams?team=${encodeURIComponent(opponentName)}`, apiKey),
-  ]);
-
-  // Only fetch rankings/stats if the season has actually started
-  let rankings: RankingWeek[] = [];
-  let stats: StatEntry[] = [];
-  if (hasSeasonStarted) {
-    [rankings, stats] = await Promise.all([
-      cfbdFetch(`/rankings?year=${year}&seasonType=regular`, apiKey),
-      cfbdFetch(`/stats/season?year=${year}`, apiKey),
-    ]) as [RankingWeek[], StatEntry[]];
-  }
-
-  // Records
-  const getRecord = (team: string) => {
-    const r = (records as RecordEntry[]).find((x) => x.team === team);
-    return r ? { wins: r.total.wins, losses: r.total.losses } : null;
-  };
-
-  // Rankings
-  const latestWeek = rankings.length > 0
-    ? rankings.sort((a, b) => b.week - a.week)[0]
-    : null;
-
-  const getRanking = (team: string, pollName: string): number | null => {
-    if (!latestWeek) return null;
-    const poll = latestWeek.polls?.find((p) => p.poll === pollName);
-    if (!poll) return null;
-    const entry = poll.ranks?.find((r) => r.school === team);
-    return entry?.rank ?? null;
-  };
-
-  // Stats
-  const buildStatRank = (team: string, statName: string, ascending = false) => {
-    const entries = stats
-      .filter((s) => s.statName === statName && s.statValue != null)
-      .sort((a, b) => ascending ? a.statValue - b.statValue : b.statValue - a.statValue);
-    const idx = entries.findIndex((s) => s.team === team);
-    if (idx < 0) return null;
-    return { value: entries[idx].statValue, rank: idx + 1 };
-  };
-
-  const buildTeamStats = (team: string) => ({
-    scoringOffense: buildStatRank(team, "points", false),
-    totalOffense: buildStatRank(team, "totalYards", false),
-    passingYards: buildStatRank(team, "netPassingYards", false),
-    rushingYards: buildStatRank(team, "rushingYards", false),
-    // Defensive stats — CFBD doesn't provide "points allowed" or "yards allowed"
-    // in the basic season stats endpoint, so these will be null pre-season.
-    // The card shows em dashes for null values per spec.
-    scoringDefense: null as { value: number; rank: number } | null,
-    totalDefense: null as { value: number; rank: number } | null,
-  });
-
-  // Logo — CFBD's /teams doesn't reliably filter server-side, and each
-  // entry's logos are plain URL strings (not {href} objects), so match by
-  // school name client-side and take the string directly.
-  const getLogo = (teamArr: TeamEntry[], team: string) => {
-    const t = teamArr.find((x) => x.school === team) ?? teamArr[0];
-    return t?.logos?.[0] ?? null;
-  };
-
-  const payload = {
-    upcoming: {
-      game: {
-        id: game.id,
-        date: game.startDate,
-        homeTeam: game.homeTeam,
-        awayTeam: game.awayTeam,
-        venue: game.venue,
-        neutralSite: game.neutralSite ?? false,
-      },
-      tennesseeIsHome,
-      tennessee: {
-        record: getRecord("Tennessee"),
-        ranking_ap: getRanking("Tennessee", "AP Top 25"),
-        ranking_coaches: getRanking("Tennessee", "Coaches Poll"),
-        ranking_cfp: getRanking("Tennessee", "Playoff Committee Rankings"),
-        logo: getLogo(tnTeam as TeamEntry[], "Tennessee"),
-        stats: buildTeamStats("Tennessee"),
-      },
-      opponent: {
-        name: opponentName,
-        record: getRecord(opponentName),
-        ranking_ap: getRanking(opponentName, "AP Top 25"),
-        ranking_coaches: getRanking(opponentName, "Coaches Poll"),
-        ranking_cfp: getRanking(opponentName, "Playoff Committee Rankings"),
-        logo: getLogo(opponentTeam as TeamEntry[], opponentName),
-        stats: buildTeamStats(opponentName),
-      },
-    },
-  };
-
-  // Cache the result
-  await setCached(supabase, cacheKey, payload);
-
-  return json({ ...payload, cached: false });
-}
-
-// ---- Type shapes ----
-
-interface GameEntry {
-  id: number;
-  startDate: string;
-  completed: boolean;
-  homeTeam: string;
-  awayTeam: string;
-  venue: string;
-  neutralSite?: boolean;
-}
-
-interface RecordEntry {
-  team: string;
-  total: { wins: number; losses: number };
-}
-
-interface RankingWeek {
-  season: number;
-  week: number;
-  seasonType: string;
-  polls: Array<{
-    poll: string;
-    ranks: Array<{ rank: number; school: string }>;
-  }>;
-}
-
-interface StatEntry {
-  team: string;
-  statName: string;
-  statValue: number;
-}
-
-interface TeamEntry {
-  school: string;
-  logos?: string[];
+  // ESPN couldn't answer: serve the last good copy rather than an error.
+  const stale = await getCachedAny(supabase, cacheKey);
+  if (stale) return json({ ...stale, cached: true, stale: true });
+  return json({ upcoming: null, reason: "api_error", message: "ESPN schedule unavailable" }, 502);
 }

@@ -1,8 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const CFBD_BASE = "https://api.collegefootballdata.com";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -23,7 +21,7 @@ function getServiceClient() {
   );
 }
 
-// ─── CFBD box-score shapes — confirmed against a real /games/teams and
+// ─── Box-score shapes (originally modeled on CFBD's /games/teams and
 // /games/players response (TCU @ North Carolina, gameId 401856766, 2026
 // season) on 2026-09-05. Parsing stays case/spacing-defensive via
 // normalize() regardless. ───────────────────────────────────────────────────
@@ -42,57 +40,10 @@ function normalize(s: string): string {
   return s.trim().toLowerCase();
 }
 
-async function cfbdGet(path: string, apiKey: string): Promise<{ ok: true; data: unknown } | { ok: false; message: string }> {
-  try {
-    const res = await fetch(`${CFBD_BASE}${path}`, { headers: { Authorization: `Bearer ${apiKey}` } });
-    if (!res.ok) return { ok: false, message: `CFBD API returned HTTP ${res.status} for ${path}` };
-    return { ok: true, data: await res.json() };
-  } catch (err) {
-    return { ok: false, message: `Network error fetching ${path}: ${String(err)}` };
-  }
-}
-
-// CFBD's /games/teams and /games/players are postgame aggregation endpoints
-// — for a game not yet in that dataset, CFBD has been observed silently
-// ignoring the gameId filter and returning a DIFFERENT game for the queried
-// team instead of an empty result (confirmed live against the 2026-09-12
-// Georgia Tech/Tennessee game: querying gameId=401856681 for Georgia Tech
-// came back with game 401856776, a Georgia Tech/Colorado game). Every
-// lookup below (score/yards, TN's rushing/receiving TDs, opponent
-// turnovers, prop auto-grading) must be run against a response confirmed to
-// be the actual requested game, or it silently corrupts real scoring with
-// another game's numbers.
-function entriesMatchGame<T extends { id: number }>(entries: T[], cfbdGameId: number): T[] | null {
-  return entries[0]?.id === cfbdGameId ? entries : null;
-}
-
-interface ScheduleGame { id: number; week: number }
-
-// The gameId filter being unreliable (see above) rules out querying
-// /games/teams and /games/players by gameId directly. /games (the plain
-// schedule endpoint, not the box-score ones) was confirmed live to return
-// every one of a team's games for the season with correct ids and week
-// numbers, so resolve the real week from there and query the box-score
-// endpoints by week instead — confirmed live to return the right game once
-// the week is known.
-async function resolveWeek(
-  apiKey: string,
-  cfbdGameId: number,
-  season: number,
-  team: string
-): Promise<number | null> {
-  const result = await cfbdGet(`/games?year=${season}&team=${encodeURIComponent(team)}`, apiKey);
-  if (!result.ok) return null;
-  const games = result.data as ScheduleGame[];
-  return games.find((g) => g.id === cfbdGameId)?.week ?? null;
-}
-
-// Final score + total yards per team, straight from /games/teams — CFBD's
-// canonical post-game numbers. Written unconditionally on finalize so a
-// manually-controlled game (live-cfbd-sync skipped it entirely — see
-// live_games.manual_control) still ends up with real values instead of
-// whatever was last typed in by hand, and so a normal game's numbers get
-// reconciled against CFBD's final tally rather than trusting live tracking.
+// Final score + total yards per team, from ESPN's final box score. Written on finalize so a
+// manually-controlled game (the live pollers skip it — see live_games.manual_control)
+// still ends up with real values instead of whatever was last typed in by hand, and so a
+// normal game's numbers get reconciled against the final tally rather than live tracking.
 function findTeamPointsAndYards(entries: GameTeamStatsEntry[]): {
   homePoints: number | null;
   awayPoints: number | null;
@@ -152,7 +103,7 @@ function sumCategoryTds(entries: GamePlayerStatsEntry[], categoryName: string): 
 // ─── ESPN source ─────────────────────────────────────────────────────────────
 // ESPN's public game summary (free, no key) is tried first. Its box score is
 // converted into the same GameTeamStatsEntry / GamePlayerStatsEntry shapes the
-// CFBD path produces, so every lookup and the prop auto-grader below work
+// the original CFBD path produced, so every lookup and the prop auto-grader below work
 // unchanged whichever source answered. ESPN's event id is the same number as
 // live_games.cfbd_game_id. Team names are taken from the game row (not ESPN's
 // "location") so prop team matching keeps using the names already stored.
@@ -178,12 +129,12 @@ async function loadEspnStats(
       headers: { "User-Agent": "Mozilla/5.0 (compatible; GoVolsGameDay/1.0)", Accept: "application/json" },
     });
     if (!res.ok) {
-      warnings.push(`ESPN summary returned HTTP ${res.status} — falling back to CFBD.`);
+      warnings.push(`ESPN summary returned HTTP ${res.status}.`);
       return null;
     }
     d = await res.json();
   } catch (err) {
-    warnings.push(`ESPN summary fetch failed (${String(err)}) — falling back to CFBD.`);
+    warnings.push(`ESPN summary fetch failed (${String(err)}).`);
     return null;
   }
 
@@ -192,7 +143,7 @@ async function loadEspnStats(
   const homeC = competitors.find((c) => c.homeAway === "home");
   const awayC = competitors.find((c) => c.homeAway === "away");
   if (!comp || !homeC || !awayC) {
-    warnings.push("ESPN summary had an unexpected shape — falling back to CFBD.");
+    warnings.push("ESPN summary had an unexpected shape.");
     return null;
   }
   if (!sameTeamName(homeC.team?.location ?? "", game.home_team) || !sameTeamName(awayC.team?.location ?? "", game.away_team)) {
@@ -200,13 +151,13 @@ async function loadEspnStats(
     return null;
   }
   if (comp.status?.type?.state !== "post" && comp.status?.type?.completed !== true) {
-    warnings.push("ESPN does not show this game as final yet — falling back to CFBD.");
+    warnings.push("ESPN does not show this game as final yet.");
     return null;
   }
   const boxTeams: Json[] = d.boxscore?.teams ?? [];
   const boxPlayers: Json[] = d.boxscore?.players ?? [];
   if (boxTeams.length < 2 || boxPlayers.length < 2) {
-    warnings.push("ESPN box score is not published yet — falling back to CFBD.");
+    warnings.push("ESPN box score is not published yet.");
     return null;
   }
 
@@ -228,7 +179,7 @@ async function loadEspnStats(
     }));
     players.push({ team: name, categories });
 
-    // Team totals from the box score, plus a few CFBD-named team stats ESPN
+    // Team totals from the box score, plus a few team stats ESPN
     // only gives per player (sacks, etc.), summed from the player lines.
     const sumType = (cat: string, type: string) => {
       const t = categories.find((x) => normalize(x.name) === cat)?.types.find((x) => normalize(x.name) === normalize(type));
@@ -249,7 +200,7 @@ async function loadEspnStats(
   }
 
   if (!teams.some((t) => t.stats.some((s) => s.category === "totalYards"))) {
-    warnings.push("ESPN box score has no team yardage yet — falling back to CFBD.");
+    warnings.push("ESPN box score has no team yardage yet.");
     return null;
   }
   return {
@@ -260,7 +211,7 @@ async function loadEspnStats(
 
 // ─── Weekly prop bet auto-grading ───────────────────────────────────────────
 // Reuses the same /games/teams and /games/players responses already fetched
-// above for the TD/turnover/yards lookups — no extra CFBD calls. A prop only
+// above for the TD/turnover/yards lookups. A prop only
 // gets auto-graded if it has stat_scope/stat_category (and, for player
 // scope, stat_type + player_name) set; anything else (including every prop
 // created before this feature existed) is left for admin_grade_game_prop as
@@ -481,10 +432,10 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // dry_run: fetch and parse CFBD exactly as a real finalize would, but write
-  // nothing — to confirm CFBD has published the box score (and every prop
+  // dry_run: fetch and parse ESPN exactly as a real finalize would, but write
+  // nothing — to confirm ESPN has published the box score (and every prop
   // resolves) before the one-way finalize_game call.
-  let body: { game_id?: string; dry_run?: boolean; source?: string };
+  let body: { game_id?: string; dry_run?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -505,7 +456,6 @@ Deno.serve(async (req: Request) => {
     return json({ error: "Game not found" }, 404);
   }
 
-  const apiKey = Deno.env.get("CFBC_API_KEY");
   const warnings: string[] = [];
   let tnTurnoversForced: number | null = null;
   let tnRushingTds: number | null = null;
@@ -516,64 +466,17 @@ Deno.serve(async (req: Request) => {
   let awayYards: number | null = null;
   let teamsData: GameTeamStatsEntry[] | null = null;
   let playersData: GamePlayerStatsEntry[] | null = null;
-  let source: "espn" | "cfbd" | "none" = "none";
+  let source: "espn" | "none" = "none";
 
-  // source: "auto" (default) tries ESPN, then falls back to CFBD; "espn" or
-  // "cfbd" forces one.
-  const wantSource = body.source === "espn" || body.source === "cfbd" ? body.source : "auto";
-
-  if (wantSource !== "cfbd") {
-    const espn = await loadEspnStats(game, warnings);
-    if (espn) {
-      teamsData = espn.teams;
-      playersData = espn.players;
-      source = "espn";
-    }
-  }
-
-  if (source === "none" && wantSource !== "espn") {
-    if (!apiKey) {
-      warnings.push("CFBD API key not configured — final score/yards and rushing/receiving TDs/turnovers-forced won't be updated from CFBD.");
-    } else {
-      // CFBD requires `year` on both endpoints, plus one of week/team/conference
-      // — confirmed live 2026-09-05. `team` uses the game's own home team so
-      // this works for any game, not just a Tennessee one.
-      const season = new Date(game.kickoff_time).getUTCFullYear();
-      const teamParam = encodeURIComponent(game.home_team);
-      const week = await resolveWeek(apiKey, game.cfbd_game_id, season, game.home_team);
-
-      if (week === null) {
-        warnings.push("Could not resolve this game's week from CFBD's schedule — final score/yards and rushing/receiving TDs/turnovers-forced won't be updated from CFBD.");
-      } else {
-        const [teamsResult, playersResult] = await Promise.all([
-          cfbdGet(`/games/teams?week=${week}&year=${season}&team=${teamParam}`, apiKey),
-          cfbdGet(`/games/players?week=${week}&year=${season}&team=${teamParam}`, apiKey),
-        ]);
-
-        if (teamsResult.ok) {
-          teamsData = entriesMatchGame(teamsResult.data as GameTeamStatsEntry[], game.cfbd_game_id);
-          if (!teamsData) {
-            warnings.push("CFBD /games/teams returned a different game than requested — ignored to avoid corrupting scoring with another game's stats.");
-          }
-        } else {
-          warnings.push(teamsResult.message);
-        }
-
-        if (playersResult.ok) {
-          playersData = entriesMatchGame(playersResult.data as GamePlayerStatsEntry[], game.cfbd_game_id);
-          if (!playersData) {
-            warnings.push("CFBD /games/players returned a different game than requested — ignored to avoid corrupting scoring with another game's stats.");
-          }
-        } else {
-          warnings.push(playersResult.message);
-        }
-        if (teamsData || playersData) source = "cfbd";
-      }
-    }
+  const espn = await loadEspnStats(game, warnings);
+  if (espn) {
+    teamsData = espn.teams;
+    playersData = espn.players;
+    source = "espn";
   }
 
   // Same derivations whichever source supplied the data.
-  const label = source === "espn" ? "ESPN" : "CFBD";
+  const label = "ESPN";
   if (teamsData) {
     tnTurnoversForced = findTurnoversForced(teamsData);
     if (tnTurnoversForced === null) warnings.push(`Could not find opponent turnovers stat in ${label} team stats.`);
@@ -611,10 +514,10 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Score/yards only get written when CFBD actually returned a value —
+  // Score/yards only get written when ESPN actually returned a value —
   // unlike the tn_* prop stats below (which only ever come from this
   // function), score/yards may already be correctly populated by game-sync
-  // or live-cfbd-sync, so a failed/missing CFBD lookup here must never wipe
+  // or the live poller, so a failed/missing ESPN lookup here must never wipe
   // out already-good data.
   const scoreAndYardsUpdate: Record<string, number> = {};
   if (homePoints !== null) scoreAndYardsUpdate.home_score = homePoints;

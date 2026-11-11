@@ -2,16 +2,14 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 // ─── LIVE ESPN SYNC ─────────────────────────────────────────────────────────
-// ESPN-fed twin of live-cfbd-sync: drives the live scoreboard and the live
-// drive predictor from ESPN's public game summary instead of CFBD's live/plays
-// feed. Only games with live_games.data_source = 'espn' are handled here;
-// live-cfbd-sync skips those, so flipping the column switches a game's feed.
-// ESPN's event id is the same number as live_games.cfbd_game_id and its drive
-// ids match CFBD's, so a window opened by either poller is recognised by the
-// other (drive_windows.cfbd_drive_id).
+// Drives the live scoreboard and the live drive predictor from ESPN's public
+// game summary (the only live feed; the old CFBD poller is retired). Only games
+// with live_games.data_source = 'espn' are handled here. ESPN's event id is
+// stored in live_games.cfbd_game_id and its drive ids in drive_windows.cfbd_drive_id
+// (the column names predate the move off CFBD).
 //
-// Same RPCs as the CFBD poller (open_drive_window / settle_drive_outcome), so
-// odds and scoring are untouched. Same rules: a window is 30s when the drive
+// Uses the RPCs open_drive_window / settle_drive_outcome, so odds and scoring
+// are unchanged. Same rules: a window is 30s when the drive
 // starts off a kickoff and 60s otherwise, there's no post-drive pause, and a
 // window only ever opens at the drive's real starting spot.
 //
@@ -42,12 +40,6 @@ const DEFAULT_WINDOW_SECONDS = 60;
 // corrections; a long official review can still outlast it.
 const CONFIRM_OUTCOMES = new Set(["touchdown", "field_goal", "turnover", "safety"]);
 const CONFIRM_SECONDS = 30;
-
-// CFBD is the backup feed. If ESPN fails this many ticks in a row (about a
-// minute and a half at the 15s cadence) for a live or about-to-start game, the
-// game is handed to live-cfbd-sync by flipping live_games.data_source to
-// 'cfbd'. It stays there until someone flips it back.
-const FAILOVER_AFTER_FAILURES = 6;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -122,7 +114,7 @@ interface EspnSummary {
   boxscore?: { teams?: { team: { id: string }; statistics?: { name: string; displayValue?: string }[] }[] };
 }
 
-// ─── Result mapping (same vocabulary rules as live-cfbd-sync) ────────────────
+// ─── Result mapping ───────────────────────────────────────────────────────────
 // ESPN's displayResult is one of: Touchdown, Field Goal, Missed FG, Punt, Punt
 // Touchdown (a punt returned for a score — still a punt for the offense),
 // Fumble, Interception, Downs, End Of Half / End of Game. Unmapped results are
@@ -331,7 +323,7 @@ function teamBoxStats(d: EspnSummary, teamId: string) {
 }
 
 // Timeouts remaining reset each half (periods 1-2 vs 3-4+); OT is lumped into
-// the second half, as in the CFBD poller.
+// the second half.
 function timeoutsRemaining(d: EspnSummary, teamLocation: string, currentPeriod: number): number {
   const half = (p: number) => (p <= 2 ? 1 : 2);
   let used = 0;
@@ -722,7 +714,7 @@ Deno.serve(async (req: Request) => {
     return json(result, result.ok ? 200 : 502);
   }
 
-  // Only games assigned to ESPN, and — as in the CFBD poller — only 'live'
+  // Only games assigned to ESPN, and only 'live'
   // games and 'pregame' games within an hour of kickoff.
   const soon = new Date(Date.now() + 60 * 60 * 1000).toISOString();
   const { data: games, error: gamesErr } = await supabase
@@ -742,15 +734,10 @@ Deno.serve(async (req: Request) => {
       results.push(result);
       continue;
     }
-    // ESPN failed this tick: count it, and fail over to CFBD once it's persistent.
+    // ESPN failed this tick: count it (there is no backup feed; the next tick retries).
     const next = failures + 1;
-    if (next >= FAILOVER_AFTER_FAILURES) {
-      await supabase.from("live_games").update({ data_source: "cfbd", espn_failures: 0 }).eq("id", game.id);
-      results.push({ ...result, failedOverToCfbd: true });
-    } else {
-      await supabase.from("live_games").update({ espn_failures: next }).eq("id", game.id);
-      results.push({ ...result, espnFailures: next });
-    }
+    await supabase.from("live_games").update({ espn_failures: next }).eq("id", game.id);
+    results.push({ ...result, espnFailures: next });
   }
   return json({ ok: true, gamesSynced: results.length, results });
 });
