@@ -678,3 +678,40 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-12 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-11-12 → 2026-11-15. Checked 4 polls (3 existing + 1 inserted) and 20 trivia rows.
+- 11-12, 11-13 and 11-14 were already fixed in #281/#283/#284. On re-check they are clean. The one extra change was the 11-12 slot 5 options, tightened in the 2026-11-11 preview (logged below).
+- 11-15 had no poll, two broken items (slots 4 and 5), one duplicate (slot 1) and weak distractors (slot 3). All fixed.
+- Heads-up: the polls already scheduled for 11-16, 11-17, 11-19 and 11-20 aren't about current TN football. They will be rewritten as each date enters the window, per the 2026-10-12 instruction. 11-18 still has no poll.
+
+### trivia_questions.4a4379a7 — 2026-11-12 / slot 5 — ✅ applied (11-11 preview)
+- **Before:** A 2005, B 2020, C 2014, D 1995
+- **After:** A 2012, B 2016, C 2014 ✔, D 2018
+- **Why:** The fact checks out (SEC Network launched Aug 2014). But wrong years spread across 25 years made it too easy for a hard slot.
+
+### daily_polls.e89d318f — 2026-11-15 — ✅ inserted
+- **Before:** (no poll)
+- **After:** "The Kyle Field trip is in the books, and LSU comes to Neyland on Saturday. What should be the Vols' top priority this week?" Options: Sharpen up the run game / Tighten up the pass defense / Clean up penalties and turnovers / Get healthy and rested
+- **Why:** Every day needs a poll about current TN football. This one covers the game just played and LSU next. It doesn't assume the A&M result, and it's a different question from the 11-08 "which unit stood out" poll.
+
+### trivia_questions.ab15777d — 2026-11-15 / slot 1 — ✅ applied
+- **Before:** "Tennessee's most tenured historical coach, who won multiple SEC titles in the 1960s-70s, was who?" (O'Neill / DeVoe / Ray Mears ✔ / Houston)
+- **After:** "In the mid-1970s, Bernard King and Ernie Grunfeld formed one of college basketball's most famous duos at Tennessee. What was the pair's nickname?" A The Fab Five, B The Bernie and Ernie Show ✔, C Phi Slama Jama, D Showtime
+- **Why:** Ray Mears is already the answer on 11-01 and 12-09 (duplicate within ±30 days). The stem was also clumsy. Each wrong option is a real nickname of a different famous team.
+
+### trivia_questions.bea5d658 — 2026-11-15 / slot 3 — ✅ applied (options only)
+- **Before:** A Jamal Lewis and Travis Henry, B Jabari Small and Jaylen Wright ✔, C Arian Foster and Travis Henry, D Alvin Kamara and Arian Foster
+- **After:** A Ty Chandler and Eric Gray, B Jabari Small and Jaylen Wright ✔, C Rajion Neal and Marlin Lane, D Alvin Kamara and Jalen Hurd
+- **Why:** Some of the wrong pairs never played together (Foster and Henry; Kamara and Foster), so they were easy to rule out. Every wrong option is now a real RB duo from another Vol season (2019–20, 2013, 2015–16).
+
+### trivia_questions.9abff02a — 2026-11-15 / slot 4 — ✅ applied (full replacement)
+- **Before:** "Unlike football's Beer Barrel, does Tennessee's basketball rivalry with Vanderbilt carry a named physical trophy?" (No… ✔ / False, there is… / They don't play each other / Not applicable)
+- **After (category → SEC Knowledge):** "LSU visits Neyland this coming Saturday. What is the famous nickname of LSU's home stadium, Tiger Stadium?" A Between the Hedges, B The Swamp, C Death Valley ✔, D The Plains
+- **Why:** A broken True/False dressed up as four options, with "Not applicable" and non-answer options. It also mixed up the Beer Barrel, which is the Kentucky trophy, not Vanderbilt. Replaced with an LSU-week question. Basketball replacements were ruled out as duplicates: Elite Eight is used ×3, the 2008 No. 1 ranking on 10-27, Lofton on 11-03, Grant Williams on 11-09.
+
+### trivia_questions.e4abb836 — 2026-11-15 / slot 5 — ✅ applied
+- **Before:** "Before becoming interim head coach in 2020, Tee Martin held which role on Tennessee's coaching staff?" (AD / Strength coach / OC/assistant ✔ / DC)
+- **After:** "Tee Martin, quarterback of Tennessee's 1998 national title team, returned to Knoxville in 2019 as assistant head coach and wide receivers coach under which head coach?" A Butch Jones, B Derek Dooley, C Josh Heupel, D Jeremy Pruitt ✔
+- **Why:** Wrong premise: Tee Martin was never interim HC (Kevin Steele was acting HC in Jan 2021). Verified: Martin was hired Jan 15, 2019 as assistant HC, passing game coordinator and WRs coach under Pruitt, and left for the Ravens in Feb 2021.
