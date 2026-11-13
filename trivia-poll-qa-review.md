@@ -678,3 +678,35 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-18 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Checked: trivia 2026-10-18 → 2026-10-21, polls 2026-10-18 → 2026-10-21
+- Game context: `live_games` shows Tennessee 26, Alabama 10 (status `calculated`). The 10-18 poll (grade the Alabama game) and the 10-19/10-20 South Carolina polls work as written.
+- 10-18 → 10-20 already reviewed/fixed in earlier runs (PRs #218, #219, #221); re-checked, no new issues
+- New in window: 2026-10-21 trivia. Issues found: 4, all applied; slot 3 clean. 10-21 had no poll, so I added one. No answers logged for 10-21 yet.
+- Heads-up for the next run: the 10-22 poll is "Who is the greatest Tennessee quarterback of all time?" That's evergreen, not about the current season. It's outside today's window; the next run will make it about the South Carolina game.
+
+### daily_polls.a2f2e55f-3702-438e-a54e-fbf09235e280 — 2026-10-21 — ✅ inserted
+**Before:** (no poll for 10-21)
+**After:** "After the win over Alabama, where should the Vols land in this week's AP poll?" — Top 5 / 6 to 10 / 11 to 15 / Outside the top 15
+**Why:** Every day needs a poll about current TN football (David, 10-12). This one ties to the previous game. It doesn't quote the score or any ranking, so it can't go stale.
+
+### trivia_questions.7e8f0776-5304-4e9a-8aa2-e352429c0454 — 2026-10-21 / slot 1 — ✅ applied
+**Before:** option_d = "One"
+**After:** option_d = "Five"
+**Why:** "One" contradicted the stem ("spread across how many separate stints"), so it ruled itself out. Correct answer A "Three" unchanged (1926–34, 1936–40, 1946–52).
+
+### trivia_questions.7370edad-b8db-42ef-9378-3600ac490f3f — 2026-10-21 / slot 2 — ✅ applied (replaced)
+**Before:** "Which athletic, highly touted forward joined Tennessee's program as a recruit in the mid-2020s?" — three non-answer distractors / Julian Phillips ✔
+**After:** "Who was named MVP of the 2022 SEC Tournament, when Tennessee won its first SEC Tournament title since 1979?" — A Santiago Vescovi / **B Kennedy Chandler ✔** / C Josiah-Jordan James / D Zakai Zeigler
+**Why:** Vague stem, three non-answer options, and a repeat of the Julian Phillips question fixed on 10-20. Verified: Chandler was SEC Tournament MVP when Tennessee beat Texas A&M 65-50 in 2022, the first title since 1979 (UTSports, CBS). The distractors are teammates from the all-tournament team or roster. I avoided the Zeigler DPOY (10-08) and SEC-tourney count (10-29) questions.
+
+### trivia_questions.9720a1ce-bf04-40a3-a826-7887cd3f15b7 — 2026-10-21 / slot 4 — ✅ applied (replaced; category → General Vol Athletics)
+**Before:** "Tennessee's rivalry with Florida in basketball has become more prominent as both programs improved during which coaching tenure at Tennessee?" (Rick Barnes)
+**After:** "Fans in the "Vol Navy" sail to Neyland Stadium on game day along which river?" — A Cumberland River / B Holston River / **C Tennessee River ✔** / D French Broad River
+**Why:** The old question was opinion with no defensible single answer. It was also partly about a rival. Different angle from the 10-02 Vol Navy question, which asked the start year. Fair trap: the Holston and French Broad join to form the Tennessee River in Knoxville.
+
+### trivia_questions.211d32ca-0b22-4bbb-8468-7e4038a0f0ff — 2026-10-21 / slot 5 — ✅ applied (replaced)
+**Before:** a broken True/False about Vitello's nonconference schedule — "Not applicable" / "Among the weakest" / "only plays exhibition games" / True ✔
+**After:** "In what year did Tennessee baseball make its first College World Series appearance, finishing as national runner-up?" — A 1966 / **B 1951 ✔** / C 1995 / D 2001
+**Why:** Non-answer options, and the premise was opinion. Verified: the 1951 Vols were runner-up to Oklahoma, and the program didn't return until 1995, which makes 1995 a good trap. Vitello is already covered heavily (09-19, 10-02, 10-03, 10-28).
