@@ -334,3 +334,53 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-09-28 — Gameday hype/countdown
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Re-checked all four pillars against live Supabase data and this log
+  (plus still-open marketing PR branches, since several recent drafts
+  haven't landed on `main` yet) before picking a subject. Earlier the
+  same day, an on-demand request already produced a pillar-2 final
+  score recap for the Texas game (PR #188, not yet merged) — deliberately
+  not repeating that. `live_games` shows the next `pregame` game is
+  Tennessee (home) vs. Auburn, kickoff 2026-10-03 19:30 UTC (3:30 PM
+  ET, Sat) — 5 calendar days out from today (Mon, Sept 28) in US
+  Eastern time, and no hype/countdown graphic exists yet for this game
+  in this log or any open PR. That was the most timely, least-repeated
+  pillar available this run.
+- Subject: Tennessee (3-1) vs. Auburn, Sat Oct 3, 3:30 PM ET, Neyland
+  Stadium. Pulled fresh from `live_games` (kickoff time, matchup,
+  `status = 'pregame'`). Checked `game_previews` for this game —
+  no row exists yet (too far out) — and checked `ncaa_scoring_rankings`
+  for both teams, but its rows are stale (`games: 1`, last updated
+  Sept 7-8, reflecting only Week 1 despite both teams having played
+  since), so no offense/defense rank or points-per-game claim went on
+  the graphic to avoid presenting outdated numbers as current. Kept
+  the DraftKings line (Tennessee −7.0, O/U 54.5, captured today) off
+  the graphic per the standing decision that Game Week/countdown
+  graphics stay odds-free. Confirmed Tennessee's 3-1 record and the
+  Texas score (20-17) by re-checking all four `calculated` `live_games`
+  rows to date — same numbers as PR #188's recap, referenced here only
+  as brief "coming off" context, not restated as a new finding.
+- Visual system matches the established brand: `#0F172A` background,
+  `#162038` panels, `#FF8200` orange accent, `#D11919` red, Anton for
+  the countdown hero/matchup type, Inter for body/labels, diagonal
+  end-zone-stripe motif + radial glow behind the hero "5". GVGD logo
+  lockup matching `Header.tsx`. No stock photos or fabricated player
+  photos.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html`
+  frame `1080×1080`). Verified locally before publishing the same way
+  as the Sept 28 recap canvas: extracted the artboard into a standalone
+  page and rendered it with headless Chromium (Google Fonts failed to
+  load through this session's network proxy, giving a genuine
+  fallback-font pass) using a taller capture window cropped to the true
+  1080×1080 frame. Nothing overflowed, wrapped, or clipped, and the
+  layout filled the frame densely with even top/bottom margins.
+  Dropped an earlier draft of this artboard's leaderboard card (it
+  restated the same top-predictor stat already covered in PR #188's
+  recap with no new information) in favor of a plain "coming off"
+  context line, matching this log's established countdown-post pattern.
+- Canvas: https://claude.ai/artifact/TCXkNLknJVpVa4snbhtUci
+- Status: ⏳ pending review
