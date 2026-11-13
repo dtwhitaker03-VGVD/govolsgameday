@@ -678,3 +678,24 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-14 — run summary (fixes APPLIED to DB, per David's 2026-10-11 instruction)
+- Checked: trivia and polls for 2026-10-14 through 2026-10-17.
+- Everything through 10-16 was handled in earlier runs. The only new content this run was the 10-17 trivia: 5 rows, all airing on Alabama game day.
+- Poll for 10-17: one exists ("It's Alabama at Neyland today. How are you watching?"), so it meets David's rule.
+- Issues found and fixed: 3. Slot 1 (Todd Helton as a two-sport Vol) and slot 2 (2023 Citrus Bowl) are clean.
+
+### trivia_questions.8cedea43 — 2026-10-17 / slot 3 — ✅ applied (full replacement)
+**Before:** "Tennessee's athletic department sponsors roughly how many varsity sports...?" Exactly 2 / Exactly 5 / Around 20 ✔ / Over 100
+**After:** "After Tennessee beats Alabama in the Third Saturday in October, players and fans traditionally celebrate by lighting up what?" A Victory cigars ✔ / B Sparklers / C Candles / D Torches
+**Why:** Three of the four options were absurd, and the replacement is a game-day question. The victory-cigar tradition dates to the early 1960s (verified).
+
+### trivia_questions.cc373fdf — 2026-10-17 / slot 4 — ✅ applied (factual error + self-answering stem)
+**Before:** "Tennessee QB Rick Clausen famously led a fourth-quarter comeback win over Georgia in 2005 after entering the game as a backup. What year was that?" 2007 / 2001 / 2005 ✔ / 2003
+**After:** "In 2005, backup QB Rick Clausen came off the bench to rally Tennessee from 21-0 down to a 30-27 overtime win at which school, the one he had transferred from?" A Georgia / B Florida / C LSU ✔ / D Auburn
+**Why:** The famous comeback was against LSU in Baton Rouge, not Georgia (verified). The old question also stated the year it was asking for.
+
+### trivia_questions.bf37dc5c — 2026-10-17 / slot 5 — ✅ applied (full replacement)
+**Before:** "SEC schools' recent (2020s) facility investments have frequently been compared... True or false?" Not applicable / never spent money / True ✔ / Only Tennessee has invested
+**After:** "What is Neyland Stadium's official seating capacity?" A 88,548 / B 95,000 / C 101,915 ✔ / D 107,601. Category changed to General Vol Athletics.
+**Why:** The old question was a broken True/False. The replacement fits game day, and 101,915 is verified.
