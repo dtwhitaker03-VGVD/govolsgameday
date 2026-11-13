@@ -678,3 +678,35 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-09-30 — run summary
+- Checked: trivia 2026-09-30 to 2026-10-03, polls 2026-09-30 to 2026-10-03
+- 2026-09-30 through 10-02 (15 trivia rows, 3 polls) were already reviewed in prior runs (logged 2026-09-28 and 2026-09-29, still pending merge to main) — not re-checked here.
+- New this run: 2026-10-03 (5 trivia rows, 1 poll), reviewed fresh. Web search used to verify every factual claim, including a very recent, specific real-world event (Tony Vitello's October 2025 departure).
+- Issues found (new): 3 (1 meta-commentary + self-eliminating distractor; 2 self-eliminating-distractor issues where the correct answer itself checked out accurate), plus 1 minor poll style note.
+
+### trivia_questions.4ca4e9e2-e313-4f90-98aa-7e3200bf7b55 — 2026-10-03 / slot 1 — meta-commentary in option text + self-eliminating distractor
+**Current:** Q: "...Which award recognizes the sport's top overall amateur player nationally?" A "The Dick Howser Trophy is a separate, similar honor", B "The Heisman Trophy", C "The Golden Spikes Award" (correct), D "There is no such award in college baseball"
+**Suggested fix:** Replace A with a plain, real-but-wrong award name with no editorializing (e.g. just "The Dick Howser Trophy" on its own, or another real baseball honor like "The Cy Young Award"). Replace D (self-eliminating) with another plausible wrong name.
+**Reason:** §32 — option A tells the test-taker outright that it's "a separate, similar honor" to the correct answer, which is meta-commentary/an editorial aside rather than a plain distractor (the same issue flagged for other rows earlier in this file). D is self-eliminating — major college baseball obviously has awards, so it's rejectable without any specific knowledge. The correct answer (Golden Spikes Award — the actual top overall amateur baseball honor) is accurate.
+**Status:** ⏳ pending review
+
+### trivia_questions.9762fe32-0810-4eae-85ea-ae222041c44f — 2026-10-03 / slot 4 — self-eliminating distractors (correct answer verified accurate)
+**Current:** Q: "...does the Tennessee-UConn all-time women's basketball series record favor UConn?" A "Tennessee has never lost to UConn", B "No, Tennessee leads comfortably", C "Yes, UConn leads the all-time series" (correct), D "They have never played"
+**Suggested fix:** Replace A and D with plausible-but-wrong framings, e.g. "It's roughly even" and "Tennessee leads by a slim margin."
+**Reason:** Verified via web search — UConn leads the all-time series 18-10 (and 5-2 in NCAA tournament meetings), so C is correct. But A ("Tennessee has never lost to UConn") and D ("They have never played") are both obviously false to anyone aware this is one of women's basketball's most famous rivalries — self-eliminating without needing to know the actual record. §32.
+**Status:** ⏳ pending review
+
+### trivia_questions.352ae3c2-0431-4073-b585-23e536445c48 — 2026-10-03 / slot 5 — non-answer distractors (correct answer verified accurate)
+**Current:** Q: "In October 2025, Tony Vitello left Tennessee to become a Major League manager... Which MLB team hired him, and who was promoted from within to replace him at Tennessee?" A "San Francisco Giants; longtime assistant Josh Elander was promoted to head coach" (correct), B "Coaches at Tennessee serve one-year terms only", C "The New York Mets; Frank Anderson took over", D "No Tennessee coach has ever left for professional baseball"
+**Suggested fix:** Replace B and D (non-answers) with other plausible team+name combinations in the same format as A/C, e.g. "The Texas Rangers; pitching coach Frank Anderson was promoted."
+**Reason:** Verified via web search (Oct. 2025 news coverage, including UTSports.com's official announcement) — Vitello did leave for the Giants (the first manager hire in MLB history with no prior pro playing/coaching experience), and Josh Elander, an 8-year Tennessee assistant, was named the permanent replacement on Oct. 25, 2025 (Frank Anderson had briefly served as interim before that). A is accurate. C is a well-formed plausible wrong pairing (real name, wrong team) — no issue there. But B and D don't answer the two-part question at all (no team, no name) — same recurring non-answer-distractor pattern. §32.
+**Status:** ⏳ pending review
+
+## Poll check — 2026-10-03 (new this run)
+
+### daily_polls.32b2b14e-8148-4b26-9d41-d5f7bd5a6d0e — 2026-10-03 — minor style: one option is an outcome, not a "thing that would improve" the team
+**Current:** Q: "What single thing would most improve Tennessee basketball right now?" A "Elite recruiting class", B "Better home court advantage", C "Deeper bench", D "Stronger conference record"
+**Suggested fix:** Replace D with an input-type factor parallel to A/B/C, e.g. "A proven closer/late-game execution" or "Better depth at point guard."
+**Reason:** §33 — A/B/C are all causal factors (things that could drive improvement); D ("Stronger conference record") is itself an outcome/result of improvement rather than a cause of it, so it isn't parallel in kind to the other three options. Low severity — subjective opinion poll, no factual claims to verify.
+**Status:** ⏳ pending review
