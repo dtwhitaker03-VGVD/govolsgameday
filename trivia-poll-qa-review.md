@@ -678,3 +678,31 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-31 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-10-31 → 2026-11-03 (4 polls, 20 trivia rows checked).
+- 10-31 through 11-02 were already cleaned in earlier runs (#252–#254), and a re-check found nothing new.
+- 11-03 had 4 issues: an off-topic poll, a factually wrong award claim (slot 3), a junk-option repeat of slot 2's Chris Lofton (slot 4), and non-answer distractors (slot 5). All fixed. No user responses existed on any edited row.
+
+### daily_polls.7b82921e — 2026-11-03 — ✅ applied
+**Before:** "What is the most heartbreaking loss in Tennessee baseball history?" 2022 Super Regional upset by Notre Dame / 2021 CWS opening-round exit / 2023 CWS loss to LSU / 2019 Knoxville Super Regional loss to Auburn
+**After:** "Kentucky visits Neyland on Saturday. How many points do the Vols put up?" 20 or fewer / 21 to 34 / 35 to 48 / 49 or more
+**Why:** Polls must be about current TN football and the next game (Kentucky, Nov. 7).
+
+### trivia_questions.a8e03639 — 2026-11-03 / slot 3 — ✅ applied
+**Before:** "Which Tennessee defensive tackle won both the Outland Trophy and the Lombardi Award for the 2000 season?" Trey Smith / Albert Haynesworth / Da'Quan Jones / John Henderson ✅
+**After:** "Saturday's opponent Kentucky snapped a long losing streak to Tennessee with a 10-7 win in 2011. How many straight games had the Vols won in the series before that?" 17 / 21 / 26 ✅ / 31
+**Why:** Henderson won the 2000 Outland but not the Lombardi (he was only a 2001 Lombardi semifinalist). His Outland was also asked on 10-21, and Haynesworth on 11-10. The new question ties to the Kentucky game; the 26-game streak ended 10-7 on Nov. 26, 2011.
+
+### trivia_questions.a7a22bd7 — 2026-11-03 / slot 4 — ✅ applied
+**Before:** "Chris Lofton's 431 career three-pointers made rank him among which group at the time of his 2008 graduation?" A minor role player with few makes / Bottom of the SEC / The SEC's all-time leader in made three-pointers ✅ / He never attempted a three-pointer
+**After:** "Former Lady Vol guard Kara Lawson became head coach of which ACC women's basketball program in 2020?" Virginia / Notre Dame / North Carolina / Duke ✅ (category → Lady Vols History)
+**Why:** All three distractors were jokes, and slot 2 on the same day already says Lofton is the SEC's all-time three-point leader. Duke hired Lawson on July 11, 2020.
+
+### trivia_questions.f3159a35 — 2026-11-03 / slot 5 — ✅ applied
+**Before:** "…led on the mound by which pitcher — who then transferred away and was drafted 2nd overall in 2024…?" No game was played / Not applicable / Chase Burns, who transferred to Wake Forest… ✅ / A position player pitched that game
+**After:** "Which pitcher helped Tennessee reach the 2023 College World Series, then transferred to Wake Forest and was drafted No. 2 overall by the Cincinnati Reds in 2024?" Chase Dollander / Drew Beam / Chase Burns ✅ / Ben Joyce
+**Why:** The distractors were non-answers, and the answer option repeated the stem. Burns went No. 2 to the Reds out of Wake Forest in 2024. "Led on the mound" was softened to "helped… reach."
+
+11-03 slots 1 ("three-peat") and 2 (Lofton overcame cancer) were verified and left as is.
