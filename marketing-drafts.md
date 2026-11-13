@@ -334,3 +334,59 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-11-13 — Basketball gameday hype/invite (first run)
+
+- Trigger: direct request from David — "let's make a post about the TN
+  basketball game tonight... make sure it invites people to the website
+  to chat and play the game." This led to setting up a new standing
+  daily scheduled task ("Vols Basketball Game Night Post", trigger
+  trig_017GTicQ5ihvBCZWSebvBS95, fires 9:32 AM ET daily) so future
+  basketball game nights get this automatically; this entry logs the
+  first post, built manually before that task existed.
+- Note: separately, the repo's own automated Facebook/Instagram
+  pipeline (`social_settings`/`social_posts` + `social-plan`/
+  `social-publish` edge functions, live since Oct 26, `mode: 'auto'`)
+  already covers postgame basketball recaps, but its `nextGame()`
+  picker explicitly prefers football whenever both sports have an
+  upcoming game in its lookback window (`social-plan/index.ts`:
+  `games.find(g => g.sport === "football") ?? games[0]`), so basketball
+  never gets a pregame `countdown`/`next_game_preview` post from that
+  system during football season. This scheduled task fills exactly
+  that gap — confirmed with David, kept deliberately separate from
+  that system rather than fixing the bug in it.
+- Subject: pulled live from the real `live_games` row for tonight's
+  game (`sport = 'basketball'`, `status = 'pregame'` at build time):
+  Tennessee (2-0, home) vs. Tennessee State, Fri Nov 13, 2026, tip-off
+  7:00 PM ET (`kickoff_time` 2026-11-14 00:00 UTC), at Food City Center,
+  Knoxville, TN. Confirmed the 2-0 record from Tennessee's two prior
+  `calculated` basketball `live_games` rows (beat Wofford 90-59 Nov 3,
+  beat Radford 70-47 Nov 10). Betting line pulled from the same row's
+  `spread_line_tn` (-27.5) and `total_points_line` (157.5),
+  `lines_provider` "DraftKings (ESPN)". No `game_previews` row existed
+  for this game, so no ranking or narrative claim was made beyond
+  these real `live_games` fields. No invented stats.
+- Design: adapted the established countdown-post visual system for a
+  same-day ("tonight") post rather than a day-count hero — "TONIGHT" in
+  160px Anton over the usual conic-starburst glow, "VOLS BASKETBALL
+  TIPS OFF" sub-label, a red "HOOPS TONIGHT" rotated pill (vs. football
+  posts' "GAME DAY EVE"/"GAMEDAY EVE", to keep the two sports visually
+  distinct while sharing the same brand system), matchup line with
+  record, venue line, a "THE LINE" stat card (spread + total, both
+  real), and — per David's explicit, non-optional requirement — a
+  two-pill CTA banner reading "JOIN THE CHAT" / "MAKE YOUR PICK" plus a
+  footer line "Chat with fans and lock in your pick before tipoff at
+  GoVolsGameDay.com". `#0F172A` background, `#162038` panel, `#FF8200`
+  orange accent, `#D11919` red pill, Anton + Inter type pairing,
+  diagonal end-zone-stripe motif, GVGD logo lockup matching
+  `Header.tsx`. No stock photos or fabricated stats.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html` frame
+  `1080×1080`). Verified locally before publishing: rendered with
+  headless Chromium at a taller capture window, cropped to the true
+  1080×1080 frame with ImageMagick's `convert` (PIL was broken in this
+  container — `ImportError` on `PIL._imaging` — so `convert` substituted
+  for the usual Python/PIL crop step). Nothing overflowed, wrapped, or
+  clipped; both CTA pills and the footer line read clearly.
+- Canvas: https://claude.ai/artifact/UVwxzgWUdn3RhyNpHrmxsY
+- Status: ⏳ pending review
