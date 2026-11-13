@@ -678,3 +678,47 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-24 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-10-24 → 2026-10-27 (4 polls, 20 trivia rows checked).
+- 10-24, 10-25 and 10-26 were already cleaned in earlier runs. The two 10-24 fixes from yesterday's preview are logged below.
+- 10-27 had 5 issues: 3 duplicates of recent questions, a vague/inaccurate stem, and an off-topic basketball poll. All fixed. No user responses existed on any edited row.
+- Game context (`live_games`): Tennessee 26, Alabama 10 (10-17); at South Carolina 10-24, 19:30 UTC (pregame at run time). The 10-27 poll stays result-neutral.
+
+### trivia_questions.5570a95c — 2026-10-24 / slot 3 — ✅ applied (preview, 10-23)
+**Before:** A. 2012 ✅ · B. 2014 · C. 2013 · D. 2015
+**After:** A. 2011 · B. 2012 ✅ · C. 2013 · D. 2014
+**Why:** The years were out of order. Butch Jones was hired in December 2012.
+
+### trivia_questions.75cbd427 — 2026-10-24 / slot 5 — ✅ applied (preview, 10-23)
+**Before:** "Which Tennessee quarterback led the 1985 SEC Championship team after an injury to the projected starter, Tony Robinson?" Peyton Manning / Andy Kelly / Daryl Dickey ✅ / Heath Shuler
+**After:** "After starter Tony Robinson suffered a season-ending knee injury against Alabama, which quarterback led Tennessee to the 1985 SEC title and a Sugar Bowl win over Miami?" Jeff Francis / Andy Kelly / Daryl Dickey ✅ / Randy Sanders
+**Why:** Robinson was the starter, not a "projected" one; he was hurt vs. Alabama on Oct. 19, 1985. Manning and Shuler played years later, so fans could rule them out at a glance. Francis and Sanders were on the 1985 roster.
+
+### daily_polls.1e0d8a34 — 2026-10-27 — ✅ applied
+**Before:** "What is the best Vol basketball tradition?" Orange out games / Thompson-Boling atmosphere / The Vol Walk equivalent before tip-off / Senior night
+**After:** "Alabama and South Carolina are both in the books. Which unit has carried the Vols through this October stretch?" The quarterback and passing game / The running backs and offensive line / The defensive front / The secondary
+**Why:** Polls must be about current TN football and tied to the last or next game. The new poll doesn't depend on the SC result.
+
+### trivia_questions.178f2a42 — 2026-10-27 / slot 1 — ✅ applied
+**Before:** "Tennessee's song "Rocky Top" was written about which region?" Smokies/East TN ✅ / Rocky Mountains / West Texas / Southern California
+**After:** "Which running back is Tennessee's all-time career rushing leader?" Jamal Lewis / Arian Foster / Travis Henry ✅ / Jalen Hurd
+**Why:** The distractors were throwaways, and Rocky Top has been used heavily nearby. Henry holds the record with 3,078 yards (1997–2000).
+
+### trivia_questions.6e405130 — 2026-10-27 / slot 2 — ✅ applied
+**Before:** "Which SEC school is Tennessee's oldest and most storied gridiron rival, played every "Third Saturday in October"?" Missouri / Kentucky / Alabama ✅ / Vanderbilt
+**After:** "The Vols just played at South Carolina. What is the name of the Gamecocks' home football stadium?" Kyle Field / Williams-Brice Stadium ✅ / Davis Wade Stadium / Vaught-Hemingway Stadium
+**Why:** Third Saturday in October was already asked on 10-16 and 10-17. "Oldest" was also wrong: Kentucky (first played 1893) predates Alabama (1901). The new question ties to the SC game.
+
+### trivia_questions.88f4226d — 2026-10-27 / slot 3 — ✅ applied
+**Before:** "Tennessee finished Josh Heupel's third season, 2023, with approximately how many wins?" 13 wins / 9 wins ✅ / 5 wins / 3 wins
+**After:** "How many wins did Tennessee finish with in 2023, Josh Heupel's third season, capped by a Citrus Bowl victory?" 8 / 9 ✅ / 10 / 11
+**Why:** "Approximately" doesn't fit an exact fact (9-4). The options were spread too far apart to be a real test.
+
+### trivia_questions.5efb463c — 2026-10-27 / slot 4 — ✅ applied
+**Before:** "Which heralded transfer became Tennessee's focal scoring option during the 2023-24 Elite Eight run?" Allan Houston / Dalton Knecht ✅ / Chris Lofton / Grant Williams
+**After:** "Tennessee men's basketball earned its first-ever No. 1 ranking in February 2008 after a road win over which then-No. 1, unbeaten team?" Kansas / North Carolina / Memphis ✅ / Duke
+**Why:** Knecht was asked on 10-20, and Houston/Lofton/Williams are overused nearby. Tennessee won 66-62 at No. 1 Memphis on Feb. 23, 2008, and rose to No. 1 on Feb. 25.
+
+10-27 slot 5 (1997 SEC Championship Game vs. Auburn, 30-29) was verified and left as is.
