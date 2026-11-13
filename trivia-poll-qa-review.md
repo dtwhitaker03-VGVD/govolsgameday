@@ -678,3 +678,41 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-17 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Checked: trivia 2026-10-17 → 2026-10-20, polls 2026-10-17 → 2026-10-20
+- 10-17 → 10-19 already reviewed/fixed in earlier runs (PRs #216, #218, #219); re-checked, no new issues
+- New in window: 2026-10-20 trivia. Issues found: 5, all applied. No answers logged for 10-20 yet.
+- Polls: 10-20 had no poll. Added one for South Carolina week (below). The Alabama game (kickoff 19:30 UTC today) hadn't been played at run time, so the 10-18 poll stays result-neutral.
+
+### daily_polls.16d4bbed-6f92-4515-896e-6cdd893e3137 — 2026-10-20 — ✅ inserted
+**Before:** (no poll for 10-20)
+**After:** "What's the biggest key for the Vols at South Carolina this week?" — Handling the road crowd at Williams-Brice / Avoiding a letdown after the Alabama game / Slowing down the Gamecocks' offense / Winning the turnover battle
+**Why:** David's 10-12 instruction: every day gets a poll about current TN football, tied to the previous or next game. Works whether Saturday's Alabama result is a win or a loss.
+
+### trivia_questions.54516273-b499-4aef-aacd-49d93471f678 — 2026-10-20 / slot 1 — ✅ applied (replaced)
+**Before:** "Which Tennessee forward was a key veteran leader and consensus All-American-caliber wing on the 2018-19 #1-ranked team?" (Admiral Schofield)
+**After:** "Who has been Tennessee's head men's basketball coach since 2015?" — **A Rick Barnes ✔** / B Bruce Pearl / C Cuonzo Martin / D Donnie Tyndall
+**Why:** "consensus All-American-caliber" is vague and misleading. Grant Williams was the consensus All-American on that team, so a fan could argue for him. A plain Easy question replaces it. The Grant Williams SEC POY question is already scheduled for 11-09, so I avoided that angle.
+
+### trivia_questions.3f269128-82ec-4a4c-87da-3c924986fa4b — 2026-10-20 / slot 2 — ✅ applied (replaced)
+**Before:** "Peyton Manning won the SEC's Male Athlete of the Year award ... what other honor is he most associated with?" — Academic All-American ✔ / batting title / Olympic swimming medal / national basketball title
+**After:** "As a senior in 1997, Peyton Manning won which award given to the nation's top college quarterback?" — **A Davey O'Brien Award ✔** / B Doak Walker Award / C Biletnikoff Award / D Outland Trophy
+**Why:** Absurd distractors and a fuzzy premise. Verified: Manning won the 1997 Davey O'Brien Award (per the award's official winners list). He also won the Maxwell, so I kept it out of the options. The 1997 SEC title game is already scheduled for 10-27, so I avoided that.
+
+### trivia_questions.15ea0218-3bef-4040-89b1-cab240c455b8 — 2026-10-20 / slot 3 — ✅ applied (replaced)
+**Before:** "Which do-it-all forward was named to the SEC All-Freshman team before becoming a star upperclassman for Tennessee in the 2020s?" — "Only seniors are eligible" / "No Tennessee player has made this team" / Julian Phillips ✔ / "The award doesn't exist"
+**After:** "Before his 2023-24 SEC Player of the Year season, Dalton Knecht transferred to Tennessee from which school?" — **A Northern Colorado ✔** / B Northern Iowa / C North Dakota State / D UNC Wilmington
+**Why:** Three non-answer distractors, and the premise is false: Phillips left for the NBA after one season, so he was never an upperclassman. Verified: Knecht went from Northeastern JC to Northern Colorado to Tennessee, and was AP SEC POY in 2024. Different angle from the 09-30 Knecht draft question.
+
+### trivia_questions.45879ea1-91ab-4846-9b73-9ccdc82d1a07 — 2026-10-20 / slot 4 — ✅ applied (replaced)
+**Before:** True/false with "has never appeared" / "Not applicable" / "ranks last" / True ✔ as the options
+**After:** "Tennessee was a charter member of the SEC, which was founded at a meeting in Knoxville in what year?" — A 1921 / **B 1932 ✔** / C 1946 / D 1958
+**Why:** A broken True/False with non-answer options. Rebuilt as 4-option. Verified: the SEC was formed in December 1932 in Knoxville. 1921 is a fair trap because that's when Tennessee joined the Southern Conference. Category SEC Knowledge stays.
+
+### trivia_questions.bb004e98-e91b-4609-b4e4-a8cc18c26619 — 2026-10-20 / slot 5 — ✅ applied
+**Before:** "Which Tennessee offensive lineman was a first-round NFL Draft pick ... in 1991?" — Richmond Webb / Antone Davis ✔ / Trey Smith / Charles McRae
+**After:** "Tennessee had two offensive tackles taken in the top 8 of the 1991 NFL Draft. Charles McRae was one. Who was the other?" — A Harry Galbreath / **B Antone Davis ✔** / C Tom Myslinski / D Raleigh McKenzie
+**Why:** Two correct answers. McRae (#7, Tampa Bay) and Davis (#8, Philadelphia) were both 1991 first-rounders. Richmond Webb played at Texas A&M, not Tennessee. The new stem uses the historic 7-8 fact, and the distractors are real Vol linemen who weren't 1991 first-rounders.
+
+_Note: the Supabase MCP connection timed out on several multi-statement writes this run, so I applied the fixes as single-row UPDATEs and confirmed each with a SELECT afterward. Only one 10-20 poll row exists._
