@@ -678,3 +678,83 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-11 — fixes APPLIED to the database (David's go-ahead, 2026-10-11)
+- David's instruction: make every fix directly, written as a Vol fan taking the quiz would want it.
+- Scope: every flagged row dated 2026-10-11 through 10-14 (dates not yet aired, or airing today), plus three more weak spots found on a second pass as a quiz-taker. Before editing 10-11, I checked `user_trivia_responses`: no one had answered yet.
+- 14 rows updated in one transaction. Only `question`, `option_a`–`option_d`, `correct_answer` changed; `scheduled_date`, `slot`, `id`, `category`, `difficulty` untouched.
+- Every new fact was checked with WebSearch (sources in the PR).
+
+### trivia_questions.1dea9f5e — 2026-10-11 / slot 1 — ✅ applied
+**Before:** "Which team drafted David Price #1 overall in the 2007 MLB Draft?" A Detroit Tigers / B Toronto Blue Jays / C Tampa Bay Rays ✔ / D Boston Red Sox
+**After:** "Which MLB team drafted Tennessee third baseman Nick Senzel No. 2 overall in the 2016 MLB Draft?" A Cincinnati Reds ✔ / B Philadelphia Phillies / C Atlanta Braves / D Tampa Bay Rays
+**Why:** Price played at Vanderbilt. Senzel is a real Vol, and the Phillies (who took Mickey Moniak No. 1 that year) make a believable trap.
+
+### trivia_questions.f6556d8b — 2026-10-11 / slot 2 — ✅ applied
+**Before:** True/False on the SEC dropping divisions; options "Divisions were eliminated in 2010" / "No, divisions remain" / "True" ✔ / "The SEC has never had divisions"
+**After:** "Starting with which football season did the SEC drop its East and West divisions?" A 2021 / B 2023 / C 2024 ✔ / D 2026
+**Why:** The old version had a broken True/False setup. Four real years now compete.
+
+### trivia_questions.fc061442 — 2026-10-11 / slot 3 — ✅ applied (second-pass find)
+**Before:** "Derek Dooley ... is the son of which legendary Georgia head coach?" A Joe Paterno / B Bear Bryant / C Bobby Bowden / D Vince Dooley ✔
+**After:** "Former Vols head coach Derek Dooley (2010-2012) is the son of Vince Dooley, the longtime head coach at which SEC school?" A Auburn / B Georgia ✔ / C Alabama / D Florida
+**Why:** The surname gave the old answer away. Auburn, where Vince Dooley played, is now a real trap.
+
+### trivia_questions.905f097a — 2026-10-11 / slot 5 — ✅ applied
+**Before:** "...which SEC programs are most commonly cited as the individual leaders..." A "Tennessee leads in all three combined, unambiguously" / B "Not applicable" / C "Alabama in football, Kentucky in basketball, and LSU in baseball are frequently cited..." ✔ / D "No SEC school has ever won a championship..."
+**After:** "Which trio of schools has won the most SEC titles in football, men's basketball, and baseball, respectively?" A Georgia, Kentucky, Florida / B Alabama, Tennessee, Vanderbilt / C Alabama, Kentucky, LSU ✔ / D Tennessee, Kentucky, LSU
+**Why:** Three of the old options were non-answers. All four are now real school combinations. Option D tempts Vol fans, since Tennessee is second in SEC football titles.
+
+### trivia_questions.267d6913 — 2026-10-12 / slot 1 — ✅ applied
+**Before:** "Has the Lady Vols' rivalry with UConn included periods where the two programs stopped scheduling each other?" True ✔ / Not applicable / False... / They have never played at all
+**After:** "Pat Summitt ended the Tennessee-UConn women's basketball series in 2007. In what year did the two programs finally meet again?" A 2010 / B 2015 / C 2020 ✔ / D 2024
+**Why:** Broken True/False. The series did resume in January 2020 (verified).
+
+### trivia_questions.cedebf84 — 2026-10-12 / slot 2 — ✅ applied
+**Before:** "...started for parts of four seasons in the mid-2000s, setting several career passing records?" Casey Clausen / Erik Ainge ✔ / Rick Clausen / Tee Martin
+**After:** "Which quarterback started for Tennessee across parts of four seasons from 2004 to 2007?" Casey Clausen / Erik Ainge ✔ / Rick Clausen / Jonathan Crompton
+**Why:** Tee Martin (1998 era) was easy to rule out by era, so Crompton (2006-09) replaces him. I also dropped the unverified "career passing records" claim.
+
+### trivia_questions.1a53fba3 — 2026-10-12 / slot 3 — ✅ applied
+**Before:** "Which SEC school's spring football exhibition, A-Day, ..." A Not applicable / B Only Tennessee plays a spring game / C No SEC school plays a spring game / D Alabama ✔
+**After:** "Alabama's spring football game, which packed a sellout crowd into Bryant-Denny Stadium for Nick Saban's first spring in 2007, goes by what name?" A G-Day / B Orange & White Game / C A-Day ✔ / D Garnet & Black Game
+**Why:** The old version had three non-answers. All four are now real SEC spring-game names.
+
+### trivia_questions.c42aafe2 — 2026-10-12 / slot 5 — ✅ applied (full replacement)
+**Before:** "Across all sports... has the SEC historically ranked among the conferences with the highest total number of NCAA national championships?" (one real option, three absurd ones)
+**After:** "How many SEC football championships has Tennessee won, most recently in 1998?" A 9 / B 11 / C 13 ✔ / D 16
+**Why:** I couldn't verify the original claim, so I replaced it with a hard question every Vol fan should care about. Tennessee won 13 SEC titles: 1938-40, '46, '51, '56, '67, '69, '85, '89, '90, '97, '98. 16 is a trap: it's Tennessee's total conference titles, including the SIAA and SoCon years.
+
+### trivia_questions.fbfb8ec5 — 2026-10-13 / slot 3 — ✅ applied
+**Before:** "Which SEC baseball program has become one of Tennessee's primary rivals for national title contention in the 2020s, alongside their traditional in-state rivalry?" A "Oklahoma (only recently joined)" / B Not applicable / C Vanderbilt ✔ / D "Texas (only recently joined)"
+**After:** "Before Tennessee won its first College World Series in 2024, which SEC rival won national titles in both 2014 and 2019?" A LSU / B Ole Miss / C Vanderbilt ✔ / D Arkansas
+**Why:** Two options carried giveaway notes in parentheses, and the old stem was subjective. Now it's a hard fact with title-winning SEC rivals as the traps.
+
+### trivia_questions.59c3ea14 — 2026-10-13 / slot 4 — ✅ applied
+**Before:** "Tennessee's all-time bowl win total is among the best in the nation historically. What is the program's approximate all-time bowl record?" Never won / losing ~15-30 / ~30-25 ✔ / exactly even
+**After:** "What is Tennessee football's approximate all-time bowl record?" A About 22-33 / B About 40-15 / C About 30-25 ✔ / D About 25-30
+**Why:** The old stem gave the answer away. 30-25 is verified, and D (the reverse record) is a real trap.
+
+### trivia_questions.91c287d0 — 2026-10-13 / slot 5 — ✅ applied (full replacement)
+**Before:** "Has Tennessee's athletic compliance office grown in staffing and scope...?" Not applicable / Compliance offices don't exist / No regulatory shifts / Yes ✔
+**After:** "Tennessee AD Danny White, who hired Josh Heupel in 2021, came to Knoxville from which school, where he had also hired Heupel?" A Buffalo / B Memphis / C UCF ✔ / D Missouri
+**Why:** The old question was a yes/no with absurd options. The new one is verified (White hired Heupel at UCF in 2018, then again at Tennessee in 2021). Buffalo (White's earlier AD job) and Missouri (where Heupel was an assistant) are real traps.
+
+### trivia_questions.3a5ffd60 — 2026-10-14 / slot 1 — ✅ applied (second-pass find)
+**Before:** "What military rank did legendary coach Robert Neyland hold, tied to his nickname \"The General\"?" Private / Sergeant / Brigadier General ✔ / Admiral
+**After:** "Robert Neyland, known as \"The General,\" retired from the U.S. Army holding what rank?" A Captain / B Colonel / C Brigadier General ✔ / D Major
+**Why:** All four are now real Army officer ranks; Admiral is Navy and Private was absurd. It stays easy for slot 1.
+
+### trivia_questions.b4c5b465 — 2026-10-14 / slot 4 — ✅ applied (full replacement)
+**Before:** True/False on SEC strength of schedule (one real option, three absurd ones)
+**After:** "Which two schools joined the SEC in 2012, growing the league to 14 members?" A Texas and Oklahoma / B Arkansas and South Carolina / C Louisville and West Virginia / D Texas A&M and Missouri ✔
+**Why:** The old question was an opinion dressed up as True/False. The new one is a hard fact, and two of the traps are real SEC expansion pairs from other years (1992 and 2024).
+
+### trivia_questions.d5c640c8 — 2026-10-14 / slot 5 — ✅ applied (second-pass find)
+**Before:** "Which Tennessee coaching staff first prioritized international recruiting as a significant program strategy, landing players like Vescovi and Plavsic?" Mears / Barnes ✔ / DeVoe / Pearl
+**After:** "Santiago Vescovi, Tennessee's sharpshooting guard from 2020 to 2024, is from which country?" A Argentina / B Spain / C Uruguay ✔ / D Brazil
+**Why:** "First prioritized" couldn't be verified, and naming Barnes-era players gave the coach away.
+
+### Not changed (still open)
+- No `daily_polls` rows exist for 2026-10-12, 10-13, or 10-14. Adding them would be new content, which is outside "fix what's there," so nothing was inserted.
+- Earlier flagged rows dated before 2026-10-11 have already aired, so I left them as they are.
