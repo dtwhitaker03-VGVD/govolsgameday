@@ -678,3 +678,33 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-08 — run summary
+- Checked: trivia 2026-10-08 to 2026-10-11, polls 2026-10-08 to 2026-10-11
+- 2026-10-08 through 10-10 (15 trivia rows, 3 polls) were already reviewed in prior runs (logged 2026-10-05 through 2026-10-07, still pending merge to main) — not re-checked here.
+- New content this run: trivia 2026-10-11 (5 rows), poll 2026-10-11 (1 row)
+- Issues found: 3
+
+### trivia_questions.1dea9f5e-6759-452b-8dab-bb4055935a4d — 2026-10-11 / slot 1 — out-of-scope question miscategorized as "Vol Baseball History"
+**Current:** Q: "Which team drafted David Price #1 overall in the 2007 MLB Draft?" A "Detroit Tigers", B "Toronto Blue Jays", C "Tampa Bay Rays" (correct), D "Boston Red Sox" — Category: Vol Baseball History
+**Suggested fix:** Replace with a question about an actual Tennessee baseball player's draft history (e.g. Christian Moore, Nick Senzel, Todd Helton), or recategorize/replace entirely — David Price has no Tennessee connection.
+**Reason:** §32 scope rule — Price played college baseball at Vanderbilt, not Tennessee (previously flagged in this file's 2026-09-29 poll section for the same reason in a different question). The correct answer (Tampa Bay, 2007) is factually accurate, but the question itself has zero Vol relevance despite its "Vol Baseball History" category — fails the "would a knowledgeable Vol fan need this for Vol history" gut check entirely, not just a scope edge case.
+**Status:** ⏳ pending review
+
+### trivia_questions.f6556d8b-a3cd-45fc-bbb5-f4b7c83cf01f — 2026-10-11 / slot 2 — broken True/False structure, self-eliminating/contradictory distractors
+**Current:** Q: "The SEC eliminated its East/West football divisions starting with the 2024 season, moving to a single-standings format. True or false?" A "Divisions were eliminated in 2010", B "No, divisions remain", C "True" (correct), D "The SEC has never had divisions"
+**Suggested fix:** Rebuild as a standard question, e.g. "What year did the SEC eliminate its East/West football divisions?" with real year options (2021, 2023, 2024 [correct], 2025) instead of True/False-style options.
+**Reason:** Verified via WebSearch — the SEC did eliminate divisions starting with the 2024 season (divisions had existed since 1992), so C is accurate. But B directly contradicts the question's own stated premise rather than offering a real alternative, and D is self-eliminating (the SEC's decades-long East/West split is widely known) — same recurring broken-structure pattern logged repeatedly in this file.
+**Status:** ⏳ pending review
+
+### trivia_questions.905f097a-3a37-4030-8f83-1c1c25b24e40 — 2026-10-11 / slot 5 — self-eliminating/non-answer distractors
+**Current:** Q: "Among \"big three\" revenue sports (football, basketball, baseball), which SEC programs are most commonly cited as the individual leaders in combined SEC regular-season titles for each respective sport?" A "Tennessee leads in all three combined, unambiguously", B "Not applicable", C "Alabama in football, Kentucky in basketball, and LSU in baseball are frequently cited as sport-specific leaders" (correct), D "No SEC school has ever won a championship in any of these three sports"
+**Suggested fix:** Replace A and D with other real, plausible SEC-leader combinations (e.g. "Georgia in football, Florida in basketball, and Florida in baseball") and drop the "Not applicable" option entirely.
+**Reason:** Verified via WebSearch — Kentucky leads SEC basketball regular-season titles and LSU leads SEC baseball titles; Alabama as the football leader is the commonly cited answer, consistent with the question's own "frequently cited" framing, though this exact search didn't produce a clean labeled all-time count for football. A and D are self-eliminating absolutes that a casual SEC fan can rule out without needing the specific stats, and B is a non-answer — only C functions as a real answer.
+**Status:** ⏳ pending review
+
+### daily_polls.23754fb0-411f-416f-a30f-03e2185ac76e — 2026-10-11 — clean
+**Current:** Q: "What single thing would most improve Lady Vols basketball right now?" A "Elite recruiting class", B "Better home court attendance", C "Stronger conference record", D "A deep tournament run"
+**Suggested fix:** None needed.
+**Reason:** Clear single-topic, subjective, non-overlapping options; no factual claims to verify, no leading bias.
+**Status:** ✅ no action needed
