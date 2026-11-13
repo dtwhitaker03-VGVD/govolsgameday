@@ -678,3 +678,29 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-19 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Checked: trivia 2026-10-19 → 2026-10-22, polls 2026-10-19 → 2026-10-22
+- 10-19 → 10-21 already reviewed/fixed in earlier runs (PRs #219, #221, #222); re-checked, no new issues
+- New in window: 2026-10-22 trivia + poll. Issues found: 4, all applied (3 trivia + 1 poll). Slots 2 and 3 clean. No votes or answers yet for 10-22.
+- Heads-up for the next run: the 10-23 poll is an evergreen "best point guard in Tennessee basketball history" poll. It's outside today's window, so the next run will make it about the South Carolina game (that's game eve).
+
+### daily_polls.a3c556a3-fae6-4cbf-8699-bba1b1681d89 — 2026-10-22 — ✅ applied (replaced)
+**Before:** "Who is the greatest Tennessee quarterback of all time?" — Peyton Manning / Heath Shuler / Tee Martin / Erik Ainge
+**After:** "Fresh off the Alabama win, what would a win at South Carolina mean for the Vols?" — Keeps the playoff push rolling / A must-win to stay in the SEC race / Just one more step, nothing bigger / Proof this team is for real
+**Why:** David's 10-12 rule: every poll is about TN football right now and tied to the previous or next game. This one ties both together. 0 votes on the old poll.
+
+### trivia_questions.abe5ce81-e478-4735-98e3-f723eb4b1b04 — 2026-10-22 / slot 1 — ✅ applied (distractors)
+**Before:** "Only football players receive campus honors" / "No Lady Vol has ever been honored on campus" / "Not applicable" / Pat Summitt ✔
+**After:** A Holly Warlick / B Chamique Holdsclaw / C Candace Parker / **D Pat Summitt ✔**
+**Why:** Three non-answer options. They're now real Lady Vol legends, so a fan has to actually know about the statue and plaza.
+
+### trivia_questions.6b0809c0-3ff2-496e-950e-7362bb0f1af2 — 2026-10-22 / slot 4 — ✅ applied (replaced; category → SEC Knowledge)
+**Before:** "Antone Davis was drafted in which round, and by which team, in 1991?" (First round, Eagles)
+**After:** "South Carolina, Tennessee's opponent this week, played its first season of SEC football in what year?" — A 1972 / **B 1992 ✔** / C 2002 / D 2012
+**Why:** Near-duplicate of 10-20 slot 5 (Davis going 8th in 1991). The new question ties to this week's game. Verified: South Carolina and Arkansas both started SEC football in 1992, with South Carolina placed in the East. 2012 is a fair trap because that's when Texas A&M and Missouri joined.
+
+### trivia_questions.c38aa2de-942b-4c13-a397-30cfc19dfb62 — 2026-10-22 / slot 5 — ✅ applied (replaced)
+**Before:** a broken True/False about Candace Parker's advocacy — True ✔ / "Not applicable" / two non-answer options
+**After:** "The Lady Vols won the first of their eight national championships in which year?" — A 1982 / B 1984 / **C 1987 ✔** / D 1991
+**Why:** Non-answer options, and the old answer was an opinion, not a fact. Verified: Tennessee beat Louisiana Tech 67-44 on March 29, 1987, for Summitt's first title. A different angle from the 10-14 question about which coach won it.
