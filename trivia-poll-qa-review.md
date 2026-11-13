@@ -678,3 +678,23 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-12 — poll refresh (APPLIED to DB, per David's 2026-10-12 instruction)
+**New standing rule from David:** every day gets a poll, and every poll is about Tennessee football right now, tied to the previous game or the upcoming one.
+
+Context, from the site's own `live_games` table: Tennessee won 24-17 at Arkansas on 10-10 as a 13.5-point favorite. Next up is Alabama at Neyland on 10-17, with Tennessee a 7.5-point underdog, and after that a road game at South Carolina.
+
+| Date | Change | Poll |
+|---|---|---|
+| 10-12 | ➕ inserted | The Vols won 24-17 at Arkansas but didn't cover as 13.5-point favorites. How do you feel about that road win? |
+| 10-13 | ➕ inserted | Tennessee is a 7.5-point home underdog to Alabama on Saturday. Who wins the Third Saturday in October? |
+| 10-14 | ➕ inserted | What's the biggest key for the Vols to beat Alabama on Saturday? |
+| 10-15 | ✏️ replaced "best three-point shooter in Tennessee basketball history" | How many points do the Vols score against Alabama on Saturday? |
+| 10-16 | ✏️ replaced "best Vol football defensive coordinator of all time" | Which unit has to play its best game for the Vols to beat Bama? |
+| 10-17 | ✏️ replaced "greatest win in Lady Vols basketball history" | It's Alabama at Neyland today. How are you watching? |
+| 10-18 | ✏️ replaced "prediction for Tennessee's record this season" | How would you grade the Vols' performance against Alabama? (worded so it works whatever the result) |
+| 10-19 | ✏️ replaced "best Vol baseball tradition" | Next up: Tennessee at South Carolina. What's your call? |
+
+- None of the replaced polls had any votes when I changed them.
+- The full option text is in the database.
+- From now on, the daily QA run will check each new date in its window. It adds a poll if one is missing and rewrites any that isn't about current Vol football. Polls dated after a game are worded so they work whatever the result, or get rewritten once the result is in.
