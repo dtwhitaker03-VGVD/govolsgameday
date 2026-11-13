@@ -334,3 +334,52 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-09-30 — News/recruiting highlight
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Re-checked all four pillars against live Supabase data and this log
+  (plus still-open marketing PR branches) before picking a subject.
+  `live_games` hasn't changed since Monday's countdown draft (PR #190)
+  — Auburn is still `pregame`, 3 days out now, so repeating that same
+  countdown subject two runs in a row would violate the "don't repeat
+  the same subject back-to-back" guardrail, and there's no new final
+  score to recap. Today's real `daily_polls`/`trivia_questions` rows
+  (active_date/scheduled_date 2026-09-30) were a viable pillar-3
+  candidate, but pillar 4 (news) hadn't been used since the Sept 9
+  branch — the most stale of all four pillars — and `scraped_articles`
+  had a genuinely fresh, substantive real story from the day before, so
+  that was the most timely, least-repeated pick this run.
+- Subject: Tennessee senior DB/return specialist Qua Moss, named to the
+  Paul Hornung Award Honor Roll (announced Sept 29, 2026). Pulled the
+  real `scraped_articles` row (`is_hidden = false`, `source_name`
+  "UT Sports", `published_at` 2026-09-29) verbatim from its `summary`
+  field: five total tackles (four solo), one pass defended, and a
+  57-yard punt return touchdown in the 3rd quarter that tied the game
+  at 10-10 against "top-ranked Texas" in Tennessee's Sept 26 home loss.
+  The "No. 1/top-ranked Texas" and "tied at 10-10" details are both the
+  official UT Sports article's own wording, not an independently
+  asserted ranking or game-flow claim — traced directly to the source
+  text queried this run, per the pillar's guardrail. Used the real
+  `source_url` (utsports.com) for the on-graphic source credit.
+- Visual system matches the established brand: `#0F172A` background,
+  `#162038` panels, `#FF8200` orange accent, Anton for the
+  player-name/hero-stat type, Inter for body/labels, diagonal
+  end-zone-stripe motif + radial glow behind the hero "57". Used an
+  orange "VOL NEWS" pill (rather than the red "FINAL"/"GAME WEEK" pill
+  used on recap/countdown posts) to visually distinguish this pillar at
+  a glance. GVGD logo lockup matching `Header.tsx`. No stock photos or
+  fabricated player photos — the "57" punt-return-yardage stat stands
+  in as the hero visual rather than a player photo, consistent with
+  this log's no-stock-imagery rule.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html`
+  frame `1080×1080`). Verified locally before publishing the same way
+  as the two Sept 28 canvases: extracted the artboard into a standalone
+  page and rendered it with headless Chromium (Google Fonts failed to
+  load through this session's network proxy, giving a genuine
+  fallback-font pass) using a taller capture window cropped to the true
+  1080×1080 frame. Nothing overflowed, wrapped, or clipped, and the
+  layout filled the frame densely with even top/bottom margins.
+- Canvas: https://claude.ai/artifact/LqA1nPvfMmK88ZbZwxGinX
+- Status: ⏳ pending review
