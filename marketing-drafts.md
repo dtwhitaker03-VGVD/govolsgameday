@@ -334,3 +334,48 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-10-05 — Final score recap
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Re-checked all pillars and this log (plus still-open marketing PR
+  branches) before picking a subject. `live_games` shows the Auburn
+  game (previewed as a 1-day countdown in PR #196 on Oct 2) has since
+  finished — `status = 'calculated'`, `updated_at` 2026-10-04 12:26
+  UTC — so this is a completely new subject, not a repeat of either
+  open Auburn-related PR (#190's 5-day countdown or #196's 1-day
+  countdown), and the freshest, most timely pillar available this run.
+- Subject: Tennessee 24, Auburn 14 (home win, Sat Oct 3, 2026, Neyland
+  Stadium) — the Vols bounce back from the Texas loss, now 4-1 on the
+  season. Pulled fresh from `live_games` (`status = 'calculated'`):
+  final score, total yards (Tennessee 319, Auburn 345 — Auburn actually
+  out-gained Tennessee), turnovers (Tennessee committed 2, forced 3,
+  net turnover margin +1), and rushing detail (3 rushing TDs, 0
+  receiving TDs, 245 rushing yards vs. 87 passing yards) — the real
+  story of the win: Tennessee controlled it on the ground and won the
+  turnover battle despite being out-yarded overall, so the graphic
+  leads with that instead of a generic yardage-margin claim the data
+  doesn't support. Confirmed the 4-1 record by checking all five
+  `calculated` `live_games` rows to date (Furman W, at Georgia Tech W,
+  Kennesaw State W, Texas L, Auburn W). Top-predictor spotlight pulled
+  from `game_leaderboard` joined to `profiles` for this game's
+  `game_id`: real username Tiberious, 746 total game points (all from
+  pregame picks — no live drive-prediction points recorded for this
+  game in `game_leaderboard`, so the graphic only credits the pregame
+  score it actually has).
+- Visual system matches the established brand: `#0F172A` background,
+  `#162038` panels, `#FF8200` orange accent, `#D11919` red, Anton for
+  the score/headline type, Inter for body, diagonal end-zone-stripe
+  motif + radial glow behind the score, GVGD logo lockup. No stock
+  photos or fabricated player photos.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html`
+  frame `1080×1080`). Verified locally before publishing the same way
+  as this log's recent canvases: extracted the artboard into a
+  standalone page and rendered it with headless Chromium (Google Fonts
+  failed to load through this session's network proxy, giving a
+  genuine fallback-font pass) using a taller capture window cropped to
+  the true 1080×1080 frame. Nothing overflowed, wrapped, or clipped,
+  and the layout filled the frame densely with even top/bottom margins.
+- Canvas: https://claude.ai/artifact/Y4gab7JFRad9uJKkBZZaut
+- Status: ⏳ pending review
