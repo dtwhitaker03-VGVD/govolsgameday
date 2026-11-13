@@ -678,3 +678,34 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-20 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Checked: trivia 2026-10-20 → 2026-10-23, polls 2026-10-20 → 2026-10-23
+- 10-20 → 10-22 already reviewed/fixed in earlier runs (PRs #221, #222, #223); re-checked. One follow-up fix on 10-22 (below).
+- New in window: 2026-10-23 trivia + poll. Issues found: 5 (3 trivia + 1 poll + 1 cross-day giveaway), all applied. Slots 2 and 4 clean. No votes or answers yet for 10-23.
+- Heads-up for the next run: the 10-24 poll (game day at South Carolina) is "Should Tennessee build a new baseball stadium?". It's outside today's window; the next run will make it a game-day poll.
+
+### daily_polls.dfd8d128-db22-4e1a-8fcc-6d54b1108244 — 2026-10-23 — ✅ applied (replaced)
+**Before:** "Who is the best point guard in Tennessee basketball history?" — Jordan Bone / Zakai Zeigler / Tony Harris / Kennedy Chandler
+**After:** "Kickoff at South Carolina is tomorrow. Which side of the ball wins it for the Vols?" — The offense / The defense / Special teams / Coaching and adjustments
+**Why:** David's 10-12 rule: polls are about TN football right now and tied to the next game. 10-23 is the day before kickoff. 0 votes on the old poll.
+
+### trivia_questions.c38aa2de-942b-4c13-a397-30cfc19dfb62 — 2026-10-22 / slot 5 — ✅ applied (follow-up)
+**Before:** "The Lady Vols won the first of their eight national championships in which year?"
+**After:** "The Lady Vols won their first NCAA national championship in which year?"
+**Why:** "eight" gave away the answer to 10-23 slot 2 (how many titles Pat Summitt won), one day later. Options and answer (1987) unchanged.
+
+### trivia_questions.f521d5c8-dc57-48b4-adaf-a06df15e773d — 2026-10-23 / slot 1 — ✅ applied (distractors)
+**Before:** A Zero / B Six ✔ / C One / D Ten or more
+**After:** A Two / **B Six ✔** / C Four / D Eight
+**Why:** "Zero" and "Ten or more" were throwaway answers. Swapped them for plausible counts. Tennessee claims 1938, 1940, 1950, 1951, 1967 and 1998.
+
+### trivia_questions.36213646-e28d-47a9-9f19-3310e6035e57 — 2026-10-23 / slot 3 — ✅ applied (replaced)
+**Before:** "Jordan McRae holds a notable Tennessee career scoring distinction. What is it?" — "He never scored a point" / "He only played one season" / "defensive specialist with minimal scoring" / "among the program's all-time leading scorers" ✔
+**After:** "Before Thompson-Boling Arena opened in December 1987, Tennessee basketball played its home games where?" — A Alumni Memorial Gym / B Knoxville Civic Coliseum / **C Stokely Athletic Center ✔** / D Pratt Pavilion
+**Why:** Three non-answer options and a vague answer. Verified: Thompson-Boling opened Dec. 3, 1987 (82-56 over Marquette), and Stokely (opened 1958 as the UT Armory-Fieldhouse) was home until then. Alumni Gym, the earlier home, is a fair trap. I avoided Bruce Pearl/No. 1 (10-09) and the Thompson-Boling capacity question (11-14).
+
+### trivia_questions.3f473985-302c-4cfa-b3e4-65c2705f0eb2 — 2026-10-23 / slot 5 — ✅ applied (rewritten)
+**Before:** "Which award did Todd Helton win three times during his MLB career, recognizing defensive excellence at first base?" — Rookie of the Year / Gold Glove ✔ / MVP / Cy Young
+**After:** "Former Vols QB and first baseman Todd Helton won which MLB honor exactly three times?" — A All-Star selection / **B Gold Glove Award ✔** / C Silver Slugger Award / D NL batting title
+**Why:** The stem gave the answer away ("defensive excellence"), and a Cy Young for a first baseman rules itself out. Verified: 3 Gold Gloves (2001, 2002, 2004), 4 Silver Sluggers, 5 All-Star selections, 1 batting title (2000). Every option is a real Helton honor, so a fan needs the count.
