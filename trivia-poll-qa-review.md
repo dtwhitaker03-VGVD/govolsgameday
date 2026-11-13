@@ -678,3 +678,30 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-10 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window 2026-11-10 → 2026-11-13. Earlier runs had already fixed 11-10, 11-11 and 11-12, so those days are clean. The 11-09 preview of 11-10 found nothing.
+- 11-13 (Friday before Texas A&M): **no poll existed**, so I added one. I also fixed 4 trivia items. There were 0 responses at the time of the edit. Slot 2 (Summitt coached the 1984 Olympic gold team) was verified and left unchanged.
+
+### daily_polls.dd90005a — 2026-11-13 — ✅ inserted (no poll existed)
+**New:** "Texas A&M at Kyle Field is tomorrow. What's the single biggest key to a Vols win?" Options: Score on the opening drive / Win the turnover battle / Quiet the 12th Man early / Finish strong in the fourth quarter.
+**Why:** Per David's 10-12 instruction ("always add a poll"), every day needs a poll. This one is about tomorrow's game, doesn't assume a result, and doesn't repeat the 11-09 to 11-12 polls.
+
+### trivia_questions.28b9e288 — 2026-11-13 / slot 1 — ✅ applied
+**Before:** "Which Tennessee freshman guard in the mid-2020s quickly became a focal point…?" The options were "Kennedy Chandler was a highly touted freshman starter in 2021-22", "Freshmen are ineligible under NCAA rules", and other self-eliminating answers, so the answer was given away.
+**After:** "Which highly touted freshman point guard started for Tennessee in 2021-22 before leaving for the NBA Draft?" Options: Lamonte Turner / Jordan Bone / **Kennedy Chandler (C)** / Chris Lofton.
+
+### trivia_questions.dfdc6487 — 2026-11-13 / slot 3 — ✅ applied
+**Before:** "What year did Heath Shuler finish as Heisman Trophy runner-up?" This was the third Shuler/Heisman item in a week (11-06, the original 11-12 one, and this one).
+**After:** (Vol Baseball History) "After Tony Vitello left for the San Francisco Giants in October 2025, which longtime assistant was named Tennessee's new head baseball coach?" Options: Frank Anderson (the interim coach) / **Josh Elander (B)** / Kevin Schnall (interviewed) / Jim Schlossnagle. Verified: Elander was named on Oct. 25, 2025.
+
+### trivia_questions.33a19931 — 2026-11-13 / slot 4 — ✅ applied
+**Before:** "Tennessee baseball's rise … is most commonly attributed … to which single factor?" The distractors were junk ("Not applicable, the program has always been elite"), and the question was an opinion, not a fact.
+**After:** (Vol Football History) "Which Tennessee kicker, minutes after missing an extra point, hit a 50-yard field goal with six seconds left to beat Florida 30-28 in 2004?" Options: **James Wilhoit (A)** / Daniel Lincoln / Alex Walls / Michael Palardy. Verified against UTSports and the Florida post-game coverage of 9-18-2004.
+
+### trivia_questions.f8fb07ed — 2026-11-13 / slot 5 — ✅ applied
+**Before:** "…largest recorded single-game attendance exceeds approximately how many?" The options were Over 105,000 / Around 40,000 / 60,000 / 80,000, so the answer was obvious.
+**After:** "Neyland Stadium's record single-game crowd, set in September 2004, is how many fans?" Options: 102,455 / 104,079 / 107,595 / **109,061 (D)**. The 107,595 option is the 2000 per-game average, which makes a good trap.
+
+- This run cleared the Shuler duplicate. Still flagged for later runs: 11-15 slot 5 wrongly calls Tee Martin the 2020 interim head coach, and 11-21 slot 1 is a branding question. **New check:** future runs should confirm that every date in the window has a poll row.
