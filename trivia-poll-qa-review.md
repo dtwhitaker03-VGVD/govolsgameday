@@ -678,3 +678,39 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-09 — run summary
+- Checked: trivia 2026-10-09 to 2026-10-12, polls 2026-10-09 to 2026-10-12
+- 2026-10-09 through 10-11 (15 trivia rows, 2 polls) were already reviewed in prior runs (logged 2026-10-06 through 2026-10-08, still pending merge to main) — not re-checked here.
+- New content this run: trivia 2026-10-12 (5 rows); no poll scheduled for 2026-10-12
+- Issues found: 4 (3 trivia distractor issues, 1 minor style note), plus 1 poll-scheduling gap note
+
+### trivia_questions.267d6913-bf75-44e4-acb9-c4a11f01d9fe — 2026-10-12 / slot 1 — broken True/False structure, non-answer distractors
+**Current:** Q: "Has the Lady Vols' rivalry with UConn included periods where the two programs stopped scheduling each other?" A "True, there have been well-publicized hiatuses in the series" (correct), B "Not applicable", C "False, they have played every single year without interruption", D "They have never played at all"
+**Suggested fix:** Rebuild as a standard question, e.g. "How long was the main hiatus in the Tennessee-UConn women's basketball series?" A "13 years" (correct), with real alternative year-count options — drop B and D.
+**Reason:** Verified via WebSearch — accurate: Pat Summitt ended the series in 2007, and it didn't resume until 2020 (a 13-year gap), plus a separate shorter 2023-24 hiatus, so A is correct. But B is a non-answer and D is self-eliminating (the rivalry is one of the sport's most famous, so "never played at all" is an absurd option) — same recurring broken-structure pattern logged repeatedly in this file.
+**Status:** ⏳ pending review
+
+### trivia_questions.cedebf84-b1da-45a0-ac24-03190c1d7a1a — 2026-10-12 / slot 2 — minor: one distractor from a distant era
+**Current:** Q: "Which Tennessee quarterback started for parts of four seasons in the mid-2000s, setting several career passing records?" A "Casey Clausen", B "Erik Ainge" (correct), C "Rick Clausen", D "Tee Martin"
+**Suggested fix:** Consider swapping Tee Martin for another mid-2000s-era Tennessee QB option (e.g. a walk-on/backup from that specific window) for tighter era consistency; low priority since the other two distractors (Casey and Rick Clausen) are era-appropriate.
+**Reason:** Erik Ainge (2004-2007) is correctly the answer. Tee Martin played for Tennessee 1997-1999 (the 1998 national championship team) — a full coaching-generation earlier than "mid-2000s," making him easily eliminable by era alone, similar to prior logged era-mismatch distractor notes. Minor; the question is still answerable and not broken.
+**Status:** ⏳ pending review
+
+### trivia_questions.1a53fba3-8824-4b75-aa1e-e32efe28a1bd — 2026-10-12 / slot 3 — self-eliminating/non-answer distractors
+**Current:** Q: "Which SEC school's spring football exhibition, A-Day, is commonly cited as drawing among the largest spring game crowds in the conference?" A "Not applicable", B "Only Tennessee plays a spring game", C "No SEC school plays a spring game", D "Alabama" (correct)
+**Suggested fix:** Replace A, B, and C with other real SEC schools known for large spring game attendance (e.g. "Georgia," "LSU," "Tennessee") as plain name-only distractors.
+**Reason:** Alabama's "A-Day" spring game is well known for drawing massive crowds, so D is correct. But A is a non-answer, and B/C are absurd/self-eliminating (every SEC program plays a spring game) — only one of four options functions as a real competing answer. §32.
+**Status:** ⏳ pending review
+
+### trivia_questions.c42aafe2-8ee7-4d71-b340-d5a28a330779 — 2026-10-12 / slot 5 — self-eliminating/non-answer distractors
+**Current:** Q: "Across all sports and all member schools combined, has the SEC historically ranked among the conferences with the highest total number of NCAA national championships?" A "Among the highest total championship counts of any conference" (correct), B "The SEC has never won a national championship in any sport", C "The SEC ranks last among all conferences", D "Not applicable"
+**Suggested fix:** Rebuild as a standard question naming specific conferences as real competing options (e.g. "Which conference has the most all-time NCAA team championships: SEC, Big Ten, Pac-12, ACC?") rather than True/False-style absolutes.
+**Reason:** §32 — B and C are both absurd/self-eliminating (the SEC's championship history, especially football/baseball, is widely known), and D is a non-answer — same recurring broken-structure pattern. A's correctness itself is plausible and consistent with the SEC's reputation, but the distractor set needs rebuilding.
+**Status:** ⏳ pending review
+
+### General note — poll scheduling gap, 2026-10-12 (informational only)
+**Current:** No `daily_polls` row exists for `active_date = 2026-10-12`.
+**Suggested fix:** None from this QA process — flagging for awareness only, consistent with prior scheduling-gap notes logged in this file (e.g. 2026-09-24, 2026-10-09).
+**Reason:** Scope note, not a content-quality issue.
+**Status:** ✅ no action needed (informational only)
