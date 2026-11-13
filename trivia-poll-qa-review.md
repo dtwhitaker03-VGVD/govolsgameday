@@ -678,3 +678,47 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-26 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-10-26 → 2026-10-29 (4 polls, 20 trivia rows checked).
+- 10-26 through 10-28 were already cleaned in earlier runs (#232, #233). The two 10-26 fixes from yesterday's preview are logged below.
+- 10-29 had 5 issues: an off-topic baseball poll, a factually wrong Music City Bowl question, and three rows with giveaway or self-eliminating options. All fixed. No user responses existed on any edited row.
+- Schedule check (utsports.com 2026 release): open date Oct. 31, then Kentucky (H) Nov. 7, at Texas A&M Nov. 14, LSU (H) Nov. 21, at Vanderbilt Nov. 28. The South Carolina result is still not confirmed on the web, so polls stay result-neutral.
+
+### trivia_questions.415a910e — 2026-10-26 / slot 1 — ✅ applied (preview, 10-25)
+**Before:** A. 38 ✅ · B. 25 · C. 15 · D. 50
+**After:** A. 32 · B. 35 · C. 38 ✅ · D. 41
+**Why:** 15, 25 and 50 were easy to rule out for a coach known for nearly four decades (1974–2012).
+
+### trivia_questions.79026417 — 2026-10-26 / slot 3 — ✅ applied (preview, 10-25)
+**Before:** "Candace Parker won a second WNBA MVP award in which later season?" 2013 ✅ / 2011 / 2009 / 2020
+**After:** "Candace Parker won her first WNBA MVP award as a rookie in 2008. In which later season did she win her second?" 2009 / 2011 / 2013 ✅ / 2020
+**Why:** "Later season" had no reference point. The years are now in order.
+
+### daily_polls.6d3e8fba — 2026-10-29 — ✅ applied
+**Before:** "Who is the best Vol baseball outfielder of all time?" Todd Helton (before moving to 1B) / Drew Gilbert / Jordan Beck / Dylan Dreiling
+**After:** "The Vols are off this Saturday, then Kentucky visits Neyland on Nov. 7. Which November game are you circling?" Kentucky at home (Nov. 7) / At Texas A&M (Nov. 14) / LSU at home (Nov. 21) / At Vanderbilt (Nov. 28)
+**Why:** Polls must be about current TN football and tied to the last or next game. Dates are from the official 2026 schedule.
+
+### trivia_questions.5788ab85 — 2026-10-29 / slot 1 — ✅ applied
+**Before:** "How many SEC Tournament championships has Tennessee basketball won?" Only the regular-season title, never the tournament / None, never / Five: 1936, 1941, 1943, 1979, and 2022 ✅ / The SEC has no basketball tournament
+**After:** "Neyland Stadium is named for which longtime Tennessee head coach?" Doug Dickey / Robert Neyland ✅ / Johnny Majors / Phillip Fulmer (category → Vol Football History)
+**Why:** Three distractors were non-answers. The 2022 SEC Tournament was also asked on 10-21, and a running title count could be outdated by the 2026 tournament.
+
+### trivia_questions.edf93450 — 2026-10-29 / slot 3 — ✅ applied
+**Before:** "Which Tennessee coach led the Vols to multiple Music City Bowl appearances in the 2000s?" Bill Battle / Phillip Fulmer ✅ / Johnny Majors / Doug Dickey
+**After:** "Tennessee's most recent Music City Bowl appearance, a 48-45 overtime loss in Josh Heupel's first season (2021), came against which team?" Nebraska / North Carolina / Iowa / Purdue ✅
+**Why:** The old question was false. Tennessee never played in the Music City Bowl under Fulmer; its three appearances were 2010 (L, North Carolina), 2016 (W, Nebraska) and 2021 (L, Purdue 48-45 OT).
+
+### trivia_questions.bedc0fe4 — 2026-10-29 / slot 4 — ✅ applied
+**Before:** "Tennessee has won 11 SEC regular-season basketball championships, most recently in which season?" 2023-24 ✅ / 2018-19 / 2007-08 / 2010-11
+**After:** "Tennessee hired Bruce Pearl in 2005 after he led which program to the Sweet 16 as a No. 12 seed?" Southern Indiana / UW-Milwaukee ✅ / Iowa / Auburn
+**Why:** I couldn't verify the "11 titles" count, and "most recently" may be outdated after the 2025-26 season. Pearl's hire from UW-Milwaukee is verified (Southern Indiana and Iowa were earlier stops; Auburn came later).
+
+### trivia_questions.cc5966d4 — 2026-10-29 / slot 5 — ✅ applied
+**Before:** 2-9 / 8-4 / 5-6 ✅ / 3-9
+**After:** 3-8 / 4-7 / 5-6 ✅ / 5-7
+**Why:** 8-4 isn't a losing record, so it ruled itself out, and 3-9 doesn't add up to the 11-game 2005 schedule. The new options are all plausible losing records.
+
+10-29 slot 2 (Gamecock mascot) was verified and left as is.
