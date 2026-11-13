@@ -334,3 +334,55 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-10-07 — Trivia/Poll spotlight
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Re-checked all four pillars and this log (plus still-open marketing
+  PR branches) before picking a subject. `live_games` hasn't changed
+  since the Oct 5 Auburn recap (PR #200) — Arkansas is still `pregame`,
+  3 days out, so a fresh countdown or recap wasn't warranted yet. This
+  pillar (trivia/poll) hadn't been used since Sept 18 — 19 days, the
+  most stale of all four — so it was the clear, least-repeated pick
+  this run.
+- Subject: today's real `daily_polls` row (`active_date = 2026-10-07`):
+  "Who is the best defensive player in Tennessee basketball history?"
+  (Grant Williams / Kyle Alexander / Yves Pons / Josh Richardson).
+  Paired with one of today's five real `trivia_questions` rows
+  (`scheduled_date = 2026-10-07`, slot 1, difficulty easy, category
+  "Vol Football History"): "Which Tennessee player has won the Heisman
+  Trophy?" — Peyton Manning / Jamal Lewis / No Tennessee player has won
+  the Heisman / Reggie White (real correct answer is the third option,
+  not shown on the graphic — genuinely correct and a fun surprise for
+  casual fans, not a trick). Checked the last trivia/poll spotlight in
+  this log (Sept 18, a different poll/trivia pairing) — no repeat.
+  Skipped the other four trivia rows for today: slot 4's phrasing mixes
+  a true/false question with numeric-count answer options in a way that
+  would be confusing lifted onto a graphic without the full site's
+  context, and slots 3/5 are medium/hard SEC- and coaching-history
+  questions that fit the app fine but read less cleanly as a
+  stand-alone social caption than the Heisman question's clear,
+  surprising answer.
+- Design: 1080×1080 canvas, `#0F172A` background with the diagonal
+  end-zone stripe motif and a radial glow behind the masthead, Anton
+  for the "TODAY ON GVGD" headline and both question headlines, Inter
+  for labels/body, GVGD monogram + wordmark lockup matching
+  `Header.tsx`. Poll card (red "TODAY'S POLL" eyebrow) shows its four
+  options as a 2×2 chip grid (names are all short); trivia card (orange
+  "DAILY TRIVIA" eyebrow + difficulty/category tag) shows its options
+  as a stacked list instead, since one real option ("No Tennessee
+  player has won the Heisman") is too long for a 2×2 grid without
+  crowding. No stock photos or fabricated stats; every line of copy
+  traces to the two Supabase rows above or is plain site-feature CTA
+  copy.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html`
+  frame `1080×1080`). Verified locally before publishing the same way
+  as this log's recent canvases: extracted the artboard into a
+  standalone page and rendered it with headless Chromium (Google Fonts
+  failed to load through this session's network proxy, giving a
+  genuine fallback-font pass) using a taller capture window cropped to
+  the true 1080×1080 frame. Nothing overflowed, wrapped, or clipped,
+  and both cards sit comfortably inside the frame with even margins.
+- Canvas: https://claude.ai/artifact/FjqDFzFaUdV7z8ugSpiWeD
+- Status: ⏳ pending review
