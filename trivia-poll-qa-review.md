@@ -678,3 +678,36 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-29 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-10-29 → 2026-11-01 (4 polls, 20 trivia rows checked).
+- 10-29 through 10-31 were already cleaned in earlier runs (#234, #242, #252), and a re-check found nothing new.
+- 11-01 had 5 issues: an off-topic poll, slots 2/3/5 with giveaway or junk options, and slot 4 with an unverifiable claim. All fixed. No user responses existed on any edited row.
+
+### daily_polls.07d192df — 2026-11-01 — ✅ applied
+**Before:** "Who is the best Vol basketball coach since 2000?" Bruce Pearl / Rick Barnes / Both equally / Neither
+**After:** "Kentucky week is almost here. What's your prediction for the Vols vs. the Wildcats at Neyland on Nov. 7?" Vols by 21 or more / Vols by 8 to 20 / Vols by 7 or fewer / Kentucky pulls the upset
+**Why:** Polls must be about current TN football and tied to the next game (Kentucky, Nov. 7). The old poll also had "Both equally"/"Neither" non-answers.
+
+### trivia_questions.12771693 — 2026-11-01 / slot 2 — ✅ applied
+**Before:** "Ray Mears remains the program's second-winningest coach, behind only Rick Barnes' more recent total. How many career wins did Mears record at Tennessee?" 105 / 278 ✅ / 400 / 50
+**After:** "Ray Mears coached Tennessee basketball from 1962 to 1977. How many games did his teams win?" 218 / 248 / 278 ✅ / 308
+**Why:** 50 and 105 are impossible for a 15-year tenure, and 400 matches his overall career total rather than his Tennessee total. The win-ranking claim depends on Barnes' current total, so I dropped it. Mears went 278-112 at Tennessee.
+
+### trivia_questions.afaaf159 — 2026-11-01 / slot 3 — ✅ applied
+**Before:** "Which Tennessee coach's staff developed both Heath Shuler and, later, Peyton Manning into elite pro-style quarterbacks?" Doug Dickey's staff / Johnny Majors' staff / Phillip Fulmer's staff, first as offensive coordinator, then head coach ✅ / Bill Battle's staff
+**After:** "Which Tennessee assistant coached both Heath Shuler and Peyton Manning as the Vols' quarterbacks coach and offensive coordinator, and later coached Eli Manning at Ole Miss?" Randy Sanders / David Cutcliffe ✅ / Walt Harris / Trooper Taylor
+**Why:** The answer was the only long, qualified option, which gave it away, and Dickey and Battle were decades too early. Cutcliffe was QB coach from 1990 and OC from 1993, coaching both Shuler and Manning.
+
+### trivia_questions.86e232c8 — 2026-11-01 / slot 4 — ✅ applied (stem only)
+**Before:** "…won gold in the 4x400m relay at the 2024 Paris Olympics, setting an Olympic record and earning the program's first track gold since 2016?"
+**After:** "Which former Tennessee sprinter ran the leadoff leg for Team USA's gold-medal, Olympic-record 4x400m relay at the 2024 Paris Olympics?" (options unchanged; Christopher Bailey ✅)
+**Why:** I couldn't verify "first track gold since 2016". Bailey's leadoff leg and the 2:54.43 Olympic record are confirmed by UT Athletics.
+
+### trivia_questions.d0c0b5d6 — 2026-11-01 / slot 5 — ✅ applied
+**Before:** "…John Chavis, went on to serve as defensive coordinator at which two other SEC programs later in his career?" LSU and Texas A&M ✅ / [meta-commentary about Kevin Steele] / This has never happened in program history / Only offensive assistants from that era went on to notable jobs
+**After:** "John Chavis, Tennessee's defensive coordinator on the 1998 title team, ran LSU's defense from 2009 to 2014. Which SEC school hired him as defensive coordinator next, in 2015?" Texas A&M ✅ / Auburn / Ole Miss / Arkansas
+**Why:** Three distractors were non-answers or editorial notes. "Two other SEC programs" was also wrong: Chavis later coordinated Arkansas's defense too (2018-19), so Arkansas now works as a trap answer.
+
+11-01 slot 1 (Mississippi State, Davis Wade Stadium) was verified and left as is.
