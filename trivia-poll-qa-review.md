@@ -678,3 +678,40 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-27 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-10-27 → 2026-10-30 (4 polls, 20 trivia rows checked).
+- 10-27 through 10-29 were already cleaned in earlier runs (#232–#234), and a re-check found nothing new.
+- 10-30 had 6 issues: an off-topic poll and all 5 trivia rows. Slots 1, 3 and 5 had non-answer or absolute-word distractors, slot 2 was factually wrong, and slot 4 had weak distractors. All fixed. No user responses existed on any edited row.
+- Schedule context: open date Oct. 31, Kentucky at Neyland Nov. 7.
+
+### daily_polls.f72d73d3 — 2026-10-30 — ✅ applied
+**Before:** "What is your favorite Tennessee football tradition?" Vol Walk / Checkerboard endzone / Rocky Top / Running through the T
+**After:** "Bye week this Saturday, then Kentucky comes to Neyland on Nov. 7. What's the Vols' biggest edge over the Wildcats?" The passing game / The run game / The defensive front / A rested team and the home crowd
+**Why:** Polls must be about the current season and tied to the last or next game.
+
+### trivia_questions.8ebdde64 — 2026-10-30 / slot 1 — ✅ applied
+**Before:** "Which Lady Vols legend has been especially active in national broadcasting and media since her playing career ended?" Candace Parker ✅ / No Lady Vol has ever worked in broadcasting / Only men work in basketball broadcasting / Not applicable
+**After:** "Former Lady Vol Tamika Catchings spent her entire WNBA career with which franchise?" Connecticut Sun / Indiana Fever ✅ / Detroit Shock / Atlanta Dream
+**Why:** Three distractors were non-answers (one also implied only men broadcast). Parker was also the subject on 10-26. Catchings played all 15 WNBA seasons with Indiana and was the 2011 MVP.
+
+### trivia_questions.40c49320 — 2026-10-30 / slot 2 — ✅ applied
+**Before:** "Which bluegrass duo originally wrote and recorded "Rocky Top" in the 1960s?" Flatt and Scruggs / The Statler Brothers / The Osborne Brothers ✅ / The Stanley Brothers
+**After:** ""Rocky Top" was written by Felice and Boudleaux Bryant in 1967. Which bluegrass group made the first recording of it that year?" (same options, Osborne Brothers ✅)
+**Why:** The Osborne Brothers didn't write the song; Felice and Boudleaux Bryant did, in 1967. The Osbornes recorded it first (Nov. 1967, Decca).
+
+### trivia_questions.cf2bc36e — 2026-10-30 / slot 3 — ✅ applied
+**Before:** "Tennessee's 2021 team became the program's first in 16 years to reach the College World Series. Which round did the Vols win to get there?" Automatic bid with no games / Did not qualify / Won their Knoxville Super Regional ✅ / Lost in the Super Regional
+**After:** "Tennessee's 2021 team ended a 16-year College World Series drought by sweeping which SEC rival in the Knoxville Super Regional?" Vanderbilt / Arkansas / LSU ✅ / Ole Miss
+**Why:** Three options contradicted the stem. Tennessee beat LSU 4-2 and 15-6 at Lindsey Nelson Stadium in 2021.
+
+### trivia_questions.d7844b04 — 2026-10-30 / slot 4 — ✅ applied
+**Before:** Jeremy Pruitt / Derek Dooley / Butch Jones / Robert Neyland ✅
+**After:** Phillip Fulmer / Josh Heupel / Doug Dickey / Robert Neyland ✅ (stem lightly reworded)
+**Why:** Pruitt, Dooley and Jones all had losing or near-.500 tenures, so the answer was obvious. Fulmer (.745), Heupel and Dickey are real contenders. Neyland (.829) is still the clear leader.
+
+### trivia_questions.dc7aeb47 — 2026-10-30 / slot 5 — ✅ applied
+**Before:** "Ray Mears' Tennessee teams of the 1960s-70s combined an eye-catching all-orange uniform with which style of play…?" run-and-gun no-defense / full-court press exclusively / patient possession offense + man-to-man ✅ / pure zone with no man-to-man
+**After:** "Tennessee's 1939 team went 10-0 in the regular season. What was its combined regular-season score against opponents?" 212-0 ✅ / 212-7 / 198-13 / 245-21 (category → Vol Football History)
+**Why:** Absolute words ("no-defense", "exclusively", "pure") gave away the wrong answers, and I couldn't verify the claim about Mears' style. Ray Mears was also already used on 10-19. The 1939 Vols were the last major team to go unscored-upon in the regular season (212-0).
