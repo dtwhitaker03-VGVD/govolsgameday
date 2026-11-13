@@ -334,3 +334,43 @@ either posts it himself or asks for changes first.
 - Redeployed to the same canvas URL (no new artifact):
   https://claude.ai/code/artifact/347ca27f-f451-48ae-8a01-24211920debc
 - Status: ⏳ pending review
+
+## 2026-10-09 — Gameday hype/countdown (Game Day Eve)
+
+- Trigger: scheduled (Mon/Wed/Fri)
+- Re-checked all pillars and this log (plus still-open marketing PR
+  branches) before picking a subject. `live_games` shows the Arkansas
+  game is still `pregame`, kickoff Sat Oct 10, 4:15 PM ET — by US
+  Eastern time this run landed Friday morning, so this is a genuine "1
+  day til kickoff" moment, and no hype/countdown graphic exists yet for
+  this specific game in this log or any open PR. The countdown pillar
+  hadn't been used since Oct 2 (7 days), and no new final score exists
+  to recap instead, so this was the most timely pick this run.
+- Subject: No. 15 Tennessee (4-1) at Arkansas (2-3), Sat Oct 10, 4:15
+  PM ET on SEC Network, Razorback Stadium. Pulled fresh from a real
+  `game_previews` row for this game (fetched 2026-10-05): records and
+  ranking from the preview's own `subhead`, and this run's headline
+  matchup angle — turnover margin — to avoid repeating the red-zone
+  stat angle used on the Oct 2 Auburn countdown: Tennessee ranks 34th
+  in FBS at +3, Arkansas ranks 104th at -3 (both from `keyStatsNotes`).
+  Also featured a fresh "RB Watch" on DeSean Bishop (540 rushing yards,
+  7 TDs, 88 carries this season, from `teamLeaders`) instead of
+  repeating the prior countdown's QB Watch spotlight. Kept the
+  DraftKings line (Tennessee −13.5, O/U 51.5) off the graphic per the
+  standing decision that countdown graphics stay odds-free.
+- Visual system matches the established brand (`#0F172A` / `#162038` /
+  `#FF8200` / `#D11919`, Anton + Inter, diagonal end-zone-stripe motif),
+  reusing the conic-gradient starburst glow + rotated red "GAME DAY
+  EVE" ribbon treatment from the Oct 2 countdown's "more flare" look.
+  No stock photos or fabricated player photos.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html` frame
+  `1080×1080`). Verified locally before publishing the same way as this
+  log's recent canvases: extracted the artboard into a standalone page
+  and rendered it with headless Chromium (Google Fonts failed to load
+  through this session's network proxy, giving a genuine fallback-font
+  pass) using a taller capture window cropped to the true 1080×1080
+  frame. Nothing overflowed, wrapped, or clipped, and the layout filled
+  the frame densely with even top/bottom margins.
+- Canvas: https://claude.ai/artifact/FfmS8ZCuqjL14gqJVgzorG
+- Status: ⏳ pending review
