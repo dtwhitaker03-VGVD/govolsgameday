@@ -678,3 +678,24 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-05 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window 2026-11-05 → 2026-11-08. 11-05, 11-06 and 11-07 were already fixed by earlier runs and are clean. The 11-04 preview tightened the 11-05 slot 1 stem to "Of these four bowl games…".
+- 11-08 (the day after Kentucky): fixed 1 poll and 2 trivia items. There were 0 responses at the time of the edit. Slot 2 (David Price won the 2018 World Series with Boston), slot 3 (Fulmer coached the 2007 SEC Championship Game) and slot 4 (Dollander went in 2023, Moore in 2024) were verified and left as is.
+
+### daily_polls.9f614c7b — 2026-11-08 — ✅ applied
+**Before:** "What single thing has Tony Vitello done best for Tennessee baseball?" (Recruiting / Developing pitchers / Building culture / Winning in the postseason). Vitello left for the SF Giants in Oct 2025, and the poll isn't about football.
+**After:** "The Vols hosted Kentucky yesterday, with Texas A&M up next. Which unit stood out most to you against the Wildcats?" Options: The quarterback play / The running game / The pass rush and front seven / The secondary and takeaways.
+**Why:** It ties to the previous game, it's football, and it reads fine whatever the result was.
+
+### trivia_questions.ea4db676 — 2026-11-08 / slot 1 — ✅ applied (options only)
+**Before options:** A severe hearing impairment / None, she had no challenges / A visual impairment / A wheelchair-bound condition. These were self-eliminating and insensitive distractors.
+**After options:** **A severe hearing impairment (A)** / Type 1 diabetes / Asthma / Dyslexia.
+
+### trivia_questions.2d08263b — 2026-11-08 / slot 5 — ✅ applied
+**Before:** "Announced in 2025, … renovation reported at approximately how much?" ("Facilities are always paid in cash…" / $1 million / $500,000 / $109 million). I couldn't verify the $109M figure or the 2025 announcement, and the other options were junk.
+**After:** (Vol Baseball History) "In October 2024, UT trustees raised the budget for the Lindsey Nelson Stadium renovation to roughly how much?" Options: $56.8 million / $75 million / **$105 million (C)** / $150 million.
+**Why:** The figure is verified. The budget went from $56.8M originally to $95.8M in June 2023, then to $105.1M in Oct 2024 (WVLT and the UT News 10-25-2024 coverage).
+
+- Still flagged for a later run: 11-12 slot 4 and 11-13 slot 3 repeat the Shuler Heisman runner-up fact. 11-15 slot 5 wrongly calls Tee Martin the 2020 interim HC.
