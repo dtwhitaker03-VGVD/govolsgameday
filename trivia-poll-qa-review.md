@@ -678,3 +678,31 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-09 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-11-09 → 2026-11-12. Earlier runs had already fixed 11-09, 11-10 and 11-11, so those days are clean. The 11-08 preview of 11-09 found nothing.
+- 11-12 (Thursday of Texas A&M week): fixed 1 poll and 4 trivia items. There were 0 user responses at the time of the edit. Slot 5 (SEC Network launched in 2014) was verified and left unchanged.
+
+### daily_polls.9524af2a — 2026-11-12 — ✅ applied
+**Before:** "What is the best Vol basketball road atmosphere?" (Rupp / O'Connell / Auburn Arena / Bridgestone). It isn't about football.
+**After:** "Texas A&M week: what's your call for Saturday at Kyle Field?" Options: Vols win comfortably / Vols win a close one / A&M wins a close one / A&M wins comfortably.
+**Why:** It's the A&M prediction poll, symmetric and neutral. It doesn't repeat the 11-09 (worries), 11-10 (matchups) or 11-11 (what a win means) angles.
+
+### trivia_questions.53dbd5b0 — 2026-11-12 / slot 1 — ✅ applied
+**Before:** "Which team did Tennessee defeat … to win the 2024 College World Series?" (answer: Texas A&M). It duplicates the 11-02 2024 CWS item.
+**After:** (Vol Football History) "Who is Tennessee's all-time career leader in passing yards?" Options: **Peyton Manning (A)** / Casey Clausen / Tyler Bray / Hendon Hooker. Manning has 11,201 yards and Clausen is second with 9,707.
+
+### trivia_questions.1c90f0d3 — 2026-11-12 / slot 2 — ✅ applied (options only)
+**Before options:** Carl Pickens / Marcus Nash / **Cordarrelle Patterson** / Peerless Price. The three distractors are 1990s players in an "early 2010s" question, which gives the answer away.
+**After options:** Justin Hunter / Da'Rick Rogers / **Cordarrelle Patterson (C)** / Marquez North. All four are early-2010s Vol receivers.
+
+### trivia_questions.77058106 — 2026-11-12 / slot 3 — ✅ applied
+**Before:** "Pat Summitt Plaza … is located near which facility?" ("Not applicable, no such plaza exists" / "Neyland Stadium exclusively" …). The options were junk, and it duplicates the 10-22 slot 1 Summitt plaza item.
+**After:** "Lady Vol Rickea Jackson was the No. 4 overall pick in the 2024 WNBA Draft. Which team selected her?" Options: **Los Angeles Sparks (A)** / Indiana Fever / Seattle Storm / Dallas Wings. Verified against the UTSports announcement of April 15, 2024.
+
+### trivia_questions.b005d8b1 — 2026-11-12 / slot 4 — ✅ applied
+**Before:** "Heath Shuler … finished as runner-up for which national award?" It duplicates the 11-06 slot 3 Shuler/Heisman item.
+**After:** (SEC Knowledge) "With Tennessee visiting Kyle Field this week: which Texas A&M quarterback won the Heisman Trophy while playing for the Aggies?" Options: Ryan Tannehill / Kyler Murray / **Johnny Manziel (C)** / Kellen Mond. Murray is the trap: he began his career at A&M but won the Heisman at Oklahoma.
+
+- Still flagged for later runs: 11-13 slot 3 also repeats the Shuler Heisman runner-up fact. 11-15 slot 5 wrongly calls Tee Martin the 2020 interim HC. 11-21 slot 1 is a branding question.
