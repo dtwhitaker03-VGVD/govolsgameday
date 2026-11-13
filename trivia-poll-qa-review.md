@@ -678,3 +678,36 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-12 — run summary (fixes APPLIED to DB, per David's 2026-10-11 instruction)
+- Checked: trivia 2026-10-12 to 2026-10-15, polls 2026-10-12 to 2026-10-15
+- 2026-10-12 through 10-14 were already reviewed and fixed on 2026-10-11 (see `trivia-qa/2026-10-11-applied`), so I didn't re-check them. New content this run: trivia 2026-10-15 (5 rows) and poll 2026-10-15 (1 row).
+- Issues found and fixed: 5 (4 trivia, 1 poll). Slot 4 (Notre Dame's 2022 Super Regional upset) is clean.
+
+### trivia_questions.54034a05 — 2026-10-15 / slot 1 — ✅ applied (factual error)
+**Before:** "Tennessee QB Hendon Hooker was a Heisman finalist in what season?" 2020 / 2019 / 2022 ✔ / 2023
+**After:** "Hendon Hooker finished fifth in Heisman Trophy voting, Tennessee's best finish since Peyton Manning, in which season?" A 2021 / B 2023 / C 2022 ✔ / D 2020
+**Why:** Hooker was not a finalist. The 2022 finalists were Bennett, Duggan, Stroud, and Williams; Hooker finished fifth (verified on heisman.com). I swapped 2019 (a Virginia Tech year) for 2021, his first season at Tennessee, which makes a better trap.
+
+### trivia_questions.f807eab1 — 2026-10-15 / slot 2 — ✅ applied
+**Before:** "Which two Tennessee sports each have their own dedicated standalone stadium...?" one real option + "Only football has a venue" / "Not applicable" / "All sports share one single venue"
+**After:** "Tennessee softball plays its home games at which stadium?" A Lindsey Nelson Stadium / B Sherri Parker Lee Stadium ✔ / C Regal Soccer Stadium / D Thompson-Boling Arena
+**Why:** Three of the old options were non-answers. Every option is now a real UT venue. I picked softball because a Lindsey Nelson Stadium question already aired on 10-06.
+
+### trivia_questions.80a10911 — 2026-10-15 / slot 3 — ✅ applied (minor wording)
+**Before:** "Tyler Bray, a talented but injury-prone Tennessee quarterback, played primarily in which era?"
+**After:** "Big-armed quarterback Tyler Bray started for Tennessee during which era?" (options unchanged; Early 2010s ✔)
+**Why:** "Injury-prone" was a subjective label. The answer and options were fine.
+
+### trivia_questions.5a8f32fd — 2026-10-15 / slot 5 — ✅ applied (full replacement)
+**Before:** SEC first-round NFL Draft picks, True/False (one real option, three absurd ones). Category: SEC Knowledge.
+**After:** "Which Tennessee receiver won the 2022 Biletnikoff Award, highlighted by a school-record five touchdown catches in the 52-49 win over Alabama?" A Cedric Tillman / B Bru McCoy / C Jalin Hyatt ✔ / D Squirrel White. Category changed to Vol Football History.
+**Why:** The old question had a broken structure. The new one is verified: Hyatt won the 2022 Biletnikoff and caught five TDs against Alabama on Oct. 15, 2022, so it airs on the game's anniversary. All three traps are real 2022 Vol receivers.
+
+### daily_polls.66e258a6 — 2026-10-15 — ✅ applied
+**Before:** "Who is the best three-point shooter in Tennessee basketball history?" Chris Lofton / Allan Houston / Dane Bradshaw / Jordan Bone
+**After:** option_c "Dane Bradshaw" → "Santiago Vescovi"
+**Why:** Bradshaw was a glue guy, not known as a shooter. Vescovi is one of the program's most prolific three-point shooters and a real contender for a fan's vote.
+
+### Still open
+- No `daily_polls` rows exist for 2026-10-12, 10-13, or 10-14. Adding them is new content, so I left them for David to decide.
