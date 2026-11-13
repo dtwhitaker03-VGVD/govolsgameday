@@ -678,3 +678,33 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-04 — run summary
+- Checked: trivia 2026-10-04 to 2026-10-07, polls 2026-10-04 to 2026-10-07
+- 2026-10-04 through 10-06 (15 trivia rows, 3 polls) were already reviewed in prior runs (logged 2026-10-01 through 2026-10-03, still pending merge to main) — not re-checked here.
+- New content this run: trivia 2026-10-07 (5 rows), poll 2026-10-07 (1 row)
+- Issues found: 3
+
+### trivia_questions.548f67c0-0f50-491c-b948-a0ec95d5a5de — 2026-10-07 / slot 3 — self-eliminating/non-answer distractors
+**Current:** Q: "Which two SEC programs have most consistently signed nationally #1-ranked recruiting classes in recent football cycles, a frequent comparison point for Tennessee's own recruiting under Josh Heupel?" A "No SEC school has ever had a top recruiting class", B "Not applicable", C "Georgia and Alabama" (correct), D "Only Tennessee has ever had a top class"
+**Suggested fix:** Replace A, B, and D with real plausible SEC recruiting-duo distractors, e.g. A "LSU and Texas A&M", B "Florida and Auburn", D "Ole Miss and Mississippi State" — keep C "Georgia and Alabama" as correct.
+**Reason:** Verified via WebSearch — an SEC school has had the nation's #1 class every year since 2010 (Florida 2010, Alabama 2011-17/2019/2021, Georgia 2018/2020, Texas A&M 2022), so Georgia and Alabama are legitimately the most consistent #1-class programs recently; C is accurate. But A, B, and D are self-eliminating/non-answer distractors (A and D are both obviously false absolute claims, B is a non-answer) — only one of four options is a real competing answer. §32.
+**Status:** ⏳ pending review
+
+### trivia_questions.3a63d6f7-da46-47a8-8607-2fb4070f3ea4 — 2026-10-07 / slot 4 — broken True/False structure (unsalvageable as-is)
+**Current:** Q: "The Lady Vols program has produced a significant number of WNBA first-round draft picks, reflecting a sustained elite talent pipeline built largely under Pat Summitt. True or false?" A "Over 200 first-round picks", B "True" (correct), C "Exactly one first-round pick ever", D "Zero first-round picks"
+**Suggested fix:** Full replacement recommended — rebuild as a standard 4-option question asking for the actual count, e.g. "How many WNBA first-round draft picks has the Lady Vols program produced (through the 2024 draft)?" A "Over 20" (correct — verified 21), B "Exactly 1", C "Zero", D "Over 100".
+**Reason:** §32 — recurring broken-structure pattern: this is a True/False question dressed up with 4 options to satisfy the NOT NULL constraint, and A/C/D are specific-sounding numeric claims rather than real True/False alternatives. Verified via WebSearch the underlying premise is accurate: Tennessee has produced 21 WNBA first-round picks through the 2024 draft (Rickea Jackson, 2024, was the 21st) — a genuinely "significant number," so once rebuilt as a real question, "Over 20" is a defensible correct answer.
+**Status:** ⏳ pending review
+
+### trivia_questions.9e75fb1a-e6cb-460d-b36f-385f4e99e40b — 2026-10-07 / slot 5 — factual timing error
+**Current:** Q: "Which Tennessee coach's later staff began incorporating spread-offense concepts into the program's traditionally pro-style attack in the mid-2000s?" A "Doug Dickey", B "Phillip Fulmer's later staff" (correct), C "Robert Neyland", D "Johnny Majors"
+**Suggested fix:** Change "mid-2000s" to "in 2008" (or "late 2000s"). Keep B "Phillip Fulmer's later staff" as the correct answer.
+**Reason:** Verified via WebSearch — Fulmer hired Dave Clawson as offensive coordinator in January 2008 specifically to install spread-offense elements into Tennessee's attack; that's the late 2000s, not the mid-2000s (David Cutcliffe, Fulmer's prior OC, left after the 2007 season). The named coach (Fulmer) is correct; only the decade-portion phrasing is off, similar to the previously-logged Carl Pickens "mid-1990s" timing error. §32 factual accuracy.
+**Status:** ⏳ pending review
+
+### daily_polls.870d2693-7b13-4ceb-897c-079ea8a61082 — 2026-10-07 — clean
+**Current:** Q: "Who is the best defensive player in Tennessee basketball history?" A "Grant Williams", B "Kyle Alexander", C "Yves Pons", D "Josh Richardson"
+**Suggested fix:** None needed.
+**Reason:** All four are real Tennessee men's basketball players known for defense (Williams and Pons were both SEC Defensive Player of the Year); clear single-topic, non-overlapping, no leading bias.
+**Status:** ✅ no action needed
