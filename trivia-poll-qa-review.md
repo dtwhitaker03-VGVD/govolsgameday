@@ -678,3 +678,27 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-08 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window 2026-11-08 → 2026-11-11. Earlier runs already fixed 11-08, 11-09 and 11-10, and those days are clean. The 11-07 preview of 11-08 found nothing.
+- 11-11 (Wednesday of Texas A&M week): 1 poll fixed, 3 trivia items fixed. There were 0 user responses at the time of the edit. Slot 1 (Running Through the T) and slot 3 (2001 SEC Championship Game loss to LSU) were verified and left as is.
+
+### daily_polls.20892c97 — 2026-11-11 — ✅ applied
+**Before:** "What Vol football tradition should never change no matter what?" (Running through the T / checkerboard endzone / Rocky Top / Vol Walk). It repeated the 11-04 game-day traditions poll and wasn't tied to a game.
+**After:** "The Vols play at Texas A&M on Saturday. What would a win at Kyle Field mean most for this team?" Options: A signature road win for the résumé / Momentum heading into LSU and Vanderbilt / A stronger bowl or playoff position / Bragging rights in a newer SEC matchup.
+**Why:** It's about the next game, it doesn't depend on the result, and it doesn't overlap the 11-09 or 11-10 A&M polls.
+
+### trivia_questions.520c9a99 — 2026-11-11 / slot 2 — ✅ applied (options only)
+**Before options:** Score 50 points in a game / Coach a men's team / **Dunk in an NCAA Tournament game** / Play in the NBA. Two of the distractors were throwaways.
+**After options:** Score 40 points in a Final Four game / Record a triple-double in a title game / **Dunk in an NCAA Tournament game (C)** / Block 10 shots in a tournament game.
+
+### trivia_questions.76d161d3 — 2026-11-11 / slot 4 — ✅ applied (options only)
+**Before options:** 50th / 100th / **2nd** / 1st overall. The 50th and 100th options weren't plausible for a top pick.
+**After options:** 1st / **2nd (B)** / 5th / 9th overall. Senzel went No. 2 to the Reds in 2016.
+
+### trivia_questions.796dae81 — 2026-11-11 / slot 5 — ✅ applied
+**Before:** "…record-setting streak of consecutive NCAA Tournament appearances under Pat Summitt. How many consecutive years…?" (3 / **31** / 50 / 10). The distractors were implausible, and "50" is more than the number of tournaments ever held.
+**After:** "The Lady Vols appeared in every NCAA Tournament during Pat Summitt's tenure, from the first one in 1982 through her final season. How many straight tournaments was that?" Options: 24 / 27 / **31 (C)** / 35. The 1982–2012 tournaments make 31.
+
+- Still flagged for later runs: 11-12 slot 4 and 11-13 slot 3 repeat the Shuler Heisman runner-up fact. 11-15 slot 5 wrongly calls Tee Martin the 2020 interim head coach. 11-21 slot 1 is the branding question.
