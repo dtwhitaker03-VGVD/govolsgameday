@@ -678,3 +678,40 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-13 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-11-13 → 2026-11-16. Checked 4 polls and 20 trivia rows.
+- 11-13, 11-14 and 11-15 were already fixed in #283/#284/#286. They are clean on re-check.
+- 11-16 had 6 issues: the poll wasn't about football, two questions had a false premise, two were subjective or had non-answer options, and one had weak distractors. All fixed.
+- Note: this run was delayed about 2 hours because the Supabase connector couldn't get a credential at 10:15 UTC.
+
+### daily_polls.31a1d919 — 2026-11-16 — ✅ applied
+- **Before:** "Who had the best single season in Tennessee basketball history?" (Lofton 07-08 / Grant Williams 18-19 / Allan Houston 92-93 / Knecht 23-24)
+- **After:** "LSU comes to Neyland on Saturday. What's the biggest key to a Vols win over the Tigers?" Options: Establish the run game early / Get pressure on the LSU quarterback / Win the special teams battle / Feed off a loud Neyland crowd
+- **Why:** The 2026-10-12 instruction says every poll must be about current TN football and tied to the last or next game. Nov 16 falls between A&M and LSU. The new poll doesn't depend on the A&M result, and it covers a different angle from the 11-15 "top priority this week" poll.
+
+### trivia_questions.71d39362 — 2026-11-16 / slot 1 — ✅ applied (options only)
+- **Before:** A Travis Kelce, B Tony Gonzalez, C Jason Witten ✔, D Rob Gronkowski
+- **After:** A Luke Stocker, B Mychal Rivera, C Jason Witten ✔, D Jacob Warren
+- **Why:** The stem asks for a *Tennessee* tight end, but Kelce, Gonzalez and Gronkowski never played at UT, so they eliminated themselves. All four options are now Vol tight ends. Verified that Stocker went to the Bucs, Rivera to the Raiders, and Witten to the Cowboys.
+
+### trivia_questions.4d95d27c — 2026-11-16 / slot 2 — ✅ applied (full replacement)
+- **Before (Vol Basketball History):** "Tennessee basketball's television broadcast rights... fall under which conference media agreement?" (SEC Network/ESPN ✔ / Independent regional deals only / No television coverage exists / Big Ten Network)
+- **After (Lady Vols History):** "Tennessee's Lady Vols softball team plays its home games at which Knoxville stadium, opened in 2008?" A Lindsey Nelson Stadium, B Sherri Parker Lee Stadium ✔, C Regal Soccer Stadium, D Tom Black Track
+- **Why:** The old question wasn't really trivia, and "No television coverage exists" was a non-answer. The new one is verified: the stadium opened Feb 5, 2008, and every distractor is a real UT venue. I tried basketball replacements first, but each one is already used: Barnes since 2015 (10-20), Houston as scoring leader (11-25), Tobias Harris (10-28).
+
+### trivia_questions.18fc0ff7 — 2026-11-16 / slot 3 — ✅ applied (one option)
+- **Before:** C Gerald Gaither
+- **After:** C Lane Kiffin
+- **Why:** "Gerald Gaither" was never a Tennessee football head coach, so the option made no sense. Every option is now a real Vol head coach. Majors is still correct; Fulmer took over during the 1992 season.
+
+### trivia_questions.7b16abd5 — 2026-11-16 / slot 4 — ✅ applied (stem only)
+- **Before:** "Which UAB transfer big man helped anchor Tennessee's frontcourt during multiple Rick Barnes NCAA Tournament runs in the 2020s?"
+- **After:** "Which 7-foot Serbian center, a transfer from Arizona State, played four seasons for Rick Barnes and became a fan favorite during Tennessee's early-2020s NCAA Tournament runs?" (Plavsic ✔ unchanged)
+- **Why:** The premise was false. Plavsic transferred from Arizona State in May 2019, not UAB. Verified via UT Athletics and AP.
+
+### trivia_questions.64602060 — 2026-11-16 / slot 5 — ✅ applied (full replacement)
+- **Before:** "Which two figures are most frequently proposed by fans for a statue outside Neyland Stadium?" (Statues are barred by university policy / Only kickers are ever proposed / General Neyland and Peyton Manning ✔ / No such debate exists among fans)
+- **After:** "In what year did coach Doug Dickey debut Neyland Stadium's orange-and-white checkerboard end zones?" A 1957, B 1964 ✔, C 1977, D 1989
+- **Why:** The old question was opinion, not fact, and three of its options were non-answers. The new fact is verified: the end zones debuted Oct 10, 1964 vs. Boston College. 1989, the year they returned after the artificial-turf era, is a deliberate trap. The checkerboard *colors* question on 10-18 asks a different fact.
