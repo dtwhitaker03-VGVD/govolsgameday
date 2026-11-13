@@ -678,3 +678,36 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-03 — run summary
+- Checked: trivia 2026-10-03 to 2026-10-06, polls 2026-10-03 to 2026-10-06
+- 2026-10-03 through 10-05 (15 trivia rows, 3 polls) were already reviewed in prior runs (logged 2026-10-01 and 2026-10-02, still pending merge to main) — not re-checked here.
+- New this run: 2026-10-06 (5 trivia rows, 1 poll), reviewed fresh.
+- Issues found (new): 3 (1 factual timing error, 1 minor broken-distractor issue, 1 severe self-answering question structure). Poll clean.
+
+### trivia_questions.f76b9be7-3d40-498c-80c5-81db7f8c8460 — 2026-10-06 / slot 3 — factual error: wrong decade qualifier
+**Current:** Q: "Which Tennessee wide receiver led the SEC in receiving in the mid-1990s and later played in the NFL for Cincinnati?" correct_answer D "Carl Pickens"
+**Suggested fix:** Change "mid-1990s" to "early 1990s" in the question text. Keep "Carl Pickens" as the correct answer.
+**Reason:** Verified via web search — Carl Pickens played at Tennessee 1989-1991 and led the SEC in receiving yards per game in both 1990 and 1991 (early 1990s), then had a long NFL career with the Cincinnati Bengals — the NFL/Cincinnati detail uniquely identifies him among the options. But "mid-1990s" is the wrong era for him; that label actually fits Joey Kent (1995-96 seasons), who's one of the three real-name distractors here, creating a factual contradiction between the question's own timeframe and its correct answer. §32 factual accuracy.
+**Status:** ⏳ pending review
+
+### trivia_questions.04a2f5dd-45c5-4e91-91de-856e759a6c18 — 2026-10-06 / slot 4 — minor: two non-answer distractors
+**Current:** Q: "The SEC's academic performance metrics (APR) across member institutions are tracked and enforced by which national governing body?" A "Not applicable", B "The NCAA" (correct), C "A private third-party company with no NCAA affiliation", D "The SEC has no academic oversight"
+**Suggested fix:** Replace A and D with other plausible-but-wrong governing-body names, matching the format of B/C.
+**Reason:** §32 — A and D are non-answers/self-eliminating (a "which governing body" question deserves a governing-body-shaped wrong answer, not "not applicable" or a flat denial). C is a reasonably-formed distractor. Correct answer (NCAA tracks/enforces APR) is accurate.
+**Status:** ⏳ pending review
+
+### trivia_questions.abeffacc-10c4-4f3b-ba59-8ac02c338669 — 2026-10-06 / slot 5 — severe structural issue: question names its own answer
+**Current:** Q: "Which Tennessee guard, Jordan McRae, was a four-year contributor during a stretch of NCAA Tournament near-misses in the early-to-mid 2010s?" A "Not applicable", B "Jordan McRae is an example of this kind of veteran continuity" (correct), C "Only one-and-done players have started at Tennessee", D "No four-year starters have ever existed at Tennessee"
+**Suggested fix:** Full rebuild required. Rewrite the question so it doesn't name the answer in its own stem — e.g. "Which Tennessee guard was a four-year contributor (2010-2014) during a stretch of NCAA Tournament near-misses?" with "Jordan McRae" as a plain name-only option alongside three other real Tennessee guard names from that era.
+**Suggested fix (cont'd):** Also rebuild the three distractors as plain names rather than non-answer statements.
+**Reason:** §32 — the question stem already states "Jordan McRae" by name, so option B is just a tautological restatement of the question rather than a real answer choice; no actual recall or knowledge is tested. This compounds the recurring non-answer-distractor pattern seen elsewhere in this file (A/C/D). The underlying fact itself is accurate — McRae did play four seasons at Tennessee (2010-11 through 2013-14) during a run of NCAA Tournament near-misses before the 2014 Sweet 16 team — but the question as written is unsalvageable without a full rewrite.
+**Status:** ⏳ pending review
+
+## Poll check — 2026-10-06 (new this run)
+
+### daily_polls.626be5fa-2ee9-41ff-869b-7e9dcbd460b0 — 2026-10-06 — clean
+**Current:** Q: "What is your prediction for Tennessee's biggest win this season?" A "Alabama", B "Georgia", C "Florida", D "Oklahoma"
+**Suggested fix:** None needed.
+**Reason:** All four are real, current SEC opponents on Tennessee's schedule; clear single-topic subjective prediction poll, no factual claims to verify, no leading bias.
+**Status:** ✅ no action needed
