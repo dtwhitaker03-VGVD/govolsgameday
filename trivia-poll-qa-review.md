@@ -678,3 +678,27 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-10-28 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-10-28 → 2026-10-31 (4 polls, 20 trivia rows checked).
+- 10-28 through 10-30 were already cleaned in earlier runs (#233, #234, #242), and a re-check found nothing new.
+- 10-31 had 3 issues: an off-topic poll and two basketball questions that duplicated recent days. All fixed. No user responses existed on any edited row.
+- Heads-up for the 11-05 run: the 11-08 poll ("What single thing has Tony Vitello done best for Tennessee baseball?") treats Vitello as current, but he left for the SF Giants in Oct. 2025. It also isn't football. It's outside this window, so it's flagged here for that run.
+
+### daily_polls.41943e5c — 2026-10-31 — ✅ applied
+**Before:** "What is the best Lady Vols basketball game you personally witnessed?" A national championship / A rivalry game / A tournament upset / A senior night
+**After:** "It's the Vols' open date, with Kentucky up next on Nov. 7. What grade do you give the 2026 season so far?" A, right where we want to be / B, good with room to grow / C, up and down / D or F, below expectations
+**Why:** Polls must be about current TN football. Oct. 31 is the open date, and the new poll doesn't depend on any unconfirmed result.
+
+### trivia_questions.ac519ac5 — 2026-10-31 / slot 2 — ✅ applied
+**Before:** "Which Tennessee guard, a heralded 2021 recruit, quickly became a starter and key scorer as a freshman?" Jordan Bone / Zakai Zeigler / Santiago Vescovi / Kennedy Chandler ✅
+**After:** "In October 2025, Tony Vitello left Tennessee baseball to become manager of which MLB team?" Atlanta Braves / San Francisco Giants ✅ / Kansas City Royals / Colorado Rockies (category → Vol Baseball History)
+**Why:** Kennedy Chandler was the answer on 10-21 (2022 SEC Tournament MVP). Vitello's move to the Giants is verified (announced Oct. 2025).
+
+### trivia_questions.929efc80 — 2026-10-31 / slot 4 — ✅ applied
+**Before:** "Which Tennessee player's draft stock rose dramatically after a standout 2023-24 NCAA Tournament and season performance, boosting him into lottery consideration?" Dalton Knecht ✅ / Uros Plavsic / John Fulkerson / Jordan Bone
+**After:** "Santiago Vescovi, a two-time first-team All-SEC guard for the Vols (2019-24), plays for which national team?" Argentina / Spain / Uruguay ✅ / Brazil
+**Why:** Knecht was asked on 10-20, and "lottery consideration" is vague. Vescovi is from Montevideo and has played for Uruguay's national team since 2021.
+
+10-31 slots 1 (1998 title), 3 (Pruitt hired Dec. 2017) and 5 (Dooley dismissed after 2012) were verified and left as is.
