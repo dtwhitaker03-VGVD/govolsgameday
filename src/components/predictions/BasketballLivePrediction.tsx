@@ -6,7 +6,7 @@ import type { LiveGame } from '../game/LiveGameStatsPanel';
 
 // Live "stretch" game: at each TV timeout (men's) or quarter break (women's),
 // guess Tennessee's numbers until the next one — points, 3s, 2s, turnovers
-// forced, fouls. Each guess scores 50 minus 5 per miss. The server
+// forced, fouls. Each guess scores 50 minus 10 per miss. The server
 // (live-espn-sync-bb) opens a window at each break and locks it when play resumes.
 
 interface Win {
@@ -179,7 +179,7 @@ export function BasketballLivePrediction({ game }: { game: LiveGame }) {
         {open ? (
           <>
             <p className="text-[11px] text-center text-white/80">
-              Tennessee from now until {quarters ? 'the end of the quarter' : 'the next TV timeout'} · 50 pts each, minus 5 per miss
+              Tennessee from now until {quarters ? 'the end of the quarter' : 'the next TV timeout'} · 50 pts each, minus 10 per miss
             </p>
             <p className={`text-center text-xs font-bold ${canPick ? 'text-vgd-orange' : 'text-vgd-red'}`}>
               {canPick ? `Locks when play resumes · ${Math.ceil(msLeft / 1000)}s max` : 'Locked — stretch in progress'}

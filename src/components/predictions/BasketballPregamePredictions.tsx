@@ -139,7 +139,7 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
 
   const header = (
     <span className={`text-[10px] font-bold uppercase tracking-wider ${isLocked ? 'text-vgd-red' : 'text-white'}`}>
-      {isCalculated ? 'FINAL' : isLocked ? 'LOCKED' : `LOCKS IN ${formatCountdown(lockAt - now)}`}
+      {isCalculated ? 'FINAL' : game.status === 'final' ? 'FINAL · SCORING' : isLocked ? 'LOCKED' : `LOCKS IN ${formatCountdown(lockAt - now)}`}
     </span>
   );
 
@@ -167,6 +167,9 @@ export function BasketballPregamePredictions({ game }: { game: LiveGame }) {
             </div>
           ) : (
             <>
+              {game.status === 'final' && (
+                <p className="text-[11px] text-vgd-orange pb-2">The game is over. Your points for each pick appear here in a few minutes, once scoring finishes.</p>
+              )}
               {row('Winner', existing.predicted_winner === 'home' ? game.home_team : game.away_team, existing.winner_correct == null ? null : existing.winner_correct ? 100 : 0, existing.winner_correct, game.home_score === game.away_score ? 'tie' : game.home_score > game.away_score ? game.home_team : game.away_team)}
               {row(`${game.home_team} score`, String(existing.predicted_home_score), existing.home_score_points, undefined, String(game.home_score))}
               {row(`${game.away_team} score`, String(existing.predicted_away_score), existing.away_score_points, undefined, String(game.away_score))}
