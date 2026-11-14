@@ -413,20 +413,27 @@ either posts it himself or asks for changes first.
   90-59 Nov 3, beat Radford 70-47 Nov 10). Checked `social_player_of_game`
   for this `game_id` first — empty, so no individual player stat line
   was invented or guessed; this recap stays at the team-stat level the
-  real data actually supports. Top-predictor spotlight pulled from
-  `game_leaderboard` for this game's `game_id`: real username
-  Tiberious, 2315 total game points (600 pregame + 1715 live).
+  real data actually supports.
+- David asked for two changes after the first draft: drop the "Top
+  Predictor of the Night" card, and replace the single rebounds bar
+  with a fuller box score. Pulled the rest straight from the same real
+  `bb_stats` payload: FG% (Tennessee 43%, Tennessee State 32%), 3PT%
+  (36% vs. 27%), FT% (68% vs. 83%), rebounds (43 vs. 45), assists (19
+  vs. 13), turnovers (17 vs. 12), steals (7 vs. 9), and points in the
+  paint (24 vs. 30) — every number traces to `bb_stats.home`/`.away`
+  on the same `live_games` row, nothing invented. No top-predictor
+  spotlight on this one per that request.
 - Visual system matches the established recap template used for
   football: `#0F172A` background, `#162038` panel, `#FF8200` orange
   accent, `#D11919` red "FINAL" pill, Anton for score/headline type,
   Inter for body/labels, diagonal end-zone-stripe motif + radial glow
-  behind the score, GVGD logo lockup matching `Header.tsx`. Total-
-  rebounds bar chart stands in for the football recaps' total-yards
-  bar (the natural equivalent stat for this sport); two highlight
-  chips carry the lead-shrinkage and offensive-rebound stats instead
-  of the football recaps' turnover-margin framing. No stock photos or
-  fabricated stats — no individual player line, since none was
-  available.
+  behind the score, GVGD logo lockup matching `Header.tsx`. The single
+  rebounds bar chart was replaced with a full eight-row box score
+  table (label + TENN/TENN ST columns); the two highlight chips
+  (lead-shrinkage, offensive-rebound framing) stayed underneath it.
+  Removing the predictor card freed the vertical room for the fuller
+  table. No stock photos or fabricated stats — no individual player
+  line, since none was available.
 - Built as a `project/Main.dc.html` artboard (Design canvas type,
   contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html` frame
   `1080×1080`). Verified locally before publishing: rendered with
