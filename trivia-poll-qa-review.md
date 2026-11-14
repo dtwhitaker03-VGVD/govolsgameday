@@ -678,3 +678,33 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-14 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-11-14 → 2026-11-17. Checked 4 polls and 20 trivia rows.
+- 11-14, 11-15 and 11-16 were already fixed in #284/#286/#287. They are clean on re-check.
+- 11-17 had 4 issues: the poll wasn't about current football, slot 2 had absurd distractors, slot 3 gave away its own answer, and slot 4 was a broken True/False. All fixed. Slots 1 and 5 are fine.
+
+### daily_polls.0f5d6204 — 2026-11-17 — ✅ applied
+- **Before:** "Who is the best tight end in Tennessee football history?" (Witten / Princeton Fant / Luke Stocker / Mychal Rivera)
+- **After:** "LSU comes to Neyland on Saturday. What's your early call for Vols vs. Tigers?" Options: Vols win comfortably / Vols win a close one / LSU wins a close one / LSU wins comfortably
+- **Why:** This is LSU week, and the 2026-10-12 instruction says polls must be about current TN football. The old poll also repeated the 11-16 slot 1 tight-end theme. The new options are balanced between the two teams, and it covers a different angle from the 11-15 (priority) and 11-16 (key to a win) polls.
+
+### trivia_questions.7adb8fef — 2026-11-17 / slot 2 — ✅ applied (options only)
+- **Before:** A Seattle, B Boston, C Chicago, D Hoover, Alabama ✔
+- **After:** A Omaha, Nebraska, B Nashville, Tennessee, C Atlanta, Georgia, D Hoover, Alabama ✔
+- **Why:** The cities outside SEC country were throwaways. Omaha (home of the College World Series) is a real trap, and Nashville and Atlanta are plausible SEC cities. Verified that the 2026 tournament was held at the Hoover Met.
+
+### trivia_questions.2e7e8ab0 — 2026-11-17 / slot 3 — ✅ applied
+- **Before:** "Tennessee's 1985 SEC championship team, nicknamed the 'Sugar Vols,' won which bowl game to cap the season?" (Sugar Bowl, over Miami ✔ / Fiesta / Cotton / Orange)
+- **After:** "Tennessee's 1985 'Sugar Vols' capped their SEC title season by routing which No. 2-ranked team 35-7 in the Sugar Bowl?" A Miami ✔, B Oklahoma, C Penn State, D Nebraska
+- **Why:** The nickname "Sugar Vols" gave away the answer, and the correct option was the only long one. The question now asks for the opponent. Verified: #8 Tennessee beat #2 Miami 35-7 on Jan 1, 1986.
+
+### trivia_questions.ae508d91 — 2026-11-17 / slot 4 — ✅ applied (full replacement)
+- **Before:** "The SEC... currently employs a significant number of head coaches... who have won a national championship... True or false?" (Exactly one / Not applicable / Zero / True ✔)
+- **After:** "LSU visits Neyland on Saturday. How many football national championships does LSU officially claim?" A 2, B 3, C 4 ✔, D 5
+- **Why:** A broken True/False with a "Not applicable" option and a vague premise. Replaced with an LSU-week question. Verified that LSU claims 1958, 2003, 2007 and 2019.
+
+### Not changed
+- Slot 1 (Rocky Top Rowdies) is fine.
+- Slot 5 (Reggie White, Hall of Fame 2006) is correct. Reggie White also appears on 10-25, but that question asks about his sack record, a different fact, so I left this one.
