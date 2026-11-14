@@ -390,3 +390,48 @@ either posts it himself or asks for changes first.
   clipped; both CTA pills and the footer line read clearly.
 - Canvas: https://claude.ai/artifact/UVwxzgWUdn3RhyNpHrmxsY
 - Status: ⏳ pending review
+
+## 2026-11-14 — Basketball final score recap
+
+- Trigger: direct request from David ("make a TN wins post from the
+  basketball game"), as a follow-up to last night's pregame hype post
+  (PR #288, merged).
+- Subject: pulled live from the real `live_games` row (`status =
+  'calculated'`, `bb_stats` populated): Tennessee 83, Tennessee State
+  78 — Tennessee's third straight win, now 3-0. Tennessee was favored
+  by 26.5 (the same row's `spread_line_tn`), so the honest story is
+  that this was far closer than the line implied — the box score's
+  `bb_stats.home.largestLead` was 15, but the game finished a 5-point
+  win, and `leadPercentage` shows Tennessee led 70% of the game, so the
+  headline ("Vols Hold Off Tennessee State") reflects a team that led
+  comfortably but let it tighten late, not a clean blowout. Pulled the
+  real total-rebound comparison (Tennessee 43, Tennessee State 45) and
+  Tennessee State's real offensive-rebound count (24) as the
+  explanation for the extra scoring chances that kept it close — both
+  straight from `bb_stats`. Confirmed the 3-0 record from Tennessee's
+  two prior `calculated` basketball `live_games` rows (beat Wofford
+  90-59 Nov 3, beat Radford 70-47 Nov 10). Checked `social_player_of_game`
+  for this `game_id` first — empty, so no individual player stat line
+  was invented or guessed; this recap stays at the team-stat level the
+  real data actually supports. Top-predictor spotlight pulled from
+  `game_leaderboard` for this game's `game_id`: real username
+  Tiberious, 2315 total game points (600 pregame + 1715 live).
+- Visual system matches the established recap template used for
+  football: `#0F172A` background, `#162038` panel, `#FF8200` orange
+  accent, `#D11919` red "FINAL" pill, Anton for score/headline type,
+  Inter for body/labels, diagonal end-zone-stripe motif + radial glow
+  behind the score, GVGD logo lockup matching `Header.tsx`. Total-
+  rebounds bar chart stands in for the football recaps' total-yards
+  bar (the natural equivalent stat for this sport); two highlight
+  chips carry the lead-shrinkage and offensive-rebound stats instead
+  of the football recaps' turnover-margin framing. No stock photos or
+  fabricated stats — no individual player line, since none was
+  available.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html` frame
+  `1080×1080`). Verified locally before publishing: rendered with
+  headless Chromium at a taller capture window, cropped to the true
+  1080×1080 frame with ImageMagick's `convert` (this container's PIL
+  install is still broken). Nothing overflowed, wrapped, or clipped.
+- Canvas: https://claude.ai/artifact/Ve1ykmv3ETAFD3XkwoxUTc
+- Status: ⏳ pending review
