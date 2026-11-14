@@ -8,10 +8,12 @@ import { type BbPlay, type Boundary, type PlanMode, isTerminal, planBoundaries, 
 // basketball rows and this one ignores football rows (live_games.sport).
 //
 // A stretch runs from one TV timeout to the next (see plan.ts for the exact
-// boundary rules). Window n opens the moment boundary n-1 shows up in the
-// feed and locks early as soon as the first live-ball play after the timeout
-// appears (or at its fallback lock time). It settles on the score at boundary
-// n. Because a score can be corrected, a stretch is only settled after ESPN
+// boundary rules). A window opens the moment the boundary that starts it shows up
+// as the newest one in the feed and locks early as soon as the first live-ball play
+// after the timeout appears (or at its fallback lock time). It settles on the score
+// at the next boundary. Windows are matched to boundaries by play id, so a timeout ESPN
+// logs late (it has inserted one minutes after later ones) can't shift the others.
+// Because a score can be corrected, a stretch is only settled after ESPN
 // has reported the same end score on two polls at least CONFIRM_SECONDS apart
 // (the final stretch settles straight away once the game is over).
 //
@@ -126,17 +128,26 @@ async function syncGame(supabase: SupabaseClient, game: GameRow) {
   const tnTeamId: string = game.home_team === "Tennessee" ? home.team.id : away.team.id;
 
   // ── Windows first, so the game is never marked final with a stretch unsettled ──
+  // A window belongs to the boundary that opens it (live_windows.start_play_id), NOT to its
+  // position in the boundary list: ESPN sometimes logs a TV timeout minutes late, so a
+  // boundary can appear in the middle of the list after later ones were already seen, and
+  // positional numbering would then settle the wrong stretches. window_number is just a unique
+  // counter (next = highest + 1).
   let opened = 0, locked = 0, settled = 0, confirming = 0;
   const errors: string[] = [];
 
   if (!game.manual_control && boundaries.length > 0) {
     const { data: winRows } = await supabase
       .from("live_windows")
-      .select("window_number, status, window_locked_at")
+      .select("window_number, status, window_locked_at, start_play_id")
       .eq("game_id", game.id);
-    const wins = new Map<number, { status: string; locked: string }>(
-      ((winRows ?? []) as Json[]).map((w) => [w.window_number, { status: w.status, locked: w.window_locked_at }])
-    );
+    const rows = (winRows ?? []) as Json[];
+    const byStart = new Map<string, { num: number; status: string; locked: string }>();
+    let maxNum = 0;
+    for (const w of rows) {
+      if (w.window_number > maxNum) maxNum = w.window_number;
+      if (w.start_play_id && w.window_number > 0) byStart.set(w.start_play_id, { num: w.window_number, status: w.status, locked: w.window_locked_at });
+    }
     const { data: candRows, error: candErr } = await supabase
       .from("drive_settle_candidates")
       .select("drive_number, outcome, first_seen_at")
@@ -145,76 +156,77 @@ async function syncGame(supabase: SupabaseClient, game: GameRow) {
       ((candRows ?? []) as Json[]).map((c) => [c.drive_number, c])
     );
 
-    // Finished stretches: stretch k ends at boundary k.
-    for (let k = 1; k < boundaries.length; k++) {
-      if (wins.get(k)?.status !== "open") continue;
-      const b = boundaries[k];
+    // Finished stretches: the stretch that opens at boundary i ends at the next boundary in the feed.
+    for (let i = 0; i + 1 < boundaries.length; i++) {
+      const w = byStart.get(boundaries[i].playId);
+      if (!w || w.status !== "open") continue;
+      const b = boundaries[i + 1];
       const key = `${b.home}-${b.away}`;
       if (!candErr && !over) {
-        const cand = cands.get(k);
+        const cand = cands.get(w.num);
         const age = cand ? Date.now() - new Date(cand.first_seen_at).getTime() : 0;
         if (!cand || cand.outcome !== key) {
           const { error } = await supabase
             .from("drive_settle_candidates")
-            .upsert({ game_id: game.id, drive_number: k, outcome: key, first_seen_at: new Date().toISOString() }, { onConflict: "game_id,drive_number" });
+            .upsert({ game_id: game.id, drive_number: w.num, outcome: key, first_seen_at: new Date().toISOString() }, { onConflict: "game_id,drive_number" });
           if (!error) {
             confirming++;
             continue;
           }
-          errors.push(`candidate ${k}: ${error.message} — settling without confirmation`);
+          errors.push(`candidate ${w.num}: ${error.message} — settling without confirmation`);
         } else if (age < CONFIRM_SECONDS * 1000) {
           confirming++;
           continue;
         }
       }
-      const st = stretchStats(plays, boundaries[k - 1].playId, b.playId, tnTeamId);
+      const st = stretchStats(plays, boundaries[i].playId, b.playId, tnTeamId);
       const { error } = await supabase.rpc("settle_live_window", {
-        p_game_id: game.id, p_window_number: k, p_end_home_score: b.home, p_end_away_score: b.away, p_end_play_id: b.playId,
+        p_game_id: game.id, p_window_number: w.num, p_end_home_score: b.home, p_end_away_score: b.away, p_end_play_id: b.playId,
         p_threes: st.threes, p_twos: st.twos, p_turnovers: st.turnoversForced, p_fouls: st.fouls,
       });
-      if (error) errors.push(`settle ${k}: ${error.message}`);
+      if (error) errors.push(`settle ${w.num}: ${error.message}`);
       else {
         settled++;
-        wins.set(k, { status: "resolved", locked: "" });
-        if (cands.delete(k)) await supabase.from("drive_settle_candidates").delete().eq("game_id", game.id).eq("drive_number", k);
+        w.status = "resolved";
+        if (cands.delete(w.num)) await supabase.from("drive_settle_candidates").delete().eq("game_id", game.id).eq("drive_number", w.num);
       }
     }
 
-    // The stretch in progress: stretch n starts at boundary n-1.
+    // The stretch in progress: it opens at the last boundary in the feed.
     const n = boundaries.length;
     const startB: Boundary = boundaries[n - 1];
     const terminal = isTerminal(startB, mode);
+    const cur = byStart.get(startB.playId);
 
     if (over) {
       // Game over: score the stretch in progress (or the one that ended at a terminal
-      // boundary, handled above) against the final score, and void anything left.
-      if (wins.get(n)?.status === "open") {
-        const st = stretchStats(plays, boundaries[n - 1].playId, null, tnTeamId);
+      // boundary, handled above) against the final score.
+      if (cur?.status === "open") {
+        const st = stretchStats(plays, startB.playId, null, tnTeamId);
         const { error } = await supabase.rpc("settle_live_window", {
-          p_game_id: game.id, p_window_number: n, p_end_home_score: homeScore, p_end_away_score: awayScore, p_end_play_id: null,
+          p_game_id: game.id, p_window_number: cur.num, p_end_home_score: homeScore, p_end_away_score: awayScore, p_end_play_id: null,
           p_threes: st.threes, p_twos: st.twos, p_turnovers: st.turnoversForced, p_fouls: st.fouls,
         });
-        if (error) errors.push(`settle ${n} (final): ${error.message}`);
+        if (error) errors.push(`settle ${cur.num} (final): ${error.message}`);
         else settled++;
       }
     } else if (!terminal && state === "in") {
-      const w = wins.get(n);
-      if (!w) {
+      if (!cur) {
         // Only open a window for a stretch that hasn't started (otherwise the picks would
         // come after the play); a missed boundary just means no window for that stretch.
         if (!startB.resumed) {
           const lockSeconds = startB.kind === "start" ? START_LOCK_SECONDS
             : startB.kind === "period" && startB.period === (mode === "quarter" ? 2 : 1) ? HALFTIME_LOCK_SECONDS : TIMEOUT_LOCK_SECONDS;
           const { error } = await supabase.rpc("open_live_window", {
-            p_game_id: game.id, p_window_number: n, p_start_play_id: startB.playId, p_period: startB.period,
+            p_game_id: game.id, p_window_number: maxNum + 1, p_start_play_id: startB.playId, p_period: startB.period,
             p_clock: startB.clock, p_home_score: startB.home, p_away_score: startB.away, p_lock_seconds: lockSeconds,
           });
-          if (error) errors.push(`open ${n}: ${error.message}`);
+          if (error) errors.push(`open ${maxNum + 1}: ${error.message}`);
           else opened++;
         }
-      } else if (w.status === "open" && startB.resumed && new Date(w.locked).getTime() > Date.now()) {
-        const { error } = await supabase.rpc("lock_live_window", { p_game_id: game.id, p_window_number: n });
-        if (error) errors.push(`lock ${n}: ${error.message}`);
+      } else if (cur.status === "open" && startB.resumed && new Date(cur.locked).getTime() > Date.now()) {
+        const { error } = await supabase.rpc("lock_live_window", { p_game_id: game.id, p_window_number: cur.num });
+        if (error) errors.push(`lock ${cur.num}: ${error.message}`);
         else locked++;
       }
     }
