@@ -2,10 +2,18 @@
 // replayed against saved ESPN play-by-play.
 //
 // A "stretch" is the play between two boundaries. Boundaries are the start of
-// the game, every official TV timeout (ESPN type OfficialTVTimeOut), and the end
-// of each period. Team timeouts (ShortTimeOut, e.g. "Wofford Timeout") are NOT
-// boundaries: ESPN reliably posts the TV timeouts, and cutting at a team timeout
-// opened a pick window mid-stretch. Stretch n runs from boundary n-1 to boundary n.
+// the game, each TV (media) timeout, and the end of each period. Stretch n runs
+// from boundary n-1 to boundary n.
+//
+// ESPN's labels can't be trusted to find the TV timeouts: when a team calls its timeout
+// as the media timeout, ESPN logs only "<Team> Timeout" (ShortTimeOut) and no
+// OfficialTVTimeOut, and it sometimes tags an ordinary short stoppage as a TV timeout.
+// So the TV timeouts are found by the schedule instead. Each half has four media timeouts,
+// at the 16:00, 12:00, 8:00 and 4:00 marks; each is the FIRST timeout of any kind at or
+// below its mark. A timeout above the next mark (an ordinary team timeout) or one after
+// the half's four are spent is not a boundary. This matched every TV break in the Wofford,
+// Radford and Tennessee State games. Overtime has no media timeouts, so there only
+// ESPN's own OfficialTVTimeOut label counts.
 // Women's games play four quarters and are cut by quarter instead (mode
 // 'quarter'): boundaries are only the start and the end of each period, and
 // regulation is four periods, not two halves.
@@ -38,6 +46,14 @@ const NOT_PLAY = new Set([
   "dead ball rebound",
 ]);
 
+// Media timeouts per half, as seconds on the clock.
+const MEDIA_MARKS = [960, 720, 480, 240];
+
+function clockSeconds(display: string | undefined): number {
+  const m = /^(\d+):(\d{2})/.exec(display ?? "");
+  return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : 0;
+}
+
 export function isLivePlay(p: BbPlay): boolean {
   const t = (p.type?.text ?? "").toLowerCase();
   if (NOT_PLAY.has(t)) return false;
@@ -62,6 +78,24 @@ export function planBoundaries(plays: BbPlay[], mode: PlanMode = "stretch"): Bou
     clock: first.clock?.displayValue ?? "20:00", home: 0, away: 0, resumed: false,
   });
 
+  // Which of a half's four media-timeout slots are used up (or skipped), by period.
+  const slotsUsed = new Map<number, boolean[]>();
+  // A timeout at `clock` fills the latest unused slot whose mark it is at or below (any slots
+  // before it are skipped as missed). Returns false when it is an ordinary timeout.
+  const claimMediaSlot = (period: number, clock: string): boolean => {
+    if (period > 2) return false;
+    const sec = clockSeconds(clock);
+    const used = slotsUsed.get(period) ?? MEDIA_MARKS.map(() => false);
+    let pick = -1;
+    for (let k = MEDIA_MARKS.length - 1; k >= 0; k--) {
+      if (!used[k] && MEDIA_MARKS[k] >= sec) { pick = k; break; }
+    }
+    if (pick < 0) return false;
+    for (let k = 0; k <= pick; k++) used[k] = true;
+    slotsUsed.set(period, used);
+    return true;
+  };
+
   for (const p of plays.slice(1)) {
     const last = out[out.length - 1];
     if (isTerminal(last, mode)) break;
@@ -70,11 +104,19 @@ export function planBoundaries(plays: BbPlay[], mode: PlanMode = "stretch"): Bou
       continue;
     }
     const t = (p.type?.text ?? "").toLowerCase();
-    const kind: BoundaryKind | null =
-      mode === "quarter" && (t === "officialtvtimeout" || t === "shorttimeout") ? null :
-      t === "officialtvtimeout" ? "tv" :
+    const isTimeout = /timeout/.test(t);
+    let kind: BoundaryKind | null =
       t === "end period" ? "period" :
       t === "end game" ? "end" : null;
+    if (isTimeout && mode !== "quarter") {
+      const tp = p.period?.number ?? last.period;
+      const tc = p.clock?.displayValue ?? last.clock;
+      if (tp > 2) {
+        if (t === "officialtvtimeout") kind = "tv";
+      } else if (claimMediaSlot(tp, tc)) {
+        kind = "tv";
+      }
+    }
     if (!kind) continue;
 
     const period = p.period?.number ?? last.period;
