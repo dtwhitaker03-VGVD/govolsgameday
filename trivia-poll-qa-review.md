@@ -678,3 +678,38 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-15 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-11-15 → 2026-11-18. Checked 3 existing polls plus 1 inserted, and 20 trivia rows.
+- 11-15, 11-16 and 11-17 were already fixed in #286/#287/#293. They are clean on re-check.
+- 11-18 had 5 issues: no poll, a vague and unverifiable premise (slot 1), a near-duplicate (slot 2), a broken non-answer format (slot 3) and a false premise (slot 4). All fixed. Slot 5 is verified and kept.
+- Heads-up for later runs: 12-17 slot 3 also covers Dwayne Goodrich, so it will need a new angle when that date enters the window. Athletic director questions are saturated in late November (11-19, 11-24, 11-29, 11-30), so expect duplicate fixes there.
+
+### daily_polls.69ebcdb6 — 2026-11-18 — ✅ inserted
+- **Before:** (no poll)
+- **After:** "LSU comes to Neyland on Saturday. Which part of the Tigers' game worries you most?" Options: Their passing attack / Their run game / Their defensive front / Their special teams
+- **Why:** Every day needs a poll about current TN football. This covers a new LSU-week angle (the opponent's threat), distinct from priority (11-15), key to a win (11-16) and prediction (11-17). It doesn't depend on any result.
+
+### trivia_questions.ea079e55 — 2026-11-18 / slot 1 — ✅ applied (full replacement)
+- **Before (Vol Baseball History):** "Which Tennessee coach guided the program to its first NCAA Super Regional hosting duties of the modern era?" (Delmonico / Serrano / Vitello ✔ / Raleigh)
+- **After (Vol Football History):** "Which Tennessee quarterback, known for his rocket arm, took over as the full-time starter in 2023 after Hendon Hooker left for the NFL?" A Nico Iamaleava, B Joe Milton III ✔, C Jarrett Guarantano, D Joey Aguilar
+- **Why:** "First Super Regional hosting duties of the modern era" is vague and likely wrong, since super regionals date from 1999 and Tennessee hosted before Vitello. Vitello is also already the subject on 11-13. The wrong options are all recent Vol QBs: Iamaleava started in 2024 and Aguilar in 2025.
+
+### trivia_questions.c0ec289f — 2026-11-18 / slot 2 — ✅ applied (full replacement)
+- **Before:** "Which Tennessee point guard was known for elite on-ball defense and wore the retired #5, with Chris Lofton's blessing...?" (Zeigler ✔ / Vescovi / Bone / Chandler)
+- **After:** "Dalton Knecht, the 2024 SEC Player of the Year, was drafted 17th overall in the 2024 NBA Draft by which team?" A Los Angeles Lakers ✔, B Boston Celtics, C Golden State Warriors, D Miami Heat
+- **Why:** Zeigler is already the answer on 11-10 (8 days earlier). Verified: the Lakers took Knecht at No. 17 on June 26, 2024. I worded it "drafted by" because his current team has changed. The 10-20 Knecht question asks about his transfer, a different fact.
+
+### trivia_questions.541fa5ee — 2026-11-18 / slot 3 — ✅ applied (full replacement)
+- **Before (General Vol Athletics):** "Which Tennessee Athletic Director's hiring of Danny White in January 2021 came just three days after both a coaching firing and an AD retirement?" (It followed a baseball coaching change / ...basketball coaching change / ...Pruitt's firing and Fulmer's retirement ✔ / Not applicable — White succeeded Fulmer directly)
+- **After (Vol Football History):** "Tennessee opened its 2025 season with a 45-26 win in the Aflac Kickoff Game in Atlanta. Who did the Vols beat?" A Virginia, B NC State, C Syracuse ✔, D Georgia Tech
+- **Why:** The stem didn't make sense, the options were sentence-length, one was "Not applicable", and AD questions are already used heavily this month. Verified the 45-26 win over Syracuse on Aug 30, 2025. The wrong options are real neutral-site opponents: Virginia 2023, NC State 2024, and Georgia Tech 2017 in Atlanta.
+
+### trivia_questions.905641ac — 2026-11-18 / slot 4 — ✅ applied (stem only)
+- **Before:** "...dealt with a torn ACL early in his career before becoming a defensive anchor..."
+- **After:** "...battled a nagging, surgically repaired knee while becoming a defensive anchor on multiple Rick Barnes NCAA Tournament teams?" (Josiah-Jordan James ✔ unchanged)
+- **Why:** False premise. I found no record of an ACL tear. Reports describe a scoped, surgically repaired knee and recurring soreness in 2022-23.
+
+### Not changed
+- Slot 5 (Dwayne Goodrich's 54-yard INT return TD in the 1999 Fiesta Bowl, shared MVP with Peerless Price) is verified and kept.
