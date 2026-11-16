@@ -678,3 +678,38 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-16 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-11-16 → 2026-11-19. Checked 4 polls and 20 trivia rows.
+- 11-16, 11-17 and 11-18 were already fixed in #287/#293/#294. They are clean on re-check.
+- 11-19 had 5 issues: the poll wasn't about this week's game, slots 2 and 4 were near-duplicates, slot 3 was an AD question duplicating 11-30, and slot 5 had non-answer options. All fixed. Slot 1 is kept.
+- Topic saturation note: David Price (11-08, 11-29, 12-02), Todd Helton (10-23, 10-25, 11-27, 12-01), Candace Parker (10-26, 11-11, 11-28, 12-08), Kim Caldwell (11-04, 11-27), Summitt SEC-title counts (10-26, 12-06) and athletic directors all repeat within 30 days. Later runs will need to replace one of each pair.
+
+### daily_polls.6f015b06 — 2026-11-19 — ✅ applied
+- **Before:** "What single thing would most improve Tennessee football right now?" (Better recruiting / Stronger offensive line / Elite quarterback / Improved defense)
+- **After:** "LSU at Neyland is two days away. Which Vols position group has to win its matchup on Saturday?" Options: The offensive line / The defensive line / The wide receivers / The secondary
+- **Why:** The old poll was generic and wasn't tied to the LSU game, which goes against the 2026-10-12 instruction. The new one covers an angle the other LSU-week polls don't (priority, key to a win, prediction, worries), and it doesn't depend on any result.
+
+### trivia_questions.27ed97d7 — 2026-11-19 / slot 2 — ✅ applied (full replacement)
+- **Before (Vol Baseball History):** "David Price later won a World Series championship with which team?" (Rays / Tigers / Red Sox ✔ / Blue Jays)
+- **After (SEC Knowledge):** "LSU visits Neyland on Saturday. Which head coach led LSU to its 2019 national championship?" A Les Miles, B Ed Orgeron ✔, C Nick Saban, D Brian Kelly
+- **Why:** This was a near-exact duplicate of 11-08 slot 2, which asks about Price's World Series with the Red Sox. All four new options are LSU head coaches; Saban won in 2003 and Miles in 2007, so the year is what separates them.
+
+### trivia_questions.2723f567 — 2026-11-19 / slot 3 — ✅ applied (full replacement)
+- **Before (General Vol Athletics):** "Which Tennessee Athletic Director is a Clemson graduate ... promoted to the top job in 2003?" (White / Currie / Hamilton ✔ / Hart)
+- **After (Vol Football History):** "In October 2022, Hendon Hooker and the No. 8 Vols routed No. 25 LSU at Tiger Stadium in Baton Rouge. What was the final score?" A 31-28, B 40-13 ✔, C 27-20, D 45-17
+- **Why:** Mike Hamilton is the subject of 11-30 slot 4, and AD questions repeat throughout this month. The new fact is verified: Tennessee won 40-13 on Oct 8, 2022.
+
+### trivia_questions.0fde94d7 — 2026-11-19 / slot 4 — ✅ applied (full replacement)
+- **Before (Lady Vols History):** "Pat Summitt's teams' combined SEC regular-season and tournament championship total, 32, was accumulated across how many seasons...?" (38 ✔ / 10 / Zero / 5)
+- **After (Vol Football History):** "Neyland Stadium's playing surface, Shields-Watkins Field, is named for Knoxville banker William S. Shields and whom?" A His wife, Alice Watkins Shields ✔, B His partner at City National Bank, C UT's first football team captain, D The UT president who approved it
+- **Why:** "Zero", 5 and 10 seasons were absurd options. The 32 SEC titles are also covered on 10-26 and 12-06. Verified via UT Libraries' Volopedia: the field was named in 1919 for Shields and his wife, the former Alice Watkins.
+
+### trivia_questions.71a57442 — 2026-11-19 / slot 5 — ✅ applied (full replacement)
+- **Before:** "Tennessee's series record against Georgia has trended toward which program across the 2000s-2020s?" (Georgia has held a recent-decades edge ✔ / The teams have not played since 2000 / It has been exactly split every year / Tennessee has dominated every meeting since 2000)
+- **After:** "In 2005, Tennessee rallied to beat No. 4 LSU 30-27 in overtime in Baton Rouge. By how many points did the Vols trail at halftime?" A 14, B 17, C 21 ✔, D 24
+- **Why:** The old question was vague, its options were sentence-length, and the wrong ones were absurd. The new one is an LSU-week hard question, verified by the UT and LSU recaps: LSU led 21-0 at the half and Tennessee won 30-27 in OT on Sept 26, 2005.
+
+### Not changed
+- Slot 1 ("Rocky Top" after touchdowns) is fine. The 10-30 Rocky Top question asks about its songwriters, a different fact.
