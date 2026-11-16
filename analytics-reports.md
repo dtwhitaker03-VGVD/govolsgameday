@@ -1,5 +1,11 @@
 # GoVolsGameDay — Weekly Traffic Reports
 
+## 2026-11-09 to 2026-11-15 — weekly report
+- Dashboard: https://claude.ai/artifact/LVG5aoNqnEdLFKnzdEx8tg
+- Requests: 6,594 · Page views: 5,201 · Visitors: 515 · Cache hit: 81.7%
+- New signups: 0 · Pre-game predictions: 7 · Live predictor: 2 (13 total picks submitted across those 2 participants, from `drive_predictions`)
+- Traffic quality: Requests ran 1.27× page views this week — the tightest request-to-page-view gap of the last several weeks on its own. But three of the seven days (Nov 11, 13, 15) show request-per-unique-visitor ratios 2–6x higher than the other four days (12.9–31.3 vs. 2.7–8.1), the Netherlands (1,460) and Belgium (1,395) together outpaced the US (1,313) — continuing the non-US-weighted pattern flagged in recent weeks — and 234 requests returned 403/404/405/499, none of which map to a real backend surface on this static Vite/React app. Threats blocked rose from last week (116 → 196, +69%) but stayed well below this quarter's Oct 26 week outlier (391). Taken together this reads as background scanner/bot noise layered onto real traffic, not organic growth on its own, and not anything resembling an attack.
+
 ## 2026-08-24 to 2026-08-30 — weekly traffic report
 - Total requests: 3,121 (page views: 1,623)
 - Unique visitors: 354
