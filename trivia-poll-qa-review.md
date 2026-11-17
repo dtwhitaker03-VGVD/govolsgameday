@@ -693,7 +693,7 @@ The poll for 09-22 has a wording issue — see entry below.
 ### trivia_questions.99590268 — 2026-11-20 / slot 2 — ✅ applied (full replacement)
 - **Before (Vol Basketball History):** "Which Tennessee player set a program record with a 43-point game against Vanderbilt in January 2019?" (Bone / Alexander / Schofield / Grant Williams ✔)
 - **After (SEC Knowledge):** "LSU visits Neyland tomorrow. LSU's school colors are purple and what?" A White, B Black, C Gold ✔, D Orange
-- **Why:** The premise was false: 43 points was not the program record, which belongs to Ron Widby with 50 in 1967. The question also duplicates 12-10 slot 2, and Grant Williams is the answer on 11-09. Most easy basketball topics are already used this month, so I used an LSU-week question instead.
+- **Why:** The premise was false: 43 points was not the program record, which belongs to Tony White with 51 vs. Auburn in 1987. The question also duplicates 12-10 slot 2, and Grant Williams is the answer on 11-09. Most easy basketball topics are already used this month, so I used an LSU-week question instead.
 
 ### trivia_questions.95936d65 — 2026-11-20 / slot 3 — ✅ applied (full replacement)
 - **Before:** "Tamika Catchings won how many Olympic gold medals...?" (1 / 8 / 0 / 4 ✔)
