@@ -678,3 +678,33 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-17 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-11-17 → 2026-11-20. Checked 4 polls and 20 trivia rows.
+- 11-17, 11-18 and 11-19 were already fixed in #293/#294/#295. They are clean on re-check.
+- 11-20 (eve of the LSU game) had 5 issues. The poll wasn't about football, slot 2 had a false premise and duplicated 12-10, slot 3 had absurd options and duplicated a saturated topic, and slot 4 duplicated 11-13 (Wilhoit). All fixed. Slots 1 and 5 are kept.
+
+### daily_polls.b6a3616b — 2026-11-20 — ✅ applied
+- **Before:** "What does the Lady Vols legacy mean to women's sports nationally?" (Everything — they defined the sport / A lot — Pat Summitt changed the game / Important but UConn gets more credit / The greatest dynasty in women's sports history)
+- **After:** "LSU at Neyland is tomorrow. How many points do the Vols put up against the Tigers?" Options: Under 20 / 20 to 29 / 30 to 39 / 40 or more
+- **Why:** The 2026-10-12 instruction says polls must be about TN football and the upcoming game. The new one doesn't depend on any result. The same angle was used for Kentucky on 11-03, but this is a different opponent, and it doesn't repeat the other LSU-week angles.
+
+### trivia_questions.99590268 — 2026-11-20 / slot 2 — ✅ applied (full replacement)
+- **Before (Vol Basketball History):** "Which Tennessee player set a program record with a 43-point game against Vanderbilt in January 2019?" (Bone / Alexander / Schofield / Grant Williams ✔)
+- **After (SEC Knowledge):** "LSU visits Neyland tomorrow. LSU's school colors are purple and what?" A White, B Black, C Gold ✔, D Orange
+- **Why:** The premise was false: 43 points was not the program record, which belongs to Ron Widby with 50 in 1967. The question also duplicates 12-10 slot 2, and Grant Williams is the answer on 11-09. Most easy basketball topics are already used this month, so I used an LSU-week question instead.
+
+### trivia_questions.95936d65 — 2026-11-20 / slot 3 — ✅ applied (full replacement)
+- **Before:** "Tamika Catchings won how many Olympic gold medals...?" (1 / 8 / 0 / 4 ✔)
+- **After:** "Lady Vol guard Jordan Horston was selected ninth overall in the 2023 WNBA Draft by which team?" A Las Vegas Aces, B Seattle Storm ✔, C Chicago Sky, D Atlanta Dream
+- **Why:** 0 and 8 were throwaway options. Catchings is also used heavily (10-30, 11-08, 12-07, 12-13). Verified that Seattle took Horston at No. 9 on Apr 10, 2023.
+
+### trivia_questions.50971928 — 2026-11-20 / slot 4 — ✅ applied (full replacement)
+- **Before:** "Which Tennessee kicker is remembered for a game-winning field goal in a mid-2000s matchup with Florida during the Fulmer era?" (Wilhoit ✔ / Hall / Reveiz / Lincoln)
+- **After:** "The first football game on Shields-Watkins Field, on Sept. 24, 1921, was a 27-0 Tennessee win over which opponent?" A Maryville, B Sewanee, C Kentucky, D Emory & Henry ✔
+- **Why:** This duplicated 11-13 slot 4, the Wilhoit 50-yard FG vs Florida in 2004, seven days earlier. The new fact is verified via UT Libraries' Volopedia.
+
+### Not changed
+- Slot 1 (Lindsey Nelson Stadium) is fine. The 11-08 question about the stadium asks about its renovation cost, a different fact.
+- Slot 5 (Don DeVoe coached the 1987 move into Thompson-Boling; he was coach 1978-89) is fine.
