@@ -390,3 +390,46 @@ either posts it himself or asks for changes first.
   clipped; both CTA pills and the footer line read clearly.
 - Canvas: https://claude.ai/artifact/UVwxzgWUdn3RhyNpHrmxsY
 - Status: ⏳ pending review
+
+## 2026-11-17 — Basketball gameday hype/invite
+
+- Trigger: scheduled (daily basketball-night check, trigger
+  trig_017GTicQ5ihvBCZWSebvBS95). No TN basketball game fell on Nov 14,
+  15, or 16 (checked each day; nothing to post on those nights).
+- Subject: pulled live from the real `live_games` row (`sport =
+  'basketball'`, `status = 'pregame'`): Tennessee (3-0, home) vs.
+  Michigan State, Tue Nov 17, 2026, tip-off 9:00 PM ET (`kickoff_time`
+  2026-11-18 02:00 UTC), at Food City Center, Knoxville, TN. This is
+  a real step up in competition from the first three games (Wofford,
+  Radford, Tennessee State) — confirmed from the real line:
+  `spread_line_tn` is +2.5, meaning Tennessee is actually the
+  underdog here (Michigan State favored by 2.5), unlike every prior
+  game this season. `total_points_line` 149.5. Both from
+  `lines_provider` "DraftKings (ESPN)". Confirmed the 3-0 record from
+  Tennessee's three prior `calculated` basketball `live_games` rows
+  (beat Wofford 90-59 Nov 3, beat Radford 70-47 Nov 10, beat Tennessee
+  State 83-78 Nov 13). Headline framed honestly around being an
+  underdog for the first time this season ("Vols Face Their First Real
+  Test") rather than reusing the "TENNESSEE (3-0) favored by" framing
+  from the Nov 13 post, since this time Tennessee isn't favored.
+- Design: same template as the Nov 13 basketball post — red "HOOPS
+  TONIGHT" rotated pill, 160px Anton "TONIGHT" hero over the
+  conic-starburst glow, matchup line with record, venue line, "THE
+  LINE" stat card (spread + total, both real), and the required
+  two-pill CTA banner ("JOIN THE CHAT" / "MAKE YOUR PICK") plus footer
+  line inviting fans to chat and lock in their pick at
+  GoVolsGameDay.com. `#0F172A` background, `#162038` panel, `#FF8200`
+  orange accent, `#D11919` red pill, Anton + Inter type pairing,
+  diagonal end-zone-stripe motif, GVGD logo lockup matching
+  `Header.tsx`. No stock photos or fabricated stats.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html`
+  frame `1080×1080`). Verified locally before publishing: this run,
+  Google Fonts actually loaded over this session's network proxy (a
+  genuine Anton/Inter pass, confirmed via `document.fonts.check()`
+  rather than assumed), rendered with headless Chromium at a taller
+  capture window and cropped to the true 1080×1080 frame with
+  ImageMagick's `convert` (PIL still broken in this container).
+  Nothing overflowed, wrapped, or clipped.
+- Canvas: https://claude.ai/artifact/H29JDj4r71hTxNerjkkctA
+- Status: ⏳ pending review
