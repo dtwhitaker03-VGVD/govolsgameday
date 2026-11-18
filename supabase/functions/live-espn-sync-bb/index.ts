@@ -238,6 +238,25 @@ async function syncGame(supabase: SupabaseClient, game: GameRow) {
   // Bookkeeping flags kept inside bb_stats across polls.
   const finalSeenAt: string | null = over ? (game.bb_stats?.final_seen_at ?? new Date().toISOString()) : null;
   const finalizingAt: string | null = game.bb_stats?.finalizing_at ?? null;
+  // Running totals for the stretch in progress (shown as a ticker on the live predictor):
+  // everything since the last boundary. Cleared when the game ends or no stretch is running.
+  let liveStretch: Record<string, unknown> | null = null;
+  if (!over && state === "in" && boundaries.length > 0) {
+    try {
+      const startB = boundaries[boundaries.length - 1];
+      if (!isTerminal(startB, mode)) {
+        const st = stretchStats(plays, startB.playId, null, tnTeamId);
+        const tnHome = game.home_team === "Tennessee";
+        liveStretch = {
+          start_play_id: startB.playId,
+          pts: Math.max(0, tnHome ? homeScore - startB.home : awayScore - startB.away),
+          threes: st.threes, twos: st.twos, turnovers: st.turnoversForced, fouls: st.fouls,
+        };
+      }
+    } catch (e) {
+      errors.push(`live stretch: ${e instanceof Error ? e.message : String(e)}`); // never let the ticker break the sync
+    }
+  }
   const update: Record<string, unknown> = {
     status: over ? "final" : "live",
     home_score: homeScore,
@@ -245,6 +264,7 @@ async function syncGame(supabase: SupabaseClient, game: GameRow) {
     current_quarter: over ? null : period,
     game_clock: over ? "" : comp.status.displayClock ?? null,
     bb_stats: { home: teamStats(d, home.team.id), away: teamStats(d, away.team.id), detail, stretches: Math.max(0, boundaries.length - 1),
+      ...(liveStretch ? { live_stretch: liveStretch } : {}),
       ...(finalSeenAt ? { final_seen_at: finalSeenAt } : {}), ...(finalizingAt ? { finalizing_at: finalizingAt } : {}) },
     updated_at: new Date().toISOString(),
   };

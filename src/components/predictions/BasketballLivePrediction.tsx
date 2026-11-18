@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardCard } from '../ui/DashboardCard';
@@ -25,6 +25,29 @@ interface Win {
   actual_twos: number | null;
   actual_turnovers_forced: number | null;
   actual_fouls: number | null;
+  start_play_id: string | null;
+}
+
+// One number in the live ticker: briefly lights up when it goes up.
+function TickerCell({ label, value, pick }: { label: string; value: number; pick?: number | null }) {
+  const prev = useRef(value);
+  const [flash, setFlash] = useState(false);
+  useEffect(() => {
+    if (value > prev.current) {
+      setFlash(true);
+      const t = setTimeout(() => setFlash(false), 1200);
+      prev.current = value;
+      return () => clearTimeout(t);
+    }
+    prev.current = value;
+  }, [value]);
+  return (
+    <div className="text-[10px] text-white/70">
+      <div className="text-white/50">{label}</div>
+      <div className={`text-sm font-black tabular-nums transition-colors duration-500 ${flash ? 'text-vgd-orange scale-110' : 'text-white'}`}>{value}</div>
+      {pick != null && <div className="text-[10px]">you: {pick}</div>}
+    </div>
+  );
 }
 
 interface MyPick {
@@ -112,6 +135,7 @@ export function BasketballLivePrediction({ game }: { game: LiveGame }) {
   const msLeft = open ? new Date(open.window_locked_at).getTime() - now : 0;
   const canPick = !!open && msLeft > 0;
   const myPick = open ? picks.get(open.window_number) : undefined;
+  const live = game.bb_stats?.live_stretch;
   const lastDone = wins.find((w) => w.status === 'resolved');
   // Game-clock span of the last stretch: it started at its own clock and ended where the next one began
   // (or at 0:00 if the period ended).
@@ -221,6 +245,23 @@ export function BasketballLivePrediction({ game }: { game: LiveGame }) {
           </p>
         )}
         {error && <p className="text-xs text-center text-vgd-red">{error}</p>}
+
+        {open && !canPick && live && live.start_play_id === open.start_play_id && (
+          <div className="border-t border-white/[0.07] pt-3 space-y-1.5">
+            <div className="text-center text-[11px] text-white/80">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse mr-1.5 align-middle" />
+              {quarters ? 'This quarter so far' : 'This stretch so far'}
+              {open.game_clock && <span> (from {periodLabel(open.period, quarters)} {open.game_clock})</span>}
+            </div>
+            <div className="grid grid-cols-5 gap-1 text-center">
+              <TickerCell label="TN points" value={live.pts} pick={myPick?.pick_pts} />
+              <TickerCell label="3-pointers" value={live.threes} pick={myPick?.pick_threes} />
+              <TickerCell label="2-pointers" value={live.twos} pick={myPick?.pick_twos} />
+              <TickerCell label="Turnovers forced" value={live.turnovers} pick={myPick?.pick_turnovers} />
+              <TickerCell label="Fouls" value={live.fouls} pick={myPick?.pick_fouls} />
+            </div>
+          </div>
+        )}
 
         {lastDone && (
           <div className="border-t border-white/[0.07] pt-3 space-y-1.5">
