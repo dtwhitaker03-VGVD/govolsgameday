@@ -678,3 +678,33 @@ The poll for 09-22 has a wording issue — see entry below.
 **Status:** ✅ no action needed
 
 **Status:** ⏳ pending review
+
+## 2026-11-18 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-11-18 → 2026-11-21. Checked 3 existing polls plus 1 inserted, and 20 trivia rows.
+- 11-18, 11-19 and 11-20 were already fixed in #294/#295/#297. They are clean on re-check.
+- 11-21 (LSU game day) had 4 issues: no poll, a confusing branding question with non-answer options (slot 1), vague era options with a length tell (slot 3), and an unverifiable question with absurd options and a "per Wikipedia" reference in the stem (slot 5). All fixed. Slots 2 and 4 are kept.
+
+### daily_polls.05b06e28 — 2026-11-21 — ✅ inserted
+- **Before:** (no poll)
+- **After:** "It's LSU game day at Neyland! Where will the Vols' biggest play of the day come from?" Options: A deep pass / A long run / A defensive takeaway / A special teams return
+- **Why:** Every day needs a poll about current TN football. This one is for game day, doesn't depend on the result, and uses a different angle from the rest of LSU week.
+
+### trivia_questions.c94d98f8 — 2026-11-21 / slot 1 — ✅ applied (full replacement)
+- **Before (General Vol Athletics):** "What year did Tennessee's athletic department largely unify its branding under the men's 'Vols' name, a change later partially reversed for women's basketball specifically?" (2015 ✔ / 2000 / It has never occurred / 1950)
+- **After (Vol Football History):** "What jersey number did Peyton Manning wear as Tennessee's quarterback?" A 18, B 12, C 16 ✔, D 7
+- **Why:** The stem was muddled. In 2015 UT dropped "Lady Vols" for every women's team except basketball, then restored it for all of them in 2017. The options also included a non-answer ("It has never occurred") and an absurd year (1950). The new question is a clean easy one. 18, his NFL number, is a fair trap.
+
+### trivia_questions.32f384be — 2026-11-21 / slot 3 — ✅ applied
+- **Before:** "Jerry Green coached Tennessee basketball during which general period?" (2000s / Mid-to-late 1990s into 2001 ✔ / 2010s / 1960s)
+- **After:** "Jerry Green coached Tennessee men's basketball during which seasons?" A 1993-1997, B 1997-2001 ✔, C 2001-2005, D 2005-2009
+- **Why:** The correct option was the only long, specific one, which gave it away, and the others were vague decades. The new options match the actual coaching eras of O'Neill, Green, Peterson and Pearl. Verified that Green was hired in April 1997 and resigned in March 2001.
+
+### trivia_questions.31652a14 — 2026-11-21 / slot 5 — ✅ applied (full replacement)
+- **Before (General Vol Athletics):** "Tennessee's men's track and field program ... boasts how many total Olympians through the 2024 Games, per Wikipedia's program history?" (Over 1,000 / Zero / Exactly 1 / 29 Olympians representing 9 different nations ✔)
+- **After (Vol Football History):** "In 2010 at Tiger Stadium, Tennessee appeared to beat LSU 14-10 on the final play, but a penalty gave LSU one more snap and a 16-14 win. What was the penalty?" A Pass interference, B Too many men on the field ✔, C Offsides, D Delay of game
+- **Why:** The stem cited Wikipedia, the wrong options were absurd, and the correct one was the only specific option. The new question is an LSU game-day hard question. Verified via UT and LSU recaps: Tennessee had 13 men on the field on Oct 2, 2010, and Stevan Ridley scored on the untimed down.
+
+### Not changed
+- Slot 2 (Kellie Harper played under Summitt) is fine. The 12-05 Harper question asks about her coaching career before UT, a different fact.
+- Slot 4 (Crompton's 2009 senior season under OC Jim Chaney) is fine.
