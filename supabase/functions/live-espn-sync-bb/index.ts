@@ -242,15 +242,19 @@ async function syncGame(supabase: SupabaseClient, game: GameRow) {
   // everything since the last boundary. Cleared when the game ends or no stretch is running.
   let liveStretch: Record<string, unknown> | null = null;
   if (!over && state === "in" && boundaries.length > 0) {
-    const startB = boundaries[boundaries.length - 1];
-    if (!isTerminal(startB, mode)) {
-      const st = stretchStats(plays, startB.playId, null, tnTeamId);
-      const tnHome = game.home_team === "Tennessee";
-      liveStretch = {
-        start_play_id: startB.playId,
-        pts: Math.max(0, tnHome ? homeScore - startB.home : awayScore - startB.away),
-        threes: st.threes, twos: st.twos, turnovers: st.turnoversForced, fouls: st.fouls,
-      };
+    try {
+      const startB = boundaries[boundaries.length - 1];
+      if (!isTerminal(startB, mode)) {
+        const st = stretchStats(plays, startB.playId, null, tnTeamId);
+        const tnHome = game.home_team === "Tennessee";
+        liveStretch = {
+          start_play_id: startB.playId,
+          pts: Math.max(0, tnHome ? homeScore - startB.home : awayScore - startB.away),
+          threes: st.threes, twos: st.twos, turnovers: st.turnoversForced, fouls: st.fouls,
+        };
+      }
+    } catch (e) {
+      errors.push(`live stretch: ${e instanceof Error ? e.message : String(e)}`); // never let the ticker break the sync
     }
   }
   const update: Record<string, unknown> = {
