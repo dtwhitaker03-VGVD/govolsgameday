@@ -2270,3 +2270,41 @@ _Note: the Supabase MCP connection timed out on several multi-statement writes t
 ### Not changed
 - Slot 2 (Kellie Harper played under Summitt) is fine. The 12-05 Harper question asks about her coaching career before UT, a different fact.
 - Slot 4 (Crompton's 2009 senior season under OC Jim Chaney) is fine.
+
+## 2026-11-19 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-11-19 → 2026-11-22. Checked 4 polls and 5 trivia rows (11-22). 11-19, 11-20 and 11-21 were already fixed in earlier runs and are clean on re-check.
+- 11-22 (the day after LSU, start of Vanderbilt week) had 6 issues: an off-topic poll, a baseball-venue repeat (slot 1), a wrong answer (slot 2), a vague unverifiable stem (slot 3), and throwaway options on slots 4 and 5. All fixed.
+
+### daily_polls.a679179a — 2026-11-22 — ✅ applied
+- **Before:** "What is the best defensive performance in Tennessee football history?" (1998 Alabama shutout / 2022 Alabama performance / 1999 Fiesta Bowl defense / 2001 SEC Championship defense)
+- **After:** "LSU is in the books and the regular-season finale at Vanderbilt is next. What should the Vols focus on most this week?" Cleaning up mistakes / Getting healthy / Building momentum for the postseason / Winning the in-state rivalry
+- **Why:** Polls must be about the previous or upcoming game. This one doesn't depend on the LSU result, and it uses a different angle from the 11-25 "key to winning in Nashville" poll. (Also, "1998 Alabama shutout" never happened; Tennessee beat Alabama 35-18 that year.)
+
+### trivia_questions.c500aee9 — 2026-11-22 / slot 1 — ✅ applied (full replacement)
+- **Before (General Vol Athletics):** "Which of these venues hosts Tennessee baseball?" (Lindsey Nelson Stadium ✔)
+- **After (Vol Football History):** "The Vols close the regular season at Vanderbilt on Nov. 28. What is Vanderbilt's team nickname?" A Admirals, B Mariners, C Commodores ✔, D Captains
+- **Why:** Lindsey Nelson Stadium is already 11-20 slot 1, two days earlier, and Sherri Parker Lee was an answer on 11-16. The new question is an easy one tied to the next game.
+
+### trivia_questions.9613d335 — 2026-11-22 / slot 2 — ✅ applied (full replacement)
+- **Before:** "Pat Summitt's teams played their earliest home games at what pre-Thompson-Boling venue, shared with men's basketball in that era?" (Stokely ✔ / Lindsey Nelson / Bridgestone / Neyland)
+- **After:** "Pat Summitt took over as Tennessee's women's basketball head coach in 1974. How old was she?" A 22 ✔, B 27, C 31, D 35
+- **Why:** The keyed answer was wrong. Summitt's first games (Dec. 1974) were in Alumni Gym, and the team moved to Stokely in the mid-1970s ([Chattanoogan](https://www.chattanoogan.com/2014/11/22/289090/John-Shearer-Remembering-Pat-Summitts.aspx)). The distractors were also throwaways, and 11-20 slot 5 already names Stokely. Summitt (born June 1952) was 22 when hired.
+
+### trivia_questions.441c13c5 — 2026-11-22 / slot 3 — ✅ applied (full replacement)
+- **Before (Vol Baseball History):** "Which Tennessee coach's tenure saw the program's win total against nationally ranked opponents grow considerably?" (Vitello ✔)
+- **After (Vol Football History):** "In November 2012, Tennessee fired head coach Derek Dooley the day after a 41-18 loss to which team?" A Kentucky, B Missouri, C Vanderbilt ✔, D South Carolina
+- **Why:** "Grew considerably" is vague and can't be checked. Vitello is also heavily used (10-31, 11-13, 11-29 and more). The new question is a medium one for Vanderbilt week. Verified: lost 41-18 at Vanderbilt on Nov. 17, 2012 and fired Nov. 18 ([Wikipedia, 2012 season](https://en.wikipedia.org/wiki/2012_Tennessee_Volunteers_football_team)). Missouri (51-48 the week before) is a fair trap.
+
+### trivia_questions.9d1f6517 — 2026-11-22 / slot 4 — ✅ applied
+- **Before:** "...has won national championships in which years?" (1974, 1991, and 2001 (outdoor); 2002 (indoor) ✔ / Every year since founding / Zero national titles / Only in the 2020s)
+- **After:** "Tennessee's men's track and field team won NCAA outdoor team titles in 1991 and 2001 at which stadium?" A Hayward Field ✔, B Drake Stadium, C Franklin Field, D John McDonnell Field
+- **Why:** Three options were absurd, and the correct one was the only specific option. Verified that both titles came at Hayward Field in Eugene ([UTSports NCAA history](https://utsports.com/sports/2017/6/14/history-ncaa-html)). All four options are real track venues.
+
+### trivia_questions.bbadee2f — 2026-11-22 / slot 5 — ✅ applied
+- **Before:** "...recognized as national champion by the AP Poll, which crowned its champion before which event that season?" (SEC Championship Game (which did not yet exist) / Sugar Bowl, lost to Maryland ✔ / Spring practice / The season opener)
+- **After:** "Tennessee's 1951 team was crowned AP national champion before the bowl games were played. Which bowl did the Vols then lose?" A Orange Bowl to Georgia Tech, B Sugar Bowl to Maryland ✔, C Cotton Bowl to Kentucky, D Gator Bowl to Clemson
+- **Why:** The wrong options were non-answers, and one gave itself away by saying the game "did not yet exist." The fact is unchanged: Maryland won the Jan. 1, 1952 Sugar Bowl 28-13.
+
+### Not changed
+- The 11-19, 11-20 and 11-21 polls and trivia were re-checked and are clean.
