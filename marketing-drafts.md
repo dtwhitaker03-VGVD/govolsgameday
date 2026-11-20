@@ -1536,3 +1536,41 @@ either posts it himself or asks for changes first.
   Nothing overflowed, wrapped, or clipped.
 - Canvas: https://claude.ai/artifact/H29JDj4r71hTxNerjkkctA
 - Status: ⏳ pending review
+
+## 2026-11-20 — Basketball gameday hype/invite
+
+- Trigger: scheduled (daily basketball-night check, trigger
+  trig_017GTicQ5ihvBCZWSebvBS95). No TN basketball game fell on Nov 18
+  or 19 (checked each day; nothing to post on those nights).
+- Subject: pulled live from the real `live_games` row (`sport =
+  'basketball'`, `status = 'pregame'`): Tennessee (4-0, home) vs.
+  Coastal Carolina, Fri Nov 20, 2026, tip-off 7:00 PM ET (`kickoff_time`
+  2026-11-21 00:00 UTC), at Food City Center, Knoxville, TN.
+  `spread_line_tn` is -29.5 (Tennessee heavily favored), `total_points_line`
+  146.5, both from `lines_provider` "DraftKings (ESPN)". Confirmed the
+  4-0 record from Tennessee's four prior `calculated` basketball
+  `live_games` rows (beat Wofford 90-59 Nov 3, beat Radford 70-47 Nov
+  10, beat Tennessee State 83-78 Nov 13, beat Michigan State 61-46 Nov
+  17). Framed as a lopsided home favorite coming off the toughest test
+  of the season so far.
+- Design: same template as the Nov 13/17 basketball posts — red "HOOPS
+  TONIGHT" rotated pill, 160px Anton "TONIGHT" hero over the
+  conic-starburst glow, matchup line with record, venue line, "THE
+  LINE" stat card (spread + total, both real), and the required
+  two-pill CTA banner ("JOIN THE CHAT" / "MAKE YOUR PICK") plus footer
+  line inviting fans to chat and lock in their pick at
+  GoVolsGameDay.com. `#0F172A` background, `#162038` panel, `#FF8200`
+  orange accent, `#D11919` red pill, Anton + Inter type pairing,
+  diagonal end-zone-stripe motif, GVGD logo lockup matching
+  `Header.tsx`. No stock photos or fabricated stats.
+- Built as a `project/Main.dc.html` artboard (Design canvas type,
+  contract 0.2.47) with an explicit `canvas.json` (`Main.dc.html`
+  frame `1080×1080`). Verified locally before publishing: real
+  Anton/Inter fonts embedded via base64 data-URI `@font-face` rules
+  (cached from earlier runs), confirmed applied via
+  `document.fonts.check()`, rendered with headless Chromium at a
+  taller capture window and cropped to the true 1080×1080 frame with
+  ImageMagick's `convert` (PIL still broken in this container).
+  Nothing overflowed, wrapped, or clipped.
+- Canvas: https://claude.ai/artifact/P3kg6LoCE6G8crG7A2mvRi
+- Status: ⏳ pending review
