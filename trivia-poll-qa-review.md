@@ -2270,3 +2270,36 @@ _Note: the Supabase MCP connection timed out on several multi-statement writes t
 ### Not changed
 - Slot 2 (Kellie Harper played under Summitt) is fine. The 12-05 Harper question asks about her coaching career before UT, a different fact.
 - Slot 4 (Crompton's 2009 senior season under OC Jim Chaney) is fine.
+
+## 2026-11-20 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-11-20 → 2026-11-23. Checked 4 polls and 5 trivia rows (11-23). 11-20, 11-21 and 11-22 were already fixed (#297/#300/#303) and are clean on re-check.
+- 11-23 (Vanderbilt week) had 5 issues: an off-topic baseball poll, a give-away easy question (slot 2), a false "three times" stem with a meta-tell option (slot 3), non-answer options (slot 4), and a false premise (slot 5). All fixed. Slot 1 is kept.
+
+### daily_polls.fe9ed08e — 2026-11-23 — ✅ applied
+- **Before:** "What rival series matters most in Vol baseball?" (Vanderbilt / Florida / LSU / South Carolina)
+- **After:** "Vanderbilt week: what's your early call for Saturday's regular-season finale in Nashville?" Vols win by 20 or more / Vols win by 10 to 19 / Vols win by fewer than 10 / Vanderbilt pulls the upset
+- **Why:** Polls must be about the next or previous football game. This one is about the next game and uses a different angle from 11-22 (weekly focus) and 11-25 (key to winning).
+
+### trivia_questions.7d35b56e — 2026-11-23 / slot 2 — ✅ applied (full replacement)
+- **Before (General Vol Athletics):** "Tennessee's athletic department revenue is generated primarily through which two sports...?" (Cross country and track / Swimming and diving / Golf and tennis / Football and men's basketball ✔)
+- **After (SEC Knowledge):** "Tennessee closes the regular season at Vanderbilt. In which city is Vanderbilt University?" A Memphis, B Nashville ✔, C Chattanooga, D Murfreesboro
+- **Why:** The three wrong options were obvious throwaways. The new question is an easy one tied to this week's game.
+
+### trivia_questions.0efc488a — 2026-11-23 / slot 3 — ✅ applied (full replacement)
+- **Before (Lady Vols History):** "Which Lady Vol was named Naismith Player of the Year three times...?" (Holdsclaw ✔ / Snow / Catchings / "Candace Parker (won twice)")
+- **After (SEC Knowledge):** "Vanderbilt QB Diego Pavia, who led the Commodores' 2024 upset of No. 1 Alabama, transferred in from which school?" A New Mexico, B UTEP, C New Mexico State ✔, D Liberty
+- **Why:** The premise is false (Holdsclaw won the Naismith twice, in 1998 and 1999), and one option carried a meta-comment. The Holdsclaw Naismith topic also repeats 11-25 slot 1, two days later. Verified Pavia's transfer and the 40-35 win over Alabama on Oct. 5, 2024 ([On3](https://www.on3.com/college/vanderbilt-commodores/news/new-mexico-state-transfer-qb-diego-pavia-commits-to-vanderbilt), [ESPN](https://www.espn.com/college-football/story/_/id/41671222/vanderbilt-alabama-upset-diego-pavia-clark-lea)).
+
+### trivia_questions.ff4dda79 — 2026-11-23 / slot 4 — ✅ applied (full replacement)
+- **Before (SEC Knowledge):** "...which type of niche varsity sports do some SEC schools ... sponsor that Tennessee does not?" (All SEC schools sponsor identical sports / Not applicable / The SEC only sponsors football / Equestrian, among other sports ✔)
+- **After (General Vol Athletics):** "In 2005, the court at Thompson-Boling Arena was given what name?" A Mears Court, B The Summitt ✔, C Big Orange Court, D Rocky Top Court
+- **Why:** Three options were non-answers, including "Not applicable." Verified that the court was named The Summitt in March 2005, after Summitt passed Dean Smith's wins record ([Wikipedia](https://en.wikipedia.org/wiki/Thompson%E2%80%93Boling_Arena)). No other question within ±30 days covers it.
+
+### trivia_questions.7b1c53d9 — 2026-11-23 / slot 5 — ✅ applied (full replacement)
+- **Before:** "Tennessee did not play in a bowl game following the 2009 season ... What was the Vols' final regular-season record?" (7-6 / 9-4 / 5-7 ✔ / 11-2)
+- **After:** "On Nov. 23, 2013, Vanderbilt won at Neyland Stadium on a touchdown with 16 seconds left. What was the final score?" A 17-14, B 14-10 ✔, C 24-21, D 10-7
+- **Why:** The premise and keyed answer were wrong. The 2009 Vols finished the regular season 7-5 and lost the Chick-fil-A Bowl to Virginia Tech. Kiffin was also the answer on 11-16. The new question is a hard Vanderbilt-week question on the game's anniversary. Verified via UT's recap: Patton Robinette's 5-yard run, Vanderbilt's first back-to-back wins over UT since 1925-26 ([UTSports](https://utsports.com/news/2013/11/23/last_second_td_pushes_vandy_past_ut_14_10)).
+
+### Not changed
+- Slot 1 (Hochevar, the No. 1 pick in 2006) is fine. The 10-26 Hochevar question asks about his ERA, a different fact. David Price, a Vanderbilt pitcher and the 2007 No. 1 pick, is a fair trap.
