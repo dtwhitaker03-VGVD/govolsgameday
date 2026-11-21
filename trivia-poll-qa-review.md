@@ -2270,3 +2270,36 @@ _Note: the Supabase MCP connection timed out on several multi-statement writes t
 ### Not changed
 - Slot 2 (Kellie Harper played under Summitt) is fine. The 12-05 Harper question asks about her coaching career before UT, a different fact.
 - Slot 4 (Crompton's 2009 senior season under OC Jim Chaney) is fine.
+
+## 2026-11-21 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+
+- Window: 2026-11-21 → 2026-11-24. Checked 4 polls and 5 trivia rows (11-24). 11-21, 11-22 and 11-23 were already fixed (#300/#303/#304) and are clean on re-check.
+- 11-24 (Vanderbilt week) had 5 issues: an off-topic basketball poll, a throwaway question (slot 1), an athletic-director repeat (slot 2), an Orange Bowl repeat with a wrong premise (slot 3), and a broken True/False (slot 4). All fixed. Slot 5 is kept.
+
+### daily_polls.cde27662 — 2026-11-24 — ✅ applied
+- **Before:** "Who is the greatest Vol basketball player of all time?" (Houston / Lofton / Grant Williams / Tobias Harris)
+- **After:** "The LSU game is behind us and Vanderbilt is Saturday. How do you feel heading into the regular-season finale?" Fired up and confident / Cautiously optimistic / Nervous about a trap game / Just ready for bowl season
+- **Why:** Polls must be about the previous or next football game. This one doesn't depend on the LSU result and is a different angle from 11-22 (focus), 11-23 (early call) and 11-25 (key to winning).
+
+### trivia_questions.068a9163 — 2026-11-24 / slot 1 — ✅ applied (full replacement)
+- **Before (Vol Baseball History):** "Tennessee baseball plays its home games during which general part of the calendar year?" (Summer only / Spring ✔ / Winter only / Fall only)
+- **After (SEC Knowledge):** "Vanderbilt's teams are the Commodores. A commodore is a rank in which branch of the military?" A Army, B Navy ✔, C Air Force, D Marine Corps
+- **Why:** The question was trivial and the "X only" options were obvious throwaways. The new easy question ties to Vanderbilt week without repeating the 11-22 question on the nickname itself.
+
+### trivia_questions.1b8c352d — 2026-11-24 / slot 2 — ✅ applied (full replacement)
+- **Before (General Vol Athletics):** "Who has served as Tennessee's athletic director since being hired away from UCF in January 2021?" (Danny White ✔)
+- **After (Vol Football History):** "Tennessee's live mascot, Smokey, is what breed of dog?" A Beagle, B Bloodhound, C Redbone Coonhound, D Bluetick Coonhound ✔
+- **Why:** Athletic directors are already covered on 11-04, 11-29 and 11-30, and AD trivia is saturated. Smokey's breed isn't asked anywhere within ±30 days (the 10-22 Smokey question is outside that range).
+
+### trivia_questions.15258c15 — 2026-11-24 / slot 3 — ✅ applied (full replacement)
+- **Before:** "Which team did Tennessee defeat in the 2022 Orange Bowl to cap Hendon Hooker's final full season?" (Clemson ✔)
+- **After:** "Tennessee was No. 1 in the first College Football Playoff rankings of 2022. Which team beat the Vols the following Saturday?" A Georgia ✔, B South Carolina, C Alabama, D Missouri
+- **Why:** The premise is wrong: Hooker tore his ACL in November 2022 and didn't play in the Orange Bowl. The game also repeats 11-05 slot 5, the Orange Bowl MVP question. Verified that the first CFP rankings on Nov. 1, 2022 had Tennessee No. 1, and Georgia then won 27-13 in Athens on Nov. 5 ([CBS](https://www.cbssports.com/college-football/news/georgia-vs-tennessee-score-takeaways-no-3-dawgs-suffocate-no-1-vols-offense-in-dominant-rivalry-win/live/)). South Carolina, a 2022 loss later in the season, is a fair trap.
+
+### trivia_questions.a9f6f00a — 2026-11-24 / slot 4 — ✅ applied (full replacement)
+- **Before (Lady Vols History):** "The 2012 coaching transition from Pat Summitt to Holly Warlick was accompanied by significant discussion... True or false?" (True ✔ / Statistics are not tracked... / Not applicable / No coaching transition has ever affected any statistic)
+- **After:** "Holly Warlick's first Lady Vols team (2012-13) reached the Elite Eight before losing 86-78 to which team?" A Notre Dame, B Baylor, C Louisville ✔, D Connecticut
+- **Why:** This was a broken True/False with an opinion stem and three non-answers. Verified that No. 5 seed Louisville won 86-78 on Apr. 2, 2013 ([UTSports](https://utsports.com/news/2013/4/2/Lady_Vols_Season_Ends_In_Elite_8_86_78)). Notre Dame, Baylor and UConn were the other top contenders that year.
+
+### Not changed
+- Slot 5 (Peerless Price, a second-round pick in 1999 by Buffalo, was a top receiver in 1998) is fine. Carl Pickens and Joey Kent are real Vol receivers from other eras, so they're fair traps.
