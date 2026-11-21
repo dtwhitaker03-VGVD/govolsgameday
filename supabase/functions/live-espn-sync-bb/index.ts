@@ -18,9 +18,15 @@ import { type BbPlay, type Boundary, type PlanMode, isTerminal, planBoundaries, 
 // (the final stretch settles straight away once the game is over).
 //
 // Once a game is over (ESPN says completed) and every window is settled, it is
-// finalized automatically FINALIZE_DELAY_SECONDS later (finalize-game-bb: scores the
-// pregame picks, credits points, awards badges, marks the game 'calculated'), unless
-// the game is under manual_control. The delay lets ESPN's final score/box score settle.
+// finalized automatically on that same poll (finalize-game-bb: scores the pregame
+// picks, credits points, awards badges, marks the game 'calculated'), unless the
+// game is under manual_control.
+//
+// The cron runs this every 15 seconds. To finalize within ~15 seconds of the real
+// final horn without polling ESPN faster all game, a run that finds a game in
+// crunch time (last minute of the final regulation period or overtime, or over but
+// not finalized yet) re-polls just that game every FAST_POLL_SECONDS for the
+// rest of its 15-second slot.
 //
 // ESPN's event id is stored in live_games.cfbd_game_id.
 
@@ -32,7 +38,9 @@ const CONFIRM_SECONDS = 30;
 const TIMEOUT_LOCK_SECONDS = 150; // fallback; the first live play after the timeout locks it sooner
 const START_LOCK_SECONDS = 120;
 const HALFTIME_LOCK_SECONDS = 1500;
-const FINALIZE_DELAY_SECONDS = 180;
+const FAST_POLL_SECONDS = 5; // crunch-time re-poll interval inside one cron run
+const FAST_POLL_BUDGET_MS = 11_000; // stop re-polling before the next 15-second cron run starts
+const CRUNCH_CLOCK_SECONDS = 60;
 const FINAL_LOOKBACK_MS = 12 * 60 * 60 * 1000; // keep polling a final game this long, waiting to finalize it
 
 const corsHeaders = {
@@ -87,6 +95,13 @@ async function fetchSummary(eventId: number, sport: string): Promise<Json | null
     return null;
   }
 }
+
+const clockSecs = (display: unknown): number | null => {
+  const m = /^(\d+):(\d{2})/.exec(String(display ?? ""));
+  if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+  const f = parseFloat(String(display ?? "")); // ESPN shows "45.2" under a minute
+  return Number.isFinite(f) ? f : null;
+};
 
 const toInt = (v: unknown): number | null => {
   const n = parseInt(String(v ?? ""), 10);
@@ -273,11 +288,9 @@ async function syncGame(supabase: SupabaseClient, game: GameRow) {
   // ── Auto-finalize ──
   let finalize: string | undefined;
   if (over && finalSeenAt && !game.manual_control && !finalizingAt && errors.length === 0) {
-    const waited = Date.now() - new Date(finalSeenAt).getTime();
     const { count: openWins } = await supabase
       .from("live_windows").select("id", { count: "exact", head: true }).eq("game_id", game.id).eq("status", "open");
-    if (waited < FINALIZE_DELAY_SECONDS * 1000) finalize = "waiting for ESPN's final to settle";
-    else if (openWins) finalize = "waiting on unsettled windows";
+    if (openWins) finalize = "waiting on unsettled windows";
     else {
       // Claim it: only one overlapping poll may finalize (finalize_game_bb credits points every call).
       const stats = update.bb_stats as Record<string, unknown>;
@@ -308,8 +321,17 @@ async function syncGame(supabase: SupabaseClient, game: GameRow) {
     }
   }
 
+  // Crunch time: the game could end before the next cron run, so the caller re-polls it sooner.
+  const regulation = mode === "quarter" ? 4 : 2;
+  const secs = clockSecs(comp.status.displayClock);
+  // Over but not yet finalized (a window still settling, or finalize failed) counts too.
+  const crunch = !game.manual_control && !finalizingAt && (
+    (over && finalize !== "finalized") ||
+    (state === "in" && (period ?? 0) >= regulation && secs !== null && secs <= CRUNCH_CLOCK_SECONDS)
+  );
+
   return {
-    game_id: game.id, ok: true, status: update.status, homeScore, awayScore, boundaries: boundaries.length,
+    game_id: game.id, ok: true, crunch, status: update.status, homeScore, awayScore, boundaries: boundaries.length,
     opened, locked, confirming, settled, errors, finalize,
   };
 }
@@ -341,7 +363,28 @@ Deno.serve(async (req: Request) => {
     .or(`status.eq.live,and(status.eq.pregame,kickoff_time.lte.${soon}),and(status.eq.final,kickoff_time.gte.${since})`);
   if (error) return json({ error: error.message }, 500);
 
+  const startedAt = Date.now();
   const results = [];
   for (const game of (games ?? []) as GameRow[]) results.push(await syncGame(supabase, game));
-  return json({ ok: true, gamesSynced: results.length, results });
+
+  // Crunch-time fast polling: re-poll only the games about to end, until the next cron run takes over.
+  let fast = results.filter((r) => r.ok && (r as { crunch?: boolean }).crunch).map((r) => r.game_id);
+  let fastPolls = 0;
+  while (fast.length > 0 && Date.now() - startedAt + FAST_POLL_SECONDS * 1000 <= FAST_POLL_BUDGET_MS) {
+    await new Promise((r) => setTimeout(r, FAST_POLL_SECONDS * 1000));
+    const { data: rows } = await supabase
+      .from("live_games")
+      .select("id, cfbd_game_id, sport, home_team, away_team, status, manual_control, bb_stats")
+      .in("id", fast);
+    const next: string[] = [];
+    for (const game of (rows ?? []) as GameRow[]) {
+      if (game.status === "calculated") continue;
+      const r = await syncGame(supabase, game);
+      fastPolls++;
+      results.push(r);
+      if (r.ok && (r as { crunch?: boolean }).crunch) next.push(game.id);
+    }
+    fast = next;
+  }
+  return json({ ok: true, gamesSynced: results.length - fastPolls, fastPolls, results });
 });
