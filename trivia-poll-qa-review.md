@@ -2270,3 +2270,32 @@ _Note: the Supabase MCP connection timed out on several multi-statement writes t
 ### Not changed
 - Slot 2 (Kellie Harper played under Summitt) is fine. The 12-05 Harper question asks about her coaching career before UT, a different fact.
 - Slot 4 (Crompton's 2009 senior season under OC Jim Chaney) is fine.
+
+## 2026-11-22 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Window: 2026-11-22 → 2026-11-25. Checked 4 polls and 20 trivia rows. 11-22, 11-23 and 11-24 were already fixed (#303/#304/#309) and are clean on re-check.
+- 11-25 had 4 issues: weak distractors (slot 2), a broken True/False with "Not applicable" (slot 3), a vague "conference umbrella" question (slot 4), and an opinion-based question with meta options (slot 5). All fixed. Slot 1 and the poll are kept.
+
+### trivia_questions.e000aaf0 — 2026-11-25 / slot 2 — ✅ applied (options only)
+- **Before:** Michael Jordan / LeBron James / Allan Houston ✔ / Kobe Bryant
+- **After:** A Bernard King, B Dale Ellis, C Allan Houston ✔, D Chris Lofton
+- **Why:** None of the NBA superstars played at Tennessee, so the answer was obvious. Real Vol greats make it a fair easy question. Houston is UT's all-time leading scorer (2,801) and was an All-Star in 2000 and 2001.
+
+### trivia_questions.89f08bee — 2026-11-25 / slot 3 — ✅ applied (full replacement)
+- **Before:** "Highly ranked recruiting classes have been a recurring feature of Lady Vols basketball... True or false?" (No class ever ranked / Not applicable / Never recruited nationally / True ✔)
+- **After:** "In 2015, Tennessee stopped using the "Lady Vols" name for its women's teams in every sport except one. Which team kept it?" A Softball, B Women's basketball ✔, C Volleyball, D Women's soccer
+- **Why:** This was a broken True/False with throwaway options, and it nearly duplicated 11-26 slot 4. Verified that the change was announced in November 2014, took effect in July 2015, and kept the name only for women's basketball as a tribute to Pat Summitt ([Fox/AP](https://www.foxnews.com/entertainment/university-of-tennessee-phases-out-lady-vols-name-for-womens-sports)). It was reversed in 2017, which is why the question is framed in 2015.
+
+### trivia_questions.027c1185 — 2026-11-25 / slot 4 — ✅ applied (full replacement, category → Vol Football History)
+- **Before (General Vol Athletics):** "Tennessee's on-campus Olympic sports ... compete under which overarching conference umbrella?" (ACC / Big Ten / SEC ✔ / an independent conference)
+- **After:** "Gen. Robert Neyland is Tennessee's winningest football coach. How many games did he win at Tennessee?" A 132, B 152, C 173 ✔, D 198
+- **Why:** The original was vague and trivially easy. Verified the 173-31-12 record over 1926-52 ([Wikipedia](https://en.wikipedia.org/wiki/Robert_Neyland)). Neyland's win total isn't asked within ±30 days; the 10-29 question about the stadium's namesake is a different fact.
+
+### trivia_questions.cdb832bb — 2026-11-25 / slot 5 — ✅ applied (full replacement)
+- **Before:** "Which single realignment-era development is most commonly cited by college sports historians..." (Not applicable / SEC has shrunk / No changes / Texas+Oklahoma and NIL ✔)
+- **After:** "Tennessee was a charter member of the SEC, which was founded in Knoxville in December 1932. How many schools were in the original conference?" A 10, B 12, C 13 ✔, D 14
+- **Why:** The original was an opinion question with three self-eliminating options. Verified that 13 schools founded the SEC at the Farragut Hotel in Knoxville on Dec. 8-9, 1932 ([Wikipedia](https://en.wikipedia.org/wiki/Southeastern_Conference)).
+
+### Not changed
+- Poll 48336e0b ("What's the key to winning in Nashville?") is a good Vanderbilt-week poll and doesn't depend on any result.
+- Slot 1 (Holdsclaw, Naismith Player of the Century in 2000) is accurate ([Wikipedia](https://en.wikipedia.org/wiki/Chamique_Holdsclaw)). The 11-26 Holdsclaw question asks about her point total, so this one doesn't give its answer away.
+- Heads-up for 11-26: slot 4 is another Lady Vols recruiting True/False and slot 3 is a vague question about Heupel's home streak. Both will be fixed in the next run.
