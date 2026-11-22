@@ -26,6 +26,12 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // not to match (a kickoff, the other team), the early window and its picks are
 // dropped — nothing has been scored — and the drive opens normally.
 //
+// Once ESPN calls the game final and every window is settled, the game is
+// finalized automatically on that same poll (finalize-game), unless it is
+// under manual_control. In the last minute of the 4th quarter or overtime a
+// run re-polls that game every FAST_POLL_SECONDS inside its 15-second cron
+// slot, so the final whistle is picked up within ~5 seconds.
+//
 // dry_run (with a game_id) plans every drive from ESPN's data without writing
 // anything and compares the plan against the windows already in the database
 // — used to replay finished games.
@@ -48,6 +54,13 @@ const CONFIRM_SECONDS = 30;
 // game is handed to live-cfbd-sync by flipping live_games.data_source to
 // 'cfbd'. It stays there until someone flips it back.
 const FAILOVER_AFTER_FAILURES = 6;
+
+// Auto-finalize and crunch-time polling (see autoFinalize and the handler).
+const FAST_POLL_SECONDS = 5; // re-poll interval for a game in its last minute
+const FAST_POLL_BUDGET_MS = 11_000; // stop re-polling before the next 15-second cron run
+const CRUNCH_CLOCK_SECONDS = 60;
+const FINAL_LOOKBACK_MS = 12 * 60 * 60 * 1000; // keep polling a 'final' game this long, waiting to finalize it
+const FINALIZE_CLAIM_STALE_MS = 5 * 60 * 1000;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -227,11 +240,35 @@ function allDrives(d: EspnSummary): EspnDrive[] {
   return [...seen.values()];
 }
 
-function planDrive(v: EspnDrive, fallbackClock: string): PlannedDrive {
+// ESPN sometimes never labels a finished drive (2026-11-21: LSU's one-play
+// fumble late in the 2nd quarter kept a blank result for the rest of the
+// game, which held the game at 'live' forever). Once a drive is known to be
+// over, read its result from its last real play instead.
+function inferResult(plays: EspnPlay[], gameOver: boolean): string | null {
+  const real = plays.filter((p) => !/timeout|official/i.test(p.type?.text ?? "") && !/\bno play\b/i.test(p.text ?? ""));
+  const last = real[real.length - 1];
+  if (!last) return gameOver ? "End Of Game" : null;
+  const type = last.type?.text ?? "";
+  if (/end (period|of half|of game|of regulation)/i.test(type)) return "End Of Half";
+  if (/safety/i.test(type)) return "Safety";
+  if (/interception/i.test(type)) return "Interception";
+  if (/fumble recovery \(opponent\)|fumble return/i.test(type)) return "Fumble";
+  if (/blocked field goal|field goal missed|missed field goal/i.test(type)) return "Missed FG";
+  if (/field goal good/i.test(type)) return "Field Goal";
+  if (/punt/i.test(type)) return "Punt";
+  if (/touchdown/i.test(type)) return "Touchdown";
+  // The last drive of a finished game with no result of its own ran out the clock.
+  return gameOver ? "End Of Game" : null;
+}
+
+// over: a later drive exists or the game is over, so this drive has ended even
+// if ESPN hasn't labelled it. lastOfGame: the final drive of a finished game.
+function planDrive(v: EspnDrive, fallbackClock: string, over = false, lastOfGame = false): PlannedDrive {
   const plays = v.plays ?? [];
   const scrimmage = plays.filter((p) => !isKickoffPlay(p));
   const kickoff = plays.find(isKickoffPlay);
-  const rawResult = (v.displayResult ?? "").trim();
+  const labelled = (v.displayResult ?? "").trim();
+  const rawResult = labelled || (over ? inferResult(plays, lastOfGame) ?? "" : "");
   const inProgress = rawResult === "";
 
   // The drive's FIRST scrimmage play with a real spot gives the starting
@@ -290,7 +327,8 @@ function planDrive(v: EspnDrive, fallbackClock: string): PlannedDrive {
     // settled as downs on 1st/3rd down), so until the last play is a 4th-down
     // one, treat the drive as still going. A missed field goal also maps to
     // turnover_on_downs but is not a "Downs" result, so it is left alone.
-    else if (/DOWNS/i.test(rawResult) && !/MISSED/i.test(rawResult) && (lastPlay?.start?.down ?? 4) !== 4) {
+    // Once a later drive exists (or the game is over), ESPN's label stands.
+    else if (!over && /DOWNS/i.test(rawResult) && !/MISSED/i.test(rawResult) && (lastPlay?.start?.down ?? 4) !== 4) {
       outcome = null;
       suspectDowns = true;
     }
@@ -433,7 +471,9 @@ async function syncGame(supabase: SupabaseClient, game: GameRow, dryRun: boolean
   const nameOf = (id: string | null) =>
     id === home.team.id ? home.team.location ?? "" : id === away.team.id ? away.team.location ?? "" : "";
 
-  const plans = allDrives(d).map((v) => planDrive(v, clock ?? "15:00"));
+  const gameOver = state === "post";
+  const plans = allDrives(d).map((v, i, all) =>
+    planDrive(v, clock ?? "15:00", gameOver || i < all.length - 1, gameOver && i === all.length - 1));
 
   if (dryRun) {
     const { data: windows } = await supabase
@@ -679,10 +719,32 @@ async function syncGame(supabase: SupabaseClient, game: GameRow, dryRun: boolean
     if (ok) openedEarly++;
   }
 
+  // ── Auto-finalize ──
+  // Once ESPN calls the game final and every window is settled, finalize it on
+  // this same poll (finalize-game: grades props, scores pregame picks, credits
+  // points, awards badges, marks the game 'calculated').
+  let finalize: string | undefined;
+  if (newStatus === "final") {
+    const { count: openWins, error: winErr } = await supabase
+      .from("drive_windows").select("id", { count: "exact", head: true })
+      .eq("game_id", game.id).neq("status", "resolved");
+    if (winErr) finalize = `could not check windows: ${winErr.message}`;
+    else if (openWins) finalize = "waiting on unsettled windows";
+    else if (settleErrors.length > 0 || confirming > 0) finalize = "waiting on drive settling";
+    else finalize = await autoFinalize(supabase, game.id);
+  }
+
+  // Crunch time: the last minute of the 4th quarter or overtime. The game can
+  // end before the next cron run, so the caller re-polls it sooner.
+  const secs = clockSecs(clock);
+  const crunch = !game.manual_control && state === "in" && (period ?? 0) >= 4 && secs !== null && secs <= CRUNCH_CLOCK_SECONDS;
+
   return {
     game_id: game.id,
     ok: true,
     status: newStatus,
+    finalize,
+    crunch,
     homeScore,
     awayScore,
     driveCount: plans.length,
@@ -694,6 +756,45 @@ async function syncGame(supabase: SupabaseClient, game: GameRow, dryRun: boolean
     settled,
     settleErrors,
   };
+}
+
+const clockSecs = (display: string | null | undefined): number | null => {
+  const m = /^(\d+):(\d{2})/.exec(display ?? "");
+  return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : null;
+};
+
+// finalize_game credits points every time it runs, so only one poll may call
+// it: claim the game by stamping finalizing_at. A claim older than
+// FINALIZE_CLAIM_STALE_MS on a game still 'final' means that call never
+// committed (finalize_game is one transaction), so it can be retried.
+async function autoFinalize(supabase: SupabaseClient, gameId: string): Promise<string> {
+  const stale = new Date(Date.now() - FINALIZE_CLAIM_STALE_MS).toISOString();
+  const { data: claimed, error: claimErr } = await supabase
+    .from("live_games")
+    .update({ finalizing_at: new Date().toISOString() })
+    .eq("id", gameId).eq("status", "final")
+    .or(`finalizing_at.is.null,finalizing_at.lt.${stale}`)
+    .select("id");
+  if (claimErr) return `claim failed: ${claimErr.message}`;
+  if (!claimed || claimed.length === 0) return "already finalizing";
+
+  let failure = "";
+  try {
+    const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/finalize-game`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}` },
+      body: JSON.stringify({ game_id: gameId }),
+    });
+    if (!res.ok) failure = `HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`;
+  } catch (e) {
+    failure = e instanceof Error ? e.message : String(e);
+  }
+  if (failure) {
+    // Nothing was credited: release the claim so the next poll retries.
+    await supabase.from("live_games").update({ finalizing_at: null }).eq("id", gameId).eq("status", "final");
+    return `failed, will retry: ${failure}`;
+  }
+  return "finalized";
 }
 
 // ─── Handler ─────────────────────────────────────────────────────────────────
@@ -723,16 +824,19 @@ Deno.serve(async (req: Request) => {
   }
 
   // Only games assigned to ESPN, and — as in the CFBD poller — only 'live'
-  // games and 'pregame' games within an hour of kickoff.
+  // games and 'pregame' games within an hour of kickoff, plus recently 'final'
+  // games still waiting to be auto-finalized.
   const soon = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  const since = new Date(Date.now() - FINAL_LOOKBACK_MS).toISOString();
   const { data: games, error: gamesErr } = await supabase
     .from("live_games")
     .select("id, cfbd_game_id, home_team, away_team, status, manual_control, espn_failures")
     .eq("data_source", "espn")
     .eq("sport", "football")
-    .or(`status.eq.live,and(status.eq.pregame,kickoff_time.lte.${soon})`);
+    .or(`status.eq.live,and(status.eq.pregame,kickoff_time.lte.${soon}),and(status.eq.final,kickoff_time.gte.${since})`);
   if (gamesErr) return json({ error: gamesErr.message }, 500);
 
+  const startedAt = Date.now();
   const results = [];
   for (const game of (games ?? []) as GameRow[]) {
     const result = await syncGame(supabase, game, false);
@@ -752,5 +856,28 @@ Deno.serve(async (req: Request) => {
       results.push({ ...result, espnFailures: next });
     }
   }
-  return json({ ok: true, gamesSynced: results.length, results });
+
+  // Crunch-time fast polling: re-poll only the games about to end, until the
+  // next cron run takes over, so the final whistle is seen (and the game
+  // finalized) within ~5 seconds instead of up to 15.
+  const gamesSynced = results.length;
+  let fast = results.filter((r) => r.ok && (r as { crunch?: boolean }).crunch).map((r) => r.game_id);
+  let fastPolls = 0;
+  while (fast.length > 0 && Date.now() - startedAt + FAST_POLL_SECONDS * 1000 <= FAST_POLL_BUDGET_MS) {
+    await new Promise((r) => setTimeout(r, FAST_POLL_SECONDS * 1000));
+    const { data: rows } = await supabase
+      .from("live_games")
+      .select("id, cfbd_game_id, home_team, away_team, status, manual_control, espn_failures")
+      .in("id", fast);
+    const next: string[] = [];
+    for (const game of (rows ?? []) as GameRow[]) {
+      if (game.status === "calculated") continue;
+      const r = await syncGame(supabase, game, false);
+      fastPolls++;
+      results.push(r);
+      if (r.ok && (r as { crunch?: boolean }).crunch) next.push(game.id);
+    }
+    fast = next;
+  }
+  return json({ ok: true, gamesSynced, fastPolls, results });
 });
