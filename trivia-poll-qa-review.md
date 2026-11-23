@@ -2270,3 +2270,36 @@ _Note: the Supabase MCP connection timed out on several multi-statement writes t
 ### Not changed
 - Slot 2 (Kellie Harper played under Summitt) is fine. The 12-05 Harper question asks about her coaching career before UT, a different fact.
 - Slot 4 (Crompton's 2009 senior season under OC Jim Chaney) is fine.
+
+## 2026-11-23 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Window: 2026-11-23 → 2026-11-26. 11-23, 11-24 and 11-25 were already fixed (#304/#309/#312), so this run reviewed 11-26 (Thanksgiving, two days before Vanderbilt): 1 poll and 5 trivia rows.
+- 11-26 had 5 issues: an off-topic Lady Vols poll, an easy question with absurd ranges (slot 2), a meta question with non-answer options (slot 3), a broken True/False (slot 4), and a hard question whose answer (Hochevar) was given away by 11-23 slot 1 (slot 5). All fixed. Slot 1 is kept.
+
+### daily_polls.25bee43a — 2026-11-26 — ✅ applied
+- **Before:** "What is the best season in Lady Vols basketball history?" (1997-98 season / Holdsclaw era / Parker era / 2007-08 season)
+- **After:** "Happy Thanksgiving, Vol Nation! Where are you watching Saturday's regular-season finale at Vanderbilt?" In the stands in Nashville / At home with family / At a watch party or sports bar / On my phone wherever I am
+- **Why:** Polls must be about the previous or next football game. The old options also overlapped: the 1997-98 season was part of the Holdsclaw era, and 2007-08 was part of the Parker era. The new poll is a different angle from the 11-22 to 11-25 Vanderbilt polls (focus / margin / feeling / key) and doesn't depend on any result.
+
+### trivia_questions.dff2dfa7 — 2026-11-26 / slot 2 — ✅ applied
+- **Before:** "...Approximately how many career points did she score?" (Exactly 1,000 / Over 10,000 / Under 500 / Over 3,000 ✔)
+- **After:** "Chamique Holdsclaw is the Lady Vols' all-time leading scorer. About how many career points did she score at Tennessee?" A About 2,000, B About 2,500, C Just over 3,000 ✔, D About 3,500
+- **Why:** Three of the old options were absurd ("Exactly 1,000", "Over 10,000"). Verified her total as 3,025 ([UTSports](https://utsports.com/news/2024/7/18/womens-basketball-holdsclaw-to-be-inducted-into-d-c-sports-hall-of-fame)).
+
+### trivia_questions.4e8cdf54 — 2026-11-26 / slot 3 — ✅ applied (full replacement)
+- **Before:** "...What made Neyland Stadium especially difficult for opponents in this era?" (Tennessee rarely won at home / moved home games / no home streak / up-tempo offense and raucous atmosphere ✔)
+- **After:** "Saturday's opponent Vanderbilt couldn't beat Tennessee from 1983 through 2004. How many straight games did the Vols win in the series during that run?" A 12, B 17, C 22 ✔, D 27
+- **Why:** The old question was opinion-based, and three options contradicted its own premise. Verified the 22-game streak from 1983 to 2004 ([Wikipedia](https://en.wikipedia.com/wiki/Tennessee-Vanderbilt_football_rivalry), [UTSports 2004 game notes](https://utsports.com/news/2004/11/20/Tennessee_vs_Vanderbilt_Game_Notes)). The 11-03 Kentucky-streak question is about a different series.
+
+### trivia_questions.e6f79d52 — 2026-11-26 / slot 4 — ✅ applied (full replacement, category → SEC Knowledge)
+- **Before (Lady Vols History):** "Highly touted recruiting classes have continued to join the Lady Vols program in the 2020s... True or false?" (True ✔ / No recruit ranked since the 1990s / Not applicable / Rankings don't apply)
+- **After:** "Vanderbilt finally ended Tennessee's long series win streak with a 28-24 win at Neyland Stadium in 2005. Which Commodores quarterback threw the go-ahead touchdown with about a minute left?" A Jay Cutler ✔, B Jordan Rodgers, C Kyle Shurmur, D Chris Nickson
+- **Why:** This was a broken True/False with non-answers, and it repeated the 11-25 recruiting question that was just replaced. Verified that Cutler hit Earl Bennett for the go-ahead score with 1:11 left on Nov. 19, 2005 ([Wikipedia](https://en.wikipedia.org/wiki/2005_Vanderbilt_Commodores_football_team)). The other options are all real Vanderbilt QBs. The question doesn't give away slot 3's number.
+
+### trivia_questions.bb463e28 — 2026-11-26 / slot 5 — ✅ applied
+- **Before:** "Liam Doyle set Tennessee's single-season strikeout record in 2025, breaking a mark previously held by which pitcher?" (Hochevar ✔ / Dickey / Price / Dollander)
+- **After:** "In 2025, Liam Doyle broke Luke Hochevar's Tennessee single-season strikeout record. How many strikeouts did Doyle finish with?" A 132, B 148, C 164 ✔, D 181
+- **Why:** The old answer was correct (Hochevar had 154 in 2005), but 11-23 slot 1 is about Hochevar, which gives it away. The new question asks for Doyle's final total of 164 ([On3](https://on3.com/teams/tennessee-volunteers/news/liam-doyle-sets-tennessee-single-season-strikeout-record), [UTSports roster](https://utsports.com/sports/baseball/roster/liam-doyle/21518)).
+
+### Not changed
+- Slot 1 (the name of Neyland Stadium) is a legitimate easy question.
+- Up next: 11-27 poll needs a game-day-eve tie-in; 11-29+ polls need to cover the Vanderbilt result in a result-neutral way; 12-10, 12-11 and 12-14 are missing polls; 12-17 slot 3 duplicates a Goodrich question.
