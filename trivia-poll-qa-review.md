@@ -2270,3 +2270,32 @@ _Note: the Supabase MCP connection timed out on several multi-statement writes t
 ### Not changed
 - Slot 2 (Kellie Harper played under Summitt) is fine. The 12-05 Harper question asks about her coaching career before UT, a different fact.
 - Slot 4 (Crompton's 2009 senior season under OC Jim Chaney) is fine.
+
+## 2026-11-24 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Window: 2026-11-24 → 2026-11-27. 11-24 through 11-26 were already fixed (#309/#312/#313), so this run reviewed 11-27 (the day before the Vanderbilt finale): 1 poll and 5 trivia rows.
+- 11-27 had 4 issues: an off-topic kicker poll, a meta Lady Vols "nickname" question whose answer was "A nickname tied to that squad's identity" (slot 1), a yes/no UConn question with non-answers (slot 3), and a broken True/False with "Not applicable" (slot 5). All fixed. Slots 2 and 4 are kept.
+
+### daily_polls.627a71aa — 2026-11-27 — ✅ applied
+- **Before:** "Who is the best kicker in Tennessee football history?" (Jeff Hall / Fuad Reveiz / Daniel Lincoln / James Wilhoit)
+- **After:** "Kickoff in Nashville is tomorrow. How many points will the Vols put up against Vanderbilt?" 40 or more / 30 to 39 / 20 to 29 / Fewer than 20
+- **Why:** Polls must be about the previous or next game. The new poll asks about the Vols' point total, which is different from the 11-23 margin poll, and it doesn't depend on any result. The ranges don't overlap.
+
+### trivia_questions.e8b4ad1f — 2026-11-27 / slot 1 — ✅ applied (full replacement, category → SEC Knowledge)
+- **Before (Lady Vols History):** "The Lady Vols' 1996-97 team ... is affectionately remembered by fans under what kind of nickname?" (The 1998 team / The 2008 team / A nickname tied to that specific squad's identity ✔ / The 2020 team)
+- **After:** "Tomorrow's regular-season finale is at Vanderbilt. What is the current name of the Commodores' home football stadium?" A Dudley Field, B Memorial Stadium, C FirstBank Stadium ✔, D Nissan Stadium
+- **Why:** The old answer wasn't an answer, and the other options weren't nicknames. Verified that FirstBank Stadium got its name from a 10-year naming-rights deal announced Aug. 29, 2022, and is still the name in 2025-26 ([Vanderbilt](https://vucommodores.com/news/2026/08/20/new-year-new-upgrades)). Dudley Field, a former name, is a fair trap. Nissan Stadium is Nashville's NFL venue.
+
+### trivia_questions.045ef00a — 2026-11-27 / slot 3 — ✅ applied (full replacement)
+- **Before:** "As of the mid-2020s, does the all-time Tennessee-UConn series record favor UConn?" (Yes ✔ / Never played / Exactly tied / No, Tennessee leads by a wide margin)
+- **After:** "The 1996-97 Lady Vols won the national title with the most losses ever by an NCAA women's champion. How many games did they lose?" A 6, B 8, C 10 ✔, D 12
+- **Why:** The old question was a yes/no with throwaway options, and UConn comes up again on 12-10. The new question keeps the 1996-97 team from the old slot 1 but asks something real. Verified the 29-10 record and the 68-59 final over Old Dominion; the previous high for a champion was 6 losses, by Tennessee in 1987 ([NCAA News, 1997](https://s3.amazonaws.com/ncaanewsarchive/1997/19970407/active/3414n13.html)).
+
+### trivia_questions.09246d45 — 2026-11-27 / slot 5 — ✅ applied (full replacement, category → Vol Football History)
+- **Before (Lady Vols History):** "Kim Caldwell's roster strategy ... True or false?" (Rejected NIL/portal / Not applicable / True ✔ / 1980s-style offense)
+- **After:** "In 1998, Tennessee beat No. 2 Florida 20-17 in overtime when Gators kicker Collins Cooper missed from 32 yards. Which Vols kicker made the overtime field goal?" A Fuad Reveiz, B Daniel Lincoln, C Jeff Hall ✔, D Michael Palardy
+- **Why:** This was a broken True/False with three non-answers. Verified that on Sept. 19, 1998, Hall hit a 41-yarder in OT and then Cooper missed from 32 ([Sports-Reference box score](https://www.sports-reference.com/cfb/boxscores/1998-09-19-tennessee.html)). The other options are all real Vol kickers. No ±30-day duplicate: the 1998 Fiesta Bowl questions on 11-02 and 11-18 are about different games.
+
+### Not changed
+- Slot 2 (Helton's No. 3, the first number Tennessee baseball retired, in January 2008) is verified ([UTSports](https://utsports.com/news/2008/1/30/Helton_s_No_3_Retired_at_Leadoff_Banquet)). Helton is also on 12-01 and 12-20, but those questions ask about different facts.
+- Slot 4 (LSU beat Tennessee in the 2001 SEC Championship Game, 31-20) is accurate.
+- Up next: from 11-29 on, the polls need to follow up on the Vanderbilt game without assuming the result. 12-10, 12-11 and 12-14 are missing polls, and 12-17 slot 3 duplicates a Goodrich question.
