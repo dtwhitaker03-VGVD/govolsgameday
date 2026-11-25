@@ -2270,3 +2270,37 @@ _Note: the Supabase MCP connection timed out on several multi-statement writes t
 ### Not changed
 - Slot 2 (Kellie Harper played under Summitt) is fine. The 12-05 Harper question asks about her coaching career before UT, a different fact.
 - Slot 4 (Crompton's 2009 senior season under OC Jim Chaney) is fine.
+
+## 2026-11-25 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Window: 2026-11-25 → 2026-11-28. 11-25 through 11-27 were already fixed (#312/#313/#315), so this run reviewed 11-28, game day at Vanderbilt: 1 poll and 5 trivia rows.
+- 11-28 had 5 issues: an off-topic baseball-coach poll; a mascot question that repeated the 11-24 Smokey theme (slot 1); "per common fan consensus" opinion wording (slot 2); and two broken questions with "Not applicable" options (slots 3 and 4). All fixed. Slot 5 is kept.
+
+### daily_polls.9f1e2947 — 2026-11-28 — ✅ applied
+- **Before:** "Who is the best coach in Tennessee baseball history?" (Delmonico / Vitello / Wright / Stubblefield)
+- **After:** "It's game day in Nashville! Which Vols unit will be the star of the regular-season finale at Vanderbilt?" The offense / The defense / Special teams / The coaching staff
+- **Why:** On game day, the poll has to be about the game. This one doesn't depend on the result and is a different question from this week's other polls: focus, margin, feeling, key, where you're watching, and points.
+
+### trivia_questions.8ef5e416 — 2026-11-28 / slot 1 — ✅ applied (full replacement)
+- **Before:** "Which SEC school's mascot is a live tiger, similar in spirit to Tennessee's live Smokey mascot tradition?" (LSU ✔)
+- **After:** "Game day at Vanderbilt: Commodores fans and players rally around what two-word slogan?" A Anchor Up, B Anchor Down ✔, C Anchors Aweigh, D Hold the Line
+- **Why:** 11-24 already asks about Smokey, and SEC mascot questions are oversaturated. "Anchor Down" is Vanderbilt's well-known rallying cry and ties to game day. "Anchors Aweigh", the Navy song, is a fair trap.
+
+### trivia_questions.d5e2bbc7 — 2026-11-28 / slot 2 — ✅ applied (stem only)
+- **Before:** "What is the Lady Vols' biggest rival in women's basketball, per common fan consensus?"
+- **After:** "Which program became the Lady Vols' fiercest women's basketball rival under Pat Summitt, in a series that began in 1995?" (UConn ✔, options unchanged)
+- **Why:** The old wording asked for an opinion ("per common fan consensus"). The new stem points to the factual Summitt-era rivalry, whose first meeting was in January 1995.
+
+### trivia_questions.ac28f0b7 — 2026-11-28 / slot 3 — ✅ applied (full replacement)
+- **Before:** "Which SEC softball program, a recent conference addition, is among the most decorated in NCAA softball history?" (Vanderbilt / No SEC school has ever won / Not applicable / Oklahoma ✔)
+- **After:** "Vanderbilt head coach Clark Lea, who faces the Vols today, played for the Commodores from 2002 to 2004 at which position?" A Linebacker, B Tight end, C Fullback ✔, D Quarterback
+- **Why:** The old version had two non-answer options and was off topic. Verified that Lea walked on at Vanderbilt as a fullback (2002-04) after playing baseball at Belmont, and that he is in his sixth season as Vanderbilt's head coach in 2026 ([Vanderbilt](https://vucommodores.com/coach/clark-lea), [Wikipedia](https://en.wikipedia.org/wiki/Clark_Lea)).
+
+### trivia_questions.d455a555 — 2026-11-28 / slot 4 — ✅ applied (full replacement)
+- **Before:** "Which Tennessee reliever's velocity readings ... drew national attention during the early 2020s?" (Ben Joyce ✔ / Only starters draw this kind of attention / Not applicable / No such performance has ever occurred)
+- **After:** "On May 1, 2022, Tennessee reliever Ben Joyce threw the fastest pitch in college baseball history. How fast was it clocked?" A 102.1 mph, B 103.8 mph, C 105.5 mph ✔, D 107.2 mph
+- **Why:** The old version had three non-answers. Verified 105.5 mph, recorded against Auburn on May 1, 2022 ([SI](https://www.si.com/college/2022/05/01/tennessee-pitcher-ben-joyce-throws-hardest-fastball-in-college-baseball-history)).
+- ⚠️ **Follow-up:** 12-16 slot 4 also asks about Joyce's velocity and needs to be replaced when that date comes into the window.
+
+### Not changed
+- Slot 5 is correct: the Los Angeles Sparks drafted Candace Parker No. 1 overall in 2008, and she won MVP and Rookie of the Year that same year. The 10-26 Parker MVP question is outside the ±30-day window.
+- Up next: from 11-29 on, polls need to follow up on the Vanderbilt game without assuming the result. Polls are missing for 12-10, 12-11 and 12-14. 12-16 slot 4 duplicates today's Joyce question, and 12-17 slot 3 duplicates a Goodrich question.
