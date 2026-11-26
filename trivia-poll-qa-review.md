@@ -2270,3 +2270,37 @@ _Note: the Supabase MCP connection timed out on several multi-statement writes t
 ### Not changed
 - Slot 2 (Kellie Harper played under Summitt) is fine. The 12-05 Harper question asks about her coaching career before UT, a different fact.
 - Slot 4 (Crompton's 2009 senior season under OC Jim Chaney) is fine.
+
+## 2026-11-26 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Window: 2026-11-26 → 2026-11-29. 11-26 through 11-28 were already fixed (#313/#315/#316), so this run reviewed 11-29, the day after the Vanderbilt finale: 1 poll and 5 trivia rows.
+- 11-29 had 5 issues: an off-topic basketball poll, an athletic-director question on an oversaturated topic (slot 2), a question with more than one correct answer (slot 3), a conference opponent listed as a "nonconference" option (slot 4), and a broken question with an option that rules itself out (slot 5). All fixed. Slot 1 is kept.
+
+### daily_polls.804ab0f4 — 2026-11-29 — ✅ applied
+- **Before:** "What single win would mean the most for Tennessee basketball right now?"
+- **After:** "The regular season is in the books after Saturday's finale at Vanderbilt. What grade do you give the Vols' 2026 regular season?" A — exceeded expectations / B — a solid year / C — mixed bag / D or below — disappointing
+- **Why:** Polls must be about the previous or next football game. This one reacts to the end of the regular season without assuming the Vanderbilt result.
+
+### trivia_questions.3bf5960b — 2026-11-29 / slot 2 — ✅ applied (full replacement, category → Vol Football History)
+- **Before (General Vol Athletics):** "Which Tennessee Athletic Director served from 2011 to 2017...?" (Dave Hart ✔)
+- **After:** "In what year did Tennessee win its most recent SEC football championship?" A 1998 ✔, B 2001, C 2004, D 2007
+- **Why:** Athletic-director questions are oversaturated (11-04, 11-30, etc.). This is an easy fact for Vol fans with good traps: 2001, 2004 and 2007 were all SEC Championship Game losses.
+
+### trivia_questions.55eeeb1c — 2026-11-29 / slot 3 — ✅ applied (stem only)
+- **Before:** "Dave Serrano, Tennessee's coach immediately preceding Tony Vitello, previously coached at which West Coast program?" (UC Irvine ✔)
+- **After:** "Before taking over at Tennessee, Dave Serrano led which West Coast program to its first College World Series in 2007?" (options unchanged; UC Irvine ✔)
+- **Why:** The old stem had two correct answers. Serrano coached at both UC Irvine (2005-07) and Cal State Fullerton (2008-11) before Tennessee. Tying the question to the 2007 CWS makes UC Irvine the only correct answer ([Baseball-Reference](https://www.baseball-reference.com/bullpen/Dave_Serrano)).
+
+### trivia_questions.928a58c0 — 2026-11-29 / slot 4 — ✅ applied (option B only)
+- **Before:** option B "Alabama"
+- **After:** option B "Penn State"
+- **Why:** The question asks for a "nonconference opponent", so Alabama, an SEC team, could be ruled out immediately. The answer is still Syracuse (the 1998 opener, won 34-33).
+
+### trivia_questions.a8b40163 — 2026-11-29 / slot 5 — ✅ applied (full replacement, category → Vol Football History)
+- **Before (General Vol Athletics):** "Tennessee's indoor track program ... new facility that opened in which year?" (1990 / 2023 ✔ / It has never had an indoor facility / 1965)
+- **After:** "How many SEC football championships has Tennessee won in its history?" A 9, B 11, C 13 ✔, D 15
+- **Why:** The old version had an option that ruled itself out and an unclear premise. Verified 13 SEC titles: 1938, 1939, 1940, 1946, 1951, 1956, 1967, 1969, 1985, 1989, 1990, 1997 and 1998 ([Wikipedia](https://en.wikipedia.org/wiki/Tennessee_Volunteers_football)). The question works with slot 2 without giving its answer away.
+- ⚠️ This is accurate as of 11-29. If the program wins another SEC title, this count needs updating.
+
+### Not changed
+- Slot 1 is correct and kept: the White Sox took Garrett Crochet 11th overall in 2020.
+- Up next: from 11-30 on, polls should focus on the postseason (SEC title game or bowl) without assuming results. Polls are missing for 12-10, 12-11 and 12-14. 12-16 slot 4 duplicates the Joyce velocity question, and 12-17 slot 3 duplicates a Goodrich question.
