@@ -2270,3 +2270,37 @@ _Note: the Supabase MCP connection timed out on several multi-statement writes t
 ### Not changed
 - Slot 2 (Kellie Harper played under Summitt) is fine. The 12-05 Harper question asks about her coaching career before UT, a different fact.
 - Slot 4 (Crompton's 2009 senior season under OC Jim Chaney) is fine.
+
+## 2026-11-27 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Window: 2026-11-27 → 2026-11-30. 11-27 through 11-29 were already fixed (#315/#316/#317), so this run reviewed 11-30: 1 poll and 5 trivia rows.
+- 11-30 had 5 issues: an off-topic all-time QB poll, a trivial "what is Arkansas's mascot" question (slot 2), a broken baseball-TV question with "Not applicable" (slot 3), an athletic-director question on an already overused topic (slot 4), and a broken yes/no question about Rick Barnes with absurd options (slot 5). All fixed. Slot 1 is kept.
+
+### daily_polls.35647ad3 — 2026-11-30 — ✅ applied
+- **Before:** "Who is the best dual threat quarterback in Tennessee history?" (Dobbs / Ainge / Bray / Hooker)
+- **After:** "Looking back on Saturday's regular-season finale in Nashville, which Vols unit stood out most to you?" The offense / The defense / Special teams / No unit really stood out
+- **Why:** The poll has to be about the previous game. This one follows up the 11-28 game-day poll ("which unit will be the star") without assuming the result. The old poll's options also weren't comparable: Ainge and Bray weren't dual-threat QBs.
+
+### trivia_questions.1e9e89a0 — 2026-11-30 / slot 2 — ✅ applied (full replacement, category → Vol Football History)
+- **Before (SEC Knowledge):** "Arkansas's mascot and nickname, distinct from Tennessee's, is what?" (Razorbacks ✔)
+- **After:** "Which Tennessee wide receiver won the 2022 Biletnikoff Award as the nation's top receiver?" A Cedric Tillman, B Jalin Hyatt ✔, C Bru McCoy, D Squirrel White
+- **Why:** The old question was trivial, mascot questions are already overused, and it had nothing to do with Tennessee. The new one is easy for Vol fans, and the wrong answers are all real Heupel-era receivers. No ±30-day duplicate.
+
+### trivia_questions.a67829bf — 2026-11-30 / slot 3 — ✅ applied (full replacement, category → Vol Football History)
+- **Before (Vol Baseball History):** "Tennessee baseball's television and streaming coverage has grown alongside which broader SEC media rights development?" (Not applicable / SEC Network growth ✔ / Only radio broadcasts exist / No games have ever been televised)
+- **After:** "Johnny Majors coached Tennessee from 1977 to 1992. At which school did he win the 1976 national championship before returning to his alma mater?" A Iowa State, B Notre Dame, C Pittsburgh ✔, D Penn State
+- **Why:** The old question had three non-answers. Majors won the 1976 national title at Pitt (with Tony Dorsett) and coached Iowa State before that, which makes Iowa State a fair trap. This is well-documented history, and there's no duplicate within ±30 days.
+
+### trivia_questions.5149362f — 2026-11-30 / slot 4 — ✅ applied (full replacement, category → Vol Football History)
+- **Before (General Vol Athletics):** "Mike Hamilton replaced Doug Dickey as Tennessee's Athletic Director in which year?" (2003 ✔)
+- **After:** "In 2022, Tennessee led the nation in scoring offense for the first time in program history. About how many points per game did the Vols average?" A 38.4, B 42.8, C 46.1 ✔, D 51.3
+- **Why:** Athletic-director questions are already overused (11-29's was just replaced). Verified 46.1 PPG, a school record, which broke the 42.8 set in 1993 ([UTSports](https://utsports.com/sports/2023/6/14/2022-tennessee-football-highlights)). The old record, 42.8, is included as a trap.
+
+### trivia_questions.e6ee8e81 — 2026-11-30 / slot 5 — ✅ applied (full replacement, category → Vol Football History)
+- **Before (Vol Basketball History):** "...Has the program been ranked in the AP Top 25 for most weeks across his tenure?" (Rarely ranked / Yes ✔ / Always #1 every week / Never ranked)
+- **After:** "On Dec. 1, 2001, Tennessee won 34-32 at No. 2 Florida to clinch the SEC East. Which Vols running back ran for a career-high 226 yards that day?" A Travis Henry, B Jamal Lewis, C Cedric Houston, D Travis Stephens ✔
+- **Why:** This was a broken yes/no question with absurd options, and it also stated an unverified claim ("three straight Elite Eights"). Verified 226 yards and 2 TDs on 19 carries ([UTSports](https://utsports.com/news/2001/12/1/vols_escape_from_the_swamp_victorious_34_32.aspx)). The other options are real Vol running backs from around that era. The game is close to its 25th anniversary (Dec. 1).
+
+### Not changed
+- Slot 1 is correct and kept: Arian Foster went undrafted and won the 2010 NFL rushing title with Houston.
+- Note: 11-11 slot 3 and 11-27 slot 4 both asked about the 2001 SEC title game loss to LSU. Both dates have already passed, so I'm only logging it.
+- Up next: postseason polls (SEC title game or bowl) from 12-01 on. Polls are missing for 12-10, 12-11 and 12-14. Duplicates to fix: 12-16 slot 4 (Joyce velocity) and 12-17 slot 3 (Goodrich).
