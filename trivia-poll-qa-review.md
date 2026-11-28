@@ -2270,3 +2270,36 @@ _Note: the Supabase MCP connection timed out on several multi-statement writes t
 ### Not changed
 - Slot 2 (Kellie Harper played under Summitt) is fine. The 12-05 Harper question asks about her coaching career before UT, a different fact.
 - Slot 4 (Crompton's 2009 senior season under OC Jim Chaney) is fine.
+
+## 2026-11-28 — run summary (fixes APPLIED to DB per David's 2026-10-11 standing instruction)
+- Window: 2026-11-28 → 2026-12-01. 11-28 through 11-30 were already fixed (#316/#317/#318), so this run reviewed 12-01: 1 poll and 5 trivia rows.
+- 12-01 had 5 issues: a generic poll not tied to any game, two broken questions with "Not applicable" options (slots 2 and 3), absurd "Around 50 / Around 90" options (slot 4), and a broken NCAA Tournament range question (slot 5). All fixed. Slot 1 is kept.
+
+### daily_polls.22c998e5 — 2026-12-01 — ✅ applied
+- **Before:** "What would mean more to Vol fans?" (Beating Alabama / Winning the SEC / Making the CFP / Winning the national championship)
+- **After:** "Bowl season is almost here. Where would you most like to see the Vols play this postseason?" In the College Football Playoff / In a New Year's Six bowl / In the Citrus Bowl in Orlando / Anywhere close enough to road-trip to
+- **Why:** The poll has to be about the upcoming game. The regular season is over, so the next game is the bowl or playoff game, and this works however selection turns out. The old options also overlapped (winning a national title requires making the CFP).
+
+### trivia_questions.5a81d7ad — 2026-12-01 / slot 2 — ✅ applied (full replacement, category → Vol Football History)
+- **Before (SEC Knowledge):** "Multiple SEC baseball and softball programs have made significant facility investments... True or false?" (three non-answers / True ✔)
+- **After:** "Tennessee capped the 2023 season with a 35-0 shutout in the Citrus Bowl on Jan. 1, 2024. Which Big Ten team did the Vols blank?" A Wisconsin, B Iowa ✔, C Minnesota, D Northwestern
+- **Why:** Broken True/False. The new question is bowl-season themed. The only nearby Citrus mention is 10-27, outside ±30 days.
+
+### trivia_questions.4ba94a1f — 2026-12-01 / slot 3 — ✅ applied (full replacement, category → Vol Football History)
+- **Before (Vol Baseball History):** "Which Tennessee player entered the transfer portal...?" (Transfers are banned / No player ever transferred / roster-movement sentence ✔ / Not applicable)
+- **After:** "Tennessee's first-ever bowl game was the Orange Bowl on Jan. 2, 1939, a 17-0 win. Which team did the Vols beat?" A Texas, B Oklahoma ✔, C Nebraska, D Ohio State
+- **Why:** The old question asked "which player" but the marked answer was a sentence, not a player. Verified the 17-0 win over Oklahoma ([UTSports](https://utsports.com/news/2014/9/12/FLASHBACK_Vols_Top_OU_In_39_Orange_Bowl), [Wikipedia](https://en.wikipedia.org/wiki/1939_Orange_Bowl)).
+
+### trivia_questions.22fe6501 — 2026-12-01 / slot 4 — ✅ applied (stem + options)
+- **Before:** "...commonly cited as approximately how many?" (Around 250 / Around 150 ✔ / Around 50 / Around 90)
+- **After:** "Phillip Fulmer coached Tennessee for 17 seasons (1992-2008). How many games did he win?" A 128, B 141, C 152 ✔, D 167
+- **Why:** "Around 50" and "Around 90" were obviously wrong. Verified 152-52 ([UTSports](https://utsports.com/news/2025/10/15/football-phillip-fulmer-recipient-of-paul-bear-bryant-lifetime-achievement-award)). The 11-09 and 11-16 Fulmer questions are about different facts.
+
+### trivia_questions.1adebd9e — 2026-12-01 / slot 5 — ✅ applied (full replacement, category → Vol Football History)
+- **Before (Vol Basketball History):** "Tennessee's all-time cumulative NCAA Tournament win total is commonly cited as being in what range?" (Over 100 / Several dozen ✔ / Exactly 1 / Zero)
+- **After:** "Tennessee's 1939 team went unbeaten and unscored upon in the regular season, then lost 14-0 on Jan. 1, 1940, in which bowl?" A The Sugar Bowl, to Texas A&M, B The Orange Bowl, to Georgia Tech, C The Rose Bowl, to USC ✔, D The Cotton Bowl, to Clemson
+- **Why:** The old version had vague, unanswerable ranges. Verified that USC won the 1940 Rose Bowl 14-0 ([Wikipedia: Tennessee bowl games](https://en.wikipedia.org/wiki/List_of_Tennessee_Volunteers_bowl_games)). The 1939 unscored-upon regular season is well documented. The 10-30 question about the 1939 team asks a different fact and is outside ±30 days.
+
+### Not changed
+- Slot 1 is correct and kept: Helton went into the Hall of Fame in 2024. He is also asked about on 11-27 and 12-20, but each question covers a different fact.
+- Up next: polls are missing for 12-10, 12-11 and 12-14 and need to be inserted. Duplicates to fix: 12-16 slot 4 (Joyce velocity) and 12-17 slot 3 (Goodrich).
